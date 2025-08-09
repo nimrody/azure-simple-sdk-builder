@@ -41,7 +41,8 @@ public class JavaDefinitionGenerator {
                 JsonNode property = properties.get(propertyName);
                 String javaType = getJavaType(property, definitionKey.filename());
                 String fieldName = convertToJavaFieldName(propertyName);
-                fields.add("    " + javaType + " " + fieldName);
+                String fieldDeclaration = generateFieldDeclaration(javaType, fieldName, propertyName);
+                fields.add(fieldDeclaration);
             });
         }
         
@@ -180,15 +181,121 @@ public class JavaDefinitionGenerator {
     }
     
     private String convertToJavaFieldName(String propertyName) {
+        String fieldName;
         if (propertyName.contains("-")) {
             String[] parts = propertyName.split("-");
             StringBuilder camelCase = new StringBuilder(parts[0].toLowerCase());
             for (int i = 1; i < parts.length; i++) {
                 camelCase.append(capitalizeFirstLetter(parts[i].toLowerCase()));
             }
-            return camelCase.toString();
+            fieldName = camelCase.toString();
+        } else {
+            fieldName = propertyName;
         }
-        return propertyName;
+        
+        // Handle Java reserved words
+        return mapReservedWord(fieldName);
+    }
+    
+    private String mapReservedWord(String fieldName) {
+        switch (fieldName) {
+            case "default":
+                return "dflt";
+            case "interface":
+                return "iface";
+            case "class":
+                return "clazz";
+            case "public":
+                return "publicField";
+            case "private":
+                return "privateField";
+            case "protected":
+                return "protectedField";
+            case "static":
+                return "staticField";
+            case "final":
+                return "finalField";
+            case "abstract":
+                return "abstractField";
+            case "synchronized":
+                return "synchronizedField";
+            case "volatile":
+                return "volatileField";
+            case "transient":
+                return "transientField";
+            case "native":
+                return "nativeField";
+            case "strictfp":
+                return "strictfpField";
+            case "return":
+                return "returnValue";
+            case "void":
+                return "voidField";
+            case "if":
+                return "ifField";
+            case "else":
+                return "elseField";
+            case "while":
+                return "whileField";
+            case "for":
+                return "forField";
+            case "do":
+                return "doField";
+            case "switch":
+                return "switchField";
+            case "case":
+                return "caseField";
+            case "break":
+                return "breakField";
+            case "continue":
+                return "continueField";
+            case "try":
+                return "tryField";
+            case "catch":
+                return "catchField";
+            case "finally":
+                return "finallyField";
+            case "throw":
+                return "throwField";
+            case "throws":
+                return "throwsField";
+            case "new":
+                return "newField";
+            case "this":
+                return "thisField";
+            case "super":
+                return "superField";
+            case "null":
+                return "nullField";
+            case "true":
+                return "trueField";
+            case "false":
+                return "falseField";
+            case "instanceof":
+                return "instanceofField";
+            case "package":
+                return "packageField";
+            case "import":
+                return "importField";
+            case "extends":
+                return "extendsField";
+            case "implements":
+                return "implementsField";
+            default:
+                return fieldName;
+        }
+    }
+    
+    private boolean isReservedWord(String fieldName) {
+        return !fieldName.equals(mapReservedWord(fieldName));
+    }
+    
+    private String generateFieldDeclaration(String javaType, String fieldName, String originalPropertyName) {
+        if (isReservedWord(originalPropertyName) || !fieldName.equals(originalPropertyName)) {
+            return String.format("    @JsonProperty(\"%s\") %s %s", originalPropertyName, javaType, fieldName);
+        } else {
+            return String.format("    %s %s", javaType, fieldName);
+        }
     }
     
     private String capitalizeFirstLetter(String str) {

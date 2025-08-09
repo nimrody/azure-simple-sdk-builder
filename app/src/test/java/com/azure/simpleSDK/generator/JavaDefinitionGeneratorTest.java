@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,6 +46,7 @@ class JavaDefinitionGeneratorTest {
         definitions.put(new DefinitionKey("networkInterface.json", "Resource"), emptyObject);
         definitions.put(new DefinitionKey("publicIpAddress.json", "PublicIPAddress"), emptyObject);
         definitions.put(new DefinitionKey("applicationGateway.json", "ApplicationGatewayFirewallRuleGroup"), emptyObject);
+        definitions.put(new DefinitionKey("test.json", "TestDefinition"), emptyObject);
         
         return definitions;
     }
@@ -180,6 +182,57 @@ class JavaDefinitionGeneratorTest {
         });
         
         assertTrue(exception.getMessage().contains("Unsupported reference format"));
+    }
+    
+    @Test
+    @DisplayName("Should generate record with reserved word field names properly mapped")
+    void testGenerateRecord_ReservedWordFields() {
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition");
+        
+        // Create a test definition with reserved word properties
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode propertiesNode = mapper.createObjectNode();
+        propertiesNode.set("default", mapper.createObjectNode().put("type", "boolean"));
+        propertiesNode.set("interface", mapper.createObjectNode().put("type", "string"));
+        propertiesNode.set("class", mapper.createObjectNode().put("type", "string"));
+        propertiesNode.set("public", mapper.createObjectNode().put("type", "integer"));
+        propertiesNode.set("normalField", mapper.createObjectNode().put("type", "string"));
+        
+        ObjectNode definition = mapper.createObjectNode();
+        definition.set("properties", propertiesNode);
+        
+        String result = generator.generateRecord(definitionKey, definition);
+        
+        // Check that reserved words are properly mapped and have JsonProperty annotations
+        assertTrue(result.contains("@JsonProperty(\"default\") Boolean dflt"));
+        assertTrue(result.contains("@JsonProperty(\"interface\") String iface"));
+        assertTrue(result.contains("@JsonProperty(\"class\") String clazz"));
+        assertTrue(result.contains("@JsonProperty(\"public\") Integer publicField"));
+        
+        // Check that normal fields don't have JsonProperty annotations
+        assertTrue(result.contains("    String normalField"));
+        assertFalse(result.contains("@JsonProperty(\"normalField\")"));
+    }
+    
+    @Test
+    @DisplayName("Should handle hyphenated property names that become reserved words")
+    void testGenerateRecord_HyphenatedReservedWords() {
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition");
+        
+        // Create a test definition with hyphenated properties that might become reserved words
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode propertiesNode = mapper.createObjectNode();
+        propertiesNode.set("default-value", mapper.createObjectNode().put("type", "string"));
+        propertiesNode.set("interface-name", mapper.createObjectNode().put("type", "string"));
+        
+        ObjectNode definition = mapper.createObjectNode();
+        definition.set("properties", propertiesNode);
+        
+        String result = generator.generateRecord(definitionKey, definition);
+        
+        // Check that hyphenated properties are converted to camelCase and then handled for reserved words
+        assertTrue(result.contains("@JsonProperty(\"default-value\") String defaultValue"));
+        assertTrue(result.contains("@JsonProperty(\"interface-name\") String interfaceName"));
     }
     
 }
