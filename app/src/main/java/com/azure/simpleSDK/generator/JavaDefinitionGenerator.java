@@ -128,11 +128,11 @@ public class JavaDefinitionGenerator {
             filename = currentFilename.replace(".json", "");
             definitionName = ref.replace("#/definitions/", "");
             
-        } else if (ref.startsWith("./")) {
+                } else if (ref.startsWith("./")) {
             // handle external references like "./networkInterface.json#/definitions/NetworkInterface"
-            String[] parts = ref.split("#");
+            String[] parts = ref.split("#/definitions/");
             filename = parts[0].replace("./", "").replace(".json", "");
-            definitionName = parts[1].replace("definitions/", "");
+            definitionName = parts[1];
         } else {
             throw new IllegalArgumentException("Unsupported reference format: " + ref);
         }
