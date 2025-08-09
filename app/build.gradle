@@ -14,17 +14,9 @@ dependencies {
 }
 
 application {
-    mainClass = 'com.azure.simpleSDK.generator.Main'
+    mainClass = 'com.azure.simpleSDK.generator.SpecLoader'
 }
 
-// Generate SDK task
-task generateSdk(type: JavaExec) {
-    group = 'generation'
-    description = 'Generate Azure SDK code for specified operations'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.azure.simpleSDK.generator.Main'
-    
-    if (project.hasProperty('operations')) {
-        args = project.property('operations').split(',')
-    }
+run {
+    workingDir = rootProject.projectDir
 }

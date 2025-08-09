@@ -1,20 +1,31 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
-This is a Java command line tool to create a library to replace the broken Azure SDK. 
+This is a Java command line tool to create a library to replace the broken
+Azure SDK. 
 
-The tool will read specifications from the folder azure-rest-api-spects/specification and generate the necessary model files and code to call the relevant REST API endpoint. 
+The tool will read specifications from the folder
+azure-rest-api-specs/specification and generate the necessary model files and
+code to call the relevant REST API endpoint. 
 
-The tool accepts a list of API calls to generate code for. E.g., specifying `VirtualNetworkGateways_List` will find the endpoint at azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/virtualNetworkGateway.json and create models and code for this endpoint.
+The tool accepts a list of API calls to generate code for. E.g., specifying
+`VirtualNetworkGateways_List` will find the endpoint at
+azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/virtualNetworkGateway.json
+and create models and code for this endpoint.
 
 ## Features
 
-* Instead of relying on the Reactor async library, the generated code is using the built Java 17 HTTP synchronous client. 
+* Instead of relying on the Reactor async library, the generated code is using
+  the built Java 17 HTTP synchronous client. 
 
-* The generated code parses Azure JSON responses using Jackson ObjectMapper. All models created from the HTTP response data will use immutable Java records.
+* The generated code parses Azure JSON responses using Jackson ObjectMapper.
+  All models created from the HTTP response data will use immutable Java
+  records.
 
-* When the same model appears in multiple files and paths contain date, use the file where the date is latest.
+* When the same model appears in multiple files and paths contain date, use the
+  file where the date is latest.
 
 * Built with Gradle and requires Java 17+
 
@@ -23,8 +34,12 @@ The tool accepts a list of API calls to generate code for. E.g., specifying `Vir
 This is a multi-module Gradle project with two main components:
 
 - **app/** - Main application module containing the code generation tool
-- **sdk/** - Generated SDK module that will contain the final Azure Simple SDK library
-- **azure-rest-api-specs/** - Git submodule containing Microsoft Azure REST API specifications
+
+- **sdk/** - Generated SDK module that will contain the final Azure Simple SDK
+  library
+
+- **azure-rest-api-specs/** - Git submodule containing Microsoft Azure REST API
+  specifications
 
 ## Build Commands
 
@@ -59,7 +74,10 @@ The project uses Gradle with the wrapper script. All commands should be run from
 The tool processes Azure OpenAPI specifications from the azure-rest-api-specs directory:
 
 1. Locates the specified operation (e.g., `VirtualNetworkGateways_List`) in the appropriate JSON specification files
-2. Parses the OpenAPI/Swagger definitions to extract models and endpoints
+2. Parses the OpenAPI/Swagger definitions to extract models and endpoints.
+   Handles cases where the definition refers to other definitions inside the
+   same file (starting with '#') or in other files in the same repository
+   (starting with "./" and followed by the filename)
 3. Generates immutable Java records for all data models
 4. Creates REST client code using Java 17's built-in HTTP client
 5. Uses Jackson for JSON serialization/deserialization
