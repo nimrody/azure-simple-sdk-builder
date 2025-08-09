@@ -1,0 +1,127 @@
+package com.azure.simpleSDK.generator;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class JavaDefinitionGenerator {
+    private static final Pattern REF_PATTERN = Pattern.compile("^(\\./([^#]+)#)?/definitions/(.+)$");
+    
+    public String generateRecord(DefinitionKey definitionKey, JsonNode definition) {
+        String className = generateClassName(definitionKey);
+        StringBuilder recordBuilder = new StringBuilder();
+        
+        recordBuilder.append("public record ").append(className).append("(\n");
+        
+        List<String> fields = new ArrayList<>();
+        JsonNode properties = definition.get("properties");
+        if (properties != null && properties.isObject()) {
+            properties.fieldNames().forEachRemaining(propertyName -> {
+                if (shouldIgnoreProperty(propertyName)) {
+                    return;
+                }
+                
+                JsonNode property = properties.get(propertyName);
+                String javaType = getJavaType(property, definitionKey.filename());
+                String fieldName = convertToJavaFieldName(propertyName);
+                fields.add("    " + javaType + " " + fieldName);
+            });
+        }
+        
+        recordBuilder.append(String.join(",\n", fields));
+        recordBuilder.append("\n) {\n}");
+        
+        return recordBuilder.toString();
+    }
+    
+    private String generateClassName(DefinitionKey definitionKey) {
+        String filename = definitionKey.filename();
+        String baseName = filename.replaceAll("\\.json$", "");
+        String definitionName = definitionKey.definitionKey();
+        
+        return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(definitionName);
+    }
+    
+    private String getJavaType(JsonNode property, String currentFilename) {
+        if (property.has("$ref")) {
+            return resolveReference(property.get("$ref").asText(), currentFilename);
+        }
+        
+        if (property.has("type")) {
+            String type = property.get("type").asText();
+            switch (type) {
+                case "string":
+                    return "String";
+                case "integer":
+                    return property.has("format") && "int64".equals(property.get("format").asText()) ? "Long" : "Integer";
+                case "number":
+                    return "Double";
+                case "boolean":
+                    return "Boolean";
+                case "array":
+                    JsonNode items = property.get("items");
+                    if (items != null) {
+                        String itemType = getJavaType(items, currentFilename);
+                        return "java.util.List<" + itemType + ">";
+                    }
+                    return "java.util.List<Object>";
+                case "object":
+                    if (property.has("additionalProperties")) {
+                        JsonNode additionalProps = property.get("additionalProperties");
+                        if (additionalProps.isBoolean() && additionalProps.asBoolean()) {
+                            return "java.util.Map<String, Object>";
+                        } else if (additionalProps.isObject()) {
+                            String valueType = getJavaType(additionalProps, currentFilename);
+                            return "java.util.Map<String, " + valueType + ">";
+                        }
+                    }
+                    return "java.util.Map<String, Object>";
+                default:
+                    return "Object";
+            }
+        }
+        
+        return "Object";
+    }
+    
+    private String resolveReference(String ref, String currentFilename) {
+        Matcher matcher = REF_PATTERN.matcher(ref);
+        if (matcher.matches()) {
+            String filename = matcher.group(2);
+            String definitionName = matcher.group(3);
+            
+            if (filename == null) {
+                filename = currentFilename;
+            }
+            
+            String baseName = filename.replaceAll("\\.json$", "");
+            return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(definitionName);
+        }
+        
+        return "Object";
+    }
+    
+    private boolean shouldIgnoreProperty(String propertyName) {
+        return "etag".equals(propertyName) || propertyName.startsWith("x-ms-");
+    }
+    
+    private String convertToJavaFieldName(String propertyName) {
+        if (propertyName.contains("-")) {
+            String[] parts = propertyName.split("-");
+            StringBuilder camelCase = new StringBuilder(parts[0].toLowerCase());
+            for (int i = 1; i < parts.length; i++) {
+                camelCase.append(capitalizeFirstLetter(parts[i].toLowerCase()));
+            }
+            return camelCase.toString();
+        }
+        return propertyName;
+    }
+    
+    private String capitalizeFirstLetter(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+}

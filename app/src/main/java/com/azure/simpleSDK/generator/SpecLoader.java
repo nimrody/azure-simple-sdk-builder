@@ -128,6 +128,16 @@ public class SpecLoader {
                         return fileCompare != 0 ? fileCompare : a.definitionKey().compareTo(b.definitionKey());
                     })
                     .forEach(key -> System.out.println(key.filename() + " -> " + key.definitionKey()));
+            
+            System.out.println("\nGenerating Java records for first 3 definitions:");
+            JavaDefinitionGenerator generator = new JavaDefinitionGenerator();
+            result.definitions().entrySet().stream()
+                    .limit(3)
+                    .forEach(entry -> {
+                        System.out.println("\n// Generated from " + entry.getKey().filename() + " -> " + entry.getKey().definitionKey());
+                        String javaRecord = generator.generateRecord(entry.getKey(), entry.getValue());
+                        System.out.println(javaRecord);
+                    });
         } catch (IOException e) {
             System.err.println("Error loading files: " + e.getMessage());
         }
