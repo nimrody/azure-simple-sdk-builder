@@ -13,8 +13,9 @@ public class SpecLoader {
         this.basePath = Paths.get(path);
     }
 
-    public Map<String, Operation> loadOperations() throws IOException {
+    public SpecResult loadSpecs() throws IOException {
         Map<String, Operation> operations = new HashMap<>();
+        Map<DefinitionKey, JsonNode> definitions = new HashMap<>();
         ObjectMapper mapper = new ObjectMapper();
         
         if (!Files.exists(basePath) || !Files.isDirectory(basePath)) {
@@ -26,6 +27,7 @@ public class SpecLoader {
                   .filter(file -> file.toString().endsWith(".json"))
                   .forEach(file -> {
                       try {
+                          String filename = file.getFileName().toString();
                           String content = Files.readString(file);
                           JsonNode rootNode = mapper.readTree(content);
                           
@@ -33,13 +35,18 @@ public class SpecLoader {
                           if (pathsNode != null && pathsNode.isObject()) {
                               extractOperations(pathsNode, operations);
                           }
+                          
+                          JsonNode definitionsNode = rootNode.get("definitions");
+                          if (definitionsNode != null && definitionsNode.isObject()) {
+                              extractDefinitions(definitionsNode, filename, definitions);
+                          }
                       } catch (IOException e) {
                           System.err.println("Error reading file " + file + ": " + e.getMessage());
                       }
                   });
         }
 
-        return operations;
+        return new SpecResult(operations, definitions);
     }
 
     private void extractOperations(JsonNode pathsNode, Map<String, Operation> operations) {
@@ -66,17 +73,33 @@ public class SpecLoader {
         });
     }
 
+    private void extractDefinitions(JsonNode definitionsNode, String filename, Map<DefinitionKey, JsonNode> definitions) {
+        definitionsNode.fieldNames().forEachRemaining(definitionKey -> {
+            JsonNode definitionValue = definitionsNode.get(definitionKey);
+            DefinitionKey key = new DefinitionKey(filename, definitionKey);
+            definitions.put(key, definitionValue);
+        });
+    }
+
     public static void main(String[] args) {
         System.out.println("Current working directory: " + System.getProperty("user.dir"));
         String path = "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/";
         SpecLoader loader = new SpecLoader(path);
         
         try {
-            Map<String, Operation> operationMap = loader.loadOperations();
-            System.out.println("Found " + operationMap.size() + " operations:");
-            operationMap.values().stream()
+            SpecResult result = loader.loadSpecs();
+            System.out.println("Found " + result.operations().size() + " operations:");
+            result.operations().values().stream()
                     .sorted((a, b) -> a.operationId().compareTo(b.operationId()))
                     .forEach(op -> System.out.println(op.operationId() + " [" + op.httpMethod() + " " + op.apiPath() + "]"));
+            
+            System.out.println("\nFound " + result.definitions().size() + " definitions:");
+            result.definitions().keySet().stream()
+                    .sorted((a, b) -> {
+                        int fileCompare = a.filename().compareTo(b.filename());
+                        return fileCompare != 0 ? fileCompare : a.definitionKey().compareTo(b.definitionKey());
+                    })
+                    .forEach(key -> System.out.println(key.filename() + " -> " + key.definitionKey()));
         } catch (IOException e) {
             System.err.println("Error loading files: " + e.getMessage());
         }
