@@ -142,9 +142,20 @@ public class SpecLoader {
                     })
                     .forEach(key -> System.out.println(key.filename() + " -> " + key.definitionKey()));
             
-            System.out.println("\nGenerating Java records for first 3 definitions:");
+            System.out.println("\nDuplicate definitions across files:");
             Set<String> duplicateNames = findDuplicateDefinitionNames(result.definitions());
-            System.out.println("Duplicate definition names: " + duplicateNames);
+            if (duplicateNames.isEmpty()) {
+                System.out.println("No duplicate definition names found.");
+            } else {
+                for (String duplicateName : duplicateNames) {
+                    System.out.println("Definition '" + duplicateName + "' appears in:");
+                    result.definitions().entrySet().stream()
+                            .filter(entry -> entry.getKey().definitionKey().equals(duplicateName))
+                            .forEach(entry -> System.out.println("  - " + entry.getKey().filename()));
+                }
+            }
+            
+            System.out.println("\nGenerating Java records for first 3 definitions:");
             
             JavaDefinitionGenerator generator = new JavaDefinitionGenerator(duplicateNames);
             result.definitions().entrySet().stream()
