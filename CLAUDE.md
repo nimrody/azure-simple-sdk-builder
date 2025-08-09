@@ -6,7 +6,7 @@ This is a Java command line tool to create a library to replace the broken Azure
 
 The tool will read specifications from the folder azure-rest-api-spects/specification and generate the necessary model files and code to call the relevant REST API endpoint. 
 
-The tool accepts a list of API calls to generate code for. E.g., specifying `VirtualNetworkGateways_List` will find the endpoint at azure-rest-api-spects/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/virtualNetworkGateway.json and create models and code for this endpoint.
+The tool accepts a list of API calls to generate code for. E.g., specifying `VirtualNetworkGateways_List` will find the endpoint at azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/virtualNetworkGateway.json and create models and code for this endpoint.
 
 ## Features
 
