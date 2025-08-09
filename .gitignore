@@ -1,1 +1,5 @@
 azure-rest-api-specs/
+*.jar
+*.class
+build/
+.gradle

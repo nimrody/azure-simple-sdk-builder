@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+    implementation 'info.picocli:picocli:4.7.5'
+    
+    annotationProcessor 'info.picocli:picocli-codegen:4.7.5'
+}
+
+application {
+    mainClass = 'com.azure.simpleSDK.generator.Main'
+}
+
+// Generate SDK task
+task generateSdk(type: JavaExec) {
+    group = 'generation'
+    description = 'Generate Azure SDK code for specified operations'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.azure.simpleSDK.generator.Main'
+    
+    if (project.hasProperty('operations')) {
+        args = project.property('operations').split(',')
+    }
+}
