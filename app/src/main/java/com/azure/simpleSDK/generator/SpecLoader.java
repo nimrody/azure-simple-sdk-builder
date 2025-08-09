@@ -59,11 +59,13 @@ public class SpecLoader {
                         JsonNode operationIdNode = operationNode.get("operationId");
                         if (operationIdNode != null && operationIdNode.isTextual()) {
                             String operationId = operationIdNode.asText();
+                            Map<String, String> responseSchemas = extractResponseSchemas(operationNode);
                             Operation operation = new Operation(
                                 operationId,
                                 apiPath,
                                 httpMethod.toUpperCase(),
-                                operationNode
+                                operationNode,
+                                responseSchemas
                             );
                             operations.put(operationId, operation);
                         }
@@ -81,6 +83,26 @@ public class SpecLoader {
         });
     }
 
+    private Map<String, String> extractResponseSchemas(JsonNode operationNode) {
+        Map<String, String> responseSchemas = new HashMap<>();
+        JsonNode responsesNode = operationNode.get("responses");
+        if (responsesNode != null && responsesNode.isObject()) {
+            responsesNode.fieldNames().forEachRemaining(responseCode -> {
+                JsonNode responseNode = responsesNode.get(responseCode);
+                if (responseNode.isObject()) {
+                    JsonNode schemaNode = responseNode.get("schema");
+                    if (schemaNode != null && schemaNode.isObject()) {
+                        JsonNode refNode = schemaNode.get("$ref");
+                        if (refNode != null && refNode.isTextual()) {
+                            responseSchemas.put(responseCode, refNode.asText());
+                        }
+                    }
+                }
+            });
+        }
+        return responseSchemas;
+    }
+
     public static void main(String[] args) {
         System.out.println("Current working directory: " + System.getProperty("user.dir"));
         String path = "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/";
@@ -91,7 +113,13 @@ public class SpecLoader {
             System.out.println("Found " + result.operations().size() + " operations:");
             result.operations().values().stream()
                     .sorted((a, b) -> a.operationId().compareTo(b.operationId()))
-                    .forEach(op -> System.out.println(op.operationId() + " [" + op.httpMethod() + " " + op.apiPath() + "]"));
+                    .forEach(op -> {
+                        System.out.println(op.operationId() + " [" + op.httpMethod() + " " + op.apiPath() + "]");
+                        if (!op.responseSchemas().isEmpty()) {
+                            op.responseSchemas().forEach((code, schema) -> 
+                                System.out.println("  Response " + code + ": " + schema));
+                        }
+                    });
             
             System.out.println("\nFound " + result.definitions().size() + " definitions:");
             result.definitions().keySet().stream()
