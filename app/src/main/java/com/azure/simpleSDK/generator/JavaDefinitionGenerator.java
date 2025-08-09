@@ -1,14 +1,17 @@
 package com.azure.simpleSDK.generator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.nio.file.*;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class JavaDefinitionGenerator {
-    private static final Pattern REF_PATTERN = Pattern.compile("^(\\./([^#]+)#)?/definitions/(.+)$");
     private final Set<String> duplicateDefinitionNames;
     
     public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames) {
@@ -117,24 +120,28 @@ public class JavaDefinitionGenerator {
     }
     
     String resolveReference(String ref, String currentFilename) {
-        Matcher matcher = REF_PATTERN.matcher(ref);
-        if (matcher.matches()) {
-            String filename = matcher.group(2);
-            String definitionName = matcher.group(3);
+        String filename;
+        String definitionName;
+
+        if (ref.startsWith("#/definitions/")) {
+            // handle references to local definitions "#/definitions/VirtualNetworkGatewayPropertiesFormat"
+            filename = currentFilename.replace(".json", "");
+            definitionName = ref.replace("#/definitions/", "");
             
-            if (filename == null) {
-                filename = currentFilename;
-            }
-            
-            if (duplicateDefinitionNames.contains(definitionName)) {
-                String baseName = filename.replaceAll("\\.json$", "");
-                return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(definitionName);
-            } else {
-                return capitalizeFirstLetter(definitionName);
-            }
+        } else if (ref.startsWith("./")) {
+            // handle external references like "./networkInterface.json#/definitions/NetworkInterface"
+            String[] parts = ref.split("#");
+            filename = parts[0].replace("./", "").replace(".json", "");
+            definitionName = parts[1].replace("definitions/", "");
+        } else {
+            throw new IllegalArgumentException("Unsupported reference format: " + ref);
         }
-        
-        return "Object";
+
+        if (duplicateDefinitionNames.contains(definitionName)) {
+            return capitalizeFirstLetter(filename) + capitalizeFirstLetter(definitionName);
+        } else {
+            return capitalizeFirstLetter(definitionName);
+        }
     }
     
     private boolean shouldIgnoreProperty(String propertyName) {
