@@ -155,16 +155,25 @@ public class SpecLoader {
                 }
             }
             
-            System.out.println("\nGenerating Java records for first 3 definitions:");
+            System.out.println("\nGenerating Java records to SDK project:");
+            String sdkOutputDir = "sdk/src/main/java/com/azure/simpleSDK";
             
             JavaDefinitionGenerator generator = new JavaDefinitionGenerator(duplicateNames);
-            result.definitions().entrySet().stream()
-                    .limit(3)
-                    .forEach(entry -> {
-                        System.out.println("\n// Generated from " + entry.getKey().filename() + " -> " + entry.getKey().definitionKey());
-                        String javaRecord = generator.generateRecord(entry.getKey(), entry.getValue());
-                        System.out.println(javaRecord);
-                    });
+            int generatedCount = 0;
+            
+            for (Map.Entry<DefinitionKey, JsonNode> entry : result.definitions().entrySet()) {
+                try {
+                    String className = generator.getClassName(entry.getKey());
+                    generator.writeRecordToFile(entry.getKey(), entry.getValue(), sdkOutputDir);
+                    System.out.println("Generated " + className + ".java from " + 
+                                     entry.getKey().filename() + " -> " + entry.getKey().definitionKey());
+                    generatedCount++;
+                } catch (IOException e) {
+                    System.err.println("Error generating file for " + entry.getKey() + ": " + e.getMessage());
+                }
+            }
+            
+            System.out.println("\nGenerated " + generatedCount + " Java record files in " + sdkOutputDir);
         } catch (IOException e) {
             System.err.println("Error loading files: " + e.getMessage());
         }

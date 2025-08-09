@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.nio.file.*;
+import java.io.IOException;
 
 public class JavaDefinitionGenerator {
     private static final Pattern REF_PATTERN = Pattern.compile("^(\\./([^#]+)#)?/definitions/(.+)$");
@@ -17,6 +19,9 @@ public class JavaDefinitionGenerator {
         String className = generateClassName(definitionKey);
         StringBuilder recordBuilder = new StringBuilder();
         
+        recordBuilder.append("package com.azure.simpleSDK;\n\n");
+        recordBuilder.append("import com.fasterxml.jackson.annotation.JsonProperty;\n");
+        recordBuilder.append("import java.util.*;\n\n");
         recordBuilder.append("public record ").append(className).append("(\n");
         
         List<String> fields = new ArrayList<>();
@@ -38,6 +43,23 @@ public class JavaDefinitionGenerator {
         recordBuilder.append("\n) {\n}");
         
         return recordBuilder.toString();
+    }
+    
+    public String getClassName(DefinitionKey definitionKey) {
+        return generateClassName(definitionKey);
+    }
+    
+    public void writeRecordToFile(DefinitionKey definitionKey, JsonNode definition, String outputDir) throws IOException {
+        String className = generateClassName(definitionKey);
+        String recordContent = generateRecord(definitionKey, definition);
+        
+        Path outputPath = Paths.get(outputDir);
+        if (!Files.exists(outputPath)) {
+            Files.createDirectories(outputPath);
+        }
+        
+        Path filePath = outputPath.resolve(className + ".java");
+        Files.writeString(filePath, recordContent);
     }
     
     private String generateClassName(DefinitionKey definitionKey) {
