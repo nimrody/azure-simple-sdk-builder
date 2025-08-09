@@ -7,15 +7,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class JavaDefinitionGenerator {
     private final Set<String> duplicateDefinitionNames;
+    private final Map<DefinitionKey, JsonNode> definitions;
     
-    public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames) {
+    public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames, Map<DefinitionKey, JsonNode> definitions) {
         this.duplicateDefinitionNames = duplicateDefinitionNames != null ? duplicateDefinitionNames : new HashSet<>();
+        this.definitions = definitions != null ? definitions : Map.of();
     }
     
     public String generateRecord(DefinitionKey definitionKey, JsonNode definition) {
@@ -97,9 +100,9 @@ public class JavaDefinitionGenerator {
                     JsonNode items = property.get("items");
                     if (items != null) {
                         String itemType = getJavaType(items, currentFilename);
-                        return "java.util.List<" + itemType + ">";
+                        return "List<" + itemType + ">";
                     }
-                    return "java.util.List<Object>";
+                    return "List<Object>";
                 case "object":
                     if (property.has("additionalProperties")) {
                         JsonNode additionalProps = property.get("additionalProperties");
@@ -107,10 +110,10 @@ public class JavaDefinitionGenerator {
                             return "java.util.Map<String, Object>";
                         } else if (additionalProps.isObject()) {
                             String valueType = getJavaType(additionalProps, currentFilename);
-                            return "java.util.Map<String, " + valueType + ">";
+                            return "Map<String, " + valueType + ">";
                         }
                     }
-                    return "java.util.Map<String, Object>";
+                    return "Map<String, Object>";
                 default:
                     return "Object";
             }
@@ -128,13 +131,33 @@ public class JavaDefinitionGenerator {
             filename = currentFilename.replace(".json", "");
             definitionName = ref.replace("#/definitions/", "");
             
-                } else if (ref.startsWith("./")) {
+        } else if (ref.startsWith("./")) {
             // handle external references like "./networkInterface.json#/definitions/NetworkInterface"
             String[] parts = ref.split("#/definitions/");
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("Invalid external reference format: " + ref);
+            }
             filename = parts[0].replace("./", "").replace(".json", "");
+            definitionName = parts[1];
+        } else if (ref.contains(".json#/definitions/")) {
+            // handle external references without "./" prefix like "applicationGateway.json#/definitions/ApplicationGatewayFirewallRuleGroup"
+            String[] parts = ref.split("#/definitions/");
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("Invalid external reference format: " + ref);
+            }
+            filename = parts[0].replace(".json", "");
             definitionName = parts[1];
         } else {
             throw new IllegalArgumentException("Unsupported reference format: " + ref);
+        }
+
+        // Validate that the referenced definition exists in the scanned definitions
+        String fullFilename = filename + ".json";
+        DefinitionKey referencedKey = new DefinitionKey(fullFilename, definitionName);
+        if (!definitions.containsKey(referencedKey)) {
+            throw new IllegalArgumentException(
+                String.format("Referenced definition not found: %s in file %s. Available definitions: %s",
+                    definitionName, fullFilename, getAvailableDefinitionsForFile(fullFilename)));
         }
 
         if (duplicateDefinitionNames.contains(definitionName)) {
@@ -142,6 +165,14 @@ public class JavaDefinitionGenerator {
         } else {
             return capitalizeFirstLetter(definitionName);
         }
+    }
+    
+    private String getAvailableDefinitionsForFile(String filename) {
+        return definitions.keySet().stream()
+            .filter(key -> key.filename().equals(filename))
+            .map(DefinitionKey::definitionKey)
+            .sorted()
+            .collect(java.util.stream.Collectors.joining(", "));
     }
     
     private boolean shouldIgnoreProperty(String propertyName) {

@@ -158,7 +158,7 @@ public class SpecLoader {
             System.out.println("\nGenerating Java records to SDK project:");
             String sdkOutputDir = "sdk/src/main/java/com/azure/simpleSDK";
             
-            JavaDefinitionGenerator generator = new JavaDefinitionGenerator(duplicateNames);
+            JavaDefinitionGenerator generator = new JavaDefinitionGenerator(duplicateNames, result.definitions());
             int generatedCount = 0;
             
             for (Map.Entry<DefinitionKey, JsonNode> entry : result.definitions().entrySet()) {
