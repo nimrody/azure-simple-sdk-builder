@@ -7,6 +7,11 @@ import java.util.regex.Pattern;
 
 public class JavaDefinitionGenerator {
     private static final Pattern REF_PATTERN = Pattern.compile("^(\\./([^#]+)#)?/definitions/(.+)$");
+    private final Set<String> duplicateDefinitionNames;
+    
+    public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames) {
+        this.duplicateDefinitionNames = duplicateDefinitionNames != null ? duplicateDefinitionNames : new HashSet<>();
+    }
     
     public String generateRecord(DefinitionKey definitionKey, JsonNode definition) {
         String className = generateClassName(definitionKey);
@@ -36,11 +41,15 @@ public class JavaDefinitionGenerator {
     }
     
     private String generateClassName(DefinitionKey definitionKey) {
-        String filename = definitionKey.filename();
-        String baseName = filename.replaceAll("\\.json$", "");
         String definitionName = definitionKey.definitionKey();
         
-        return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(definitionName);
+        if (duplicateDefinitionNames.contains(definitionName)) {
+            String filename = definitionKey.filename();
+            String baseName = filename.replaceAll("\\.json$", "");
+            return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(definitionName);
+        }
+        
+        return capitalizeFirstLetter(definitionName);
     }
     
     private String getJavaType(JsonNode property, String currentFilename) {
@@ -95,8 +104,12 @@ public class JavaDefinitionGenerator {
                 filename = currentFilename;
             }
             
-            String baseName = filename.replaceAll("\\.json$", "");
-            return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(definitionName);
+            if (duplicateDefinitionNames.contains(definitionName)) {
+                String baseName = filename.replaceAll("\\.json$", "");
+                return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(definitionName);
+            } else {
+                return capitalizeFirstLetter(definitionName);
+            }
         }
         
         return "Object";

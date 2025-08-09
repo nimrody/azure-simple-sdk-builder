@@ -49,6 +49,19 @@ public class SpecLoader {
         return new SpecResult(operations, definitions);
     }
 
+    public static Set<String> findDuplicateDefinitionNames(Map<DefinitionKey, JsonNode> definitions) {
+        Map<String, Integer> definitionCounts = new HashMap<>();
+        
+        for (DefinitionKey key : definitions.keySet()) {
+            definitionCounts.merge(key.definitionKey(), 1, Integer::sum);
+        }
+        
+        return definitionCounts.entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
     private void extractOperations(JsonNode pathsNode, Map<String, Operation> operations) {
         pathsNode.fieldNames().forEachRemaining(apiPath -> {
             JsonNode pathNode = pathsNode.get(apiPath);
@@ -130,7 +143,10 @@ public class SpecLoader {
                     .forEach(key -> System.out.println(key.filename() + " -> " + key.definitionKey()));
             
             System.out.println("\nGenerating Java records for first 3 definitions:");
-            JavaDefinitionGenerator generator = new JavaDefinitionGenerator();
+            Set<String> duplicateNames = findDuplicateDefinitionNames(result.definitions());
+            System.out.println("Duplicate definition names: " + duplicateNames);
+            
+            JavaDefinitionGenerator generator = new JavaDefinitionGenerator(duplicateNames);
             result.definitions().entrySet().stream()
                     .limit(3)
                     .forEach(entry -> {
