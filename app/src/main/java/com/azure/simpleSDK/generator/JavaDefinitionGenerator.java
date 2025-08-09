@@ -116,7 +116,7 @@ public class JavaDefinitionGenerator {
         return "Object";
     }
     
-    private String resolveReference(String ref, String currentFilename) {
+    String resolveReference(String ref, String currentFilename) {
         Matcher matcher = REF_PATTERN.matcher(ref);
         if (matcher.matches()) {
             String filename = matcher.group(2);
