@@ -47,6 +47,8 @@ class JavaDefinitionGeneratorTest {
         definitions.put(new DefinitionKey("publicIpAddress.json", "PublicIPAddress"), emptyObject);
         definitions.put(new DefinitionKey("applicationGateway.json", "ApplicationGatewayFirewallRuleGroup"), emptyObject);
         definitions.put(new DefinitionKey("test.json", "TestDefinition"), emptyObject);
+        definitions.put(new DefinitionKey("test.json", "TestEnum"), emptyObject);
+        definitions.put(new DefinitionKey("test.json", "SimpleEnum"), emptyObject);
         
         return definitions;
     }
@@ -233,6 +235,82 @@ class JavaDefinitionGeneratorTest {
         // Check that hyphenated properties are converted to camelCase and then handled for reserved words
         assertTrue(result.contains("@JsonProperty(\"default-value\") String defaultValue"));
         assertTrue(result.contains("@JsonProperty(\"interface-name\") String interfaceName"));
+    }
+    
+    @Test
+    @DisplayName("Should generate Java enum for OpenAPI enum definition")
+    void testGenerateRecord_EnumDefinition() {
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestEnum");
+        
+        // Create a test enum definition
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode definition = mapper.createObjectNode();
+        definition.put("type", "string");
+        definition.set("enum", mapper.createArrayNode()
+            .add("Value1")
+            .add("Value2")
+            .add("Special-Value")
+        );
+        
+        String result = generator.generateRecord(definitionKey, definition);
+        
+        // Check that it generates a proper enum
+        assertTrue(result.contains("public enum TestEnum {"));
+        assertTrue(result.contains("VALUE1"));
+        assertTrue(result.contains("VALUE2"));
+        assertTrue(result.contains("SPECIAL_VALUE(\"Special-Value\")"));
+        assertTrue(result.contains("@JsonValue"));
+        assertTrue(result.contains("public String getValue()"));
+    }
+    
+    @Test
+    @DisplayName("Should generate simple enum without JsonValue when names match values")
+    void testGenerateRecord_SimpleEnum() {
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "SimpleEnum");
+        
+        // Create a simple enum definition with values that match constant names
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode definition = mapper.createObjectNode();
+        definition.put("type", "string");
+        definition.set("enum", mapper.createArrayNode()
+            .add("ACTIVE")
+            .add("INACTIVE")
+        );
+        
+        String result = generator.generateRecord(definitionKey, definition);
+        
+        // Check that it generates a simple enum without JsonValue
+        assertTrue(result.contains("public enum SimpleEnum {"));
+        assertTrue(result.contains("ACTIVE"));
+        assertTrue(result.contains("INACTIVE"));
+        assertFalse(result.contains("@JsonValue"));
+        assertFalse(result.contains("public String getValue()"));
+    }
+    
+    @Test
+    @DisplayName("Should handle inline enum in property as String type")
+    void testGenerateRecord_InlineEnum() {
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition");
+        
+        // Create a definition with an inline enum property
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode propertyWithEnum = mapper.createObjectNode();
+        propertyWithEnum.put("type", "string");
+        propertyWithEnum.set("enum", mapper.createArrayNode().add("option1").add("option2"));
+        
+        ObjectNode propertiesNode = mapper.createObjectNode();
+        propertiesNode.set("status", propertyWithEnum);
+        propertiesNode.set("name", mapper.createObjectNode().put("type", "string"));
+        
+        ObjectNode definition = mapper.createObjectNode();
+        definition.set("properties", propertiesNode);
+        
+        String result = generator.generateRecord(definitionKey, definition);
+        
+        // Check that inline enum is treated as String for now
+        assertTrue(result.contains("public record TestDefinition("));
+        assertTrue(result.contains("String status"));
+        assertTrue(result.contains("String name"));
     }
     
 }

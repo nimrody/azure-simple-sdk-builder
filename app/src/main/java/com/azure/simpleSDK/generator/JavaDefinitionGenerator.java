@@ -22,6 +22,11 @@ public class JavaDefinitionGenerator {
     }
     
     public String generateRecord(DefinitionKey definitionKey, JsonNode definition) {
+        // Check if this is actually an enum definition
+        if (isEnumDefinition(definition)) {
+            return generateEnum(definitionKey, definition);
+        }
+        
         String className = generateClassName(definitionKey);
         StringBuilder recordBuilder = new StringBuilder();
         
@@ -69,6 +74,79 @@ public class JavaDefinitionGenerator {
         Files.writeString(filePath, recordContent);
     }
     
+    private boolean isEnumDefinition(JsonNode definition) {
+        // Check if this definition has type: "string" and an enum array
+        JsonNode typeNode = definition.get("type");
+        JsonNode enumNode = definition.get("enum");
+        return typeNode != null && "string".equals(typeNode.asText()) && enumNode != null && enumNode.isArray();
+    }
+    
+    private String generateEnum(DefinitionKey definitionKey, JsonNode definition) {
+        String className = generateClassName(definitionKey);
+        JsonNode enumValues = definition.get("enum");
+        
+        StringBuilder enumBuilder = new StringBuilder();
+        enumBuilder.append("package com.azure.simpleSDK;\n\n");
+        enumBuilder.append("import com.fasterxml.jackson.annotation.JsonValue;\n\n");
+        enumBuilder.append("public enum ").append(className).append(" {\n");
+        
+        List<String> enumConstants = new ArrayList<>();
+        for (int i = 0; i < enumValues.size(); i++) {
+            String enumValue = enumValues.get(i).asText();
+            String enumConstantName = convertToEnumConstantName(enumValue);
+            
+            if (enumConstantName.equals(enumValue)) {
+                // No need for @JsonValue if the constant name matches the value
+                enumConstants.add("    " + enumConstantName);
+            } else {
+                // Use @JsonValue to map the constant to the original value
+                enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
+            }
+        }
+        
+        enumBuilder.append(String.join(",\n", enumConstants));
+        
+        // Add constructor and @JsonValue method if needed
+        boolean needsJsonValue = enumConstants.stream().anyMatch(constant -> constant.contains("(\""));
+        if (needsJsonValue) {
+            enumBuilder.append(";\n\n");
+            enumBuilder.append("    private final String value;\n\n");
+            enumBuilder.append("    ").append(className).append("(String value) {\n");
+            enumBuilder.append("        this.value = value;\n");
+            enumBuilder.append("    }\n\n");
+            enumBuilder.append("    @JsonValue\n");
+            enumBuilder.append("    public String getValue() {\n");
+            enumBuilder.append("        return value;\n");
+            enumBuilder.append("    }\n");
+        } else {
+            enumBuilder.append("\n");
+        }
+        
+        enumBuilder.append("}\n");
+        
+        return enumBuilder.toString();
+    }
+    
+    private String convertToEnumConstantName(String enumValue) {
+        // Convert enum value to valid Java enum constant name
+        // Replace non-alphanumeric characters with underscores and convert to uppercase
+        String constantName = enumValue
+            .replaceAll("[^a-zA-Z0-9]", "_")
+            .toUpperCase();
+            
+        // Ensure it doesn't start with a digit
+        if (constantName.matches("^\\d.*")) {
+            constantName = "_" + constantName;
+        }
+        
+        // Handle empty string or just underscores
+        if (constantName.isEmpty() || constantName.matches("^_+$")) {
+            constantName = "UNKNOWN";
+        }
+        
+        return constantName;
+    }
+    
     private String generateClassName(DefinitionKey definitionKey) {
         String definitionName = definitionKey.definitionKey();
         
@@ -84,6 +162,13 @@ public class JavaDefinitionGenerator {
     private String getJavaType(JsonNode property, String currentFilename) {
         if (property.has("$ref")) {
             return resolveReference(property.get("$ref").asText(), currentFilename);
+        }
+        
+        // Check for inline enum (has both type: "string" and enum array)
+        if (property.has("type") && "string".equals(property.get("type").asText()) && property.has("enum")) {
+            // For inline enums, we could either generate them on-the-fly or use String
+            // For now, let's use String but this could be enhanced to generate inline enums
+            return "String";
         }
         
         if (property.has("type")) {
