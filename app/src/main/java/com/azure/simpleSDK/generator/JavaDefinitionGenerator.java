@@ -222,7 +222,8 @@ public class JavaDefinitionGenerator {
                 if (isInlineEnum(property)) {
                     JsonNode xMsEnum = property.get("x-ms-enum");
                     if (xMsEnum != null && xMsEnum.has("name")) {
-                        String enumName = xMsEnum.get("name").asText();
+                        String rawEnumName = xMsEnum.get("name").asText();
+                        String enumName = cleanEnumName(rawEnumName);
                         // Create a synthetic enum definition from the inline enum
                         JsonNode enumDefinition = createEnumDefinition(property, xMsEnum);
                         inlineEnums.put(enumName, enumDefinition);
@@ -235,6 +236,11 @@ public class JavaDefinitionGenerator {
     private boolean isInlineEnum(JsonNode property) {
         return property.has("type") && "string".equals(property.get("type").asText()) 
                && property.has("enum") && property.has("x-ms-enum");
+    }
+    
+    private String cleanEnumName(String enumName) {
+        // Remove leading and trailing spaces and replace internal spaces with underscores
+        return enumName.trim().replaceAll("\\s+", "_");
     }
     
     private JsonNode createEnumDefinition(JsonNode property, JsonNode xMsEnum) {
@@ -271,7 +277,8 @@ public class JavaDefinitionGenerator {
             // Check if this inline enum has x-ms-enum with name
             JsonNode xMsEnum = property.get("x-ms-enum");
             if (xMsEnum != null && xMsEnum.has("name")) {
-                String enumName = xMsEnum.get("name").asText();
+                String rawEnumName = xMsEnum.get("name").asText();
+                String enumName = cleanEnumName(rawEnumName);
                 return capitalizeFirstLetter(enumName);
             }
             // Fallback to String if no x-ms-enum name is provided
