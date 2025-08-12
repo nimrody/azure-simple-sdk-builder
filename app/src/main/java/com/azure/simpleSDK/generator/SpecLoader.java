@@ -173,7 +173,25 @@ public class SpecLoader {
                 }
             }
             
+            // Generate inline enums as separate files
+            Map<String, JsonNode> inlineEnums = generator.getInlineEnums();
+            int inlineEnumCount = 0;
+            for (Map.Entry<String, JsonNode> enumEntry : inlineEnums.entrySet()) {
+                try {
+                    String enumName = enumEntry.getKey();
+                    JsonNode enumDefinition = enumEntry.getValue();
+                    generator.writeInlineEnumToFile(enumName, enumDefinition, sdkOutputDir);
+                    System.out.println("Generated " + enumName + ".java (inline enum)");
+                    inlineEnumCount++;
+                } catch (IOException e) {
+                    System.err.println("Error generating inline enum file for " + enumEntry.getKey() + ": " + e.getMessage());
+                }
+            }
+            
             System.out.println("\nGenerated " + generatedCount + " Java record files in " + sdkOutputDir);
+            if (inlineEnumCount > 0) {
+                System.out.println("Generated " + inlineEnumCount + " inline enum files in " + sdkOutputDir);
+            }
         } catch (IOException e) {
             System.err.println("Error loading files: " + e.getMessage());
         }

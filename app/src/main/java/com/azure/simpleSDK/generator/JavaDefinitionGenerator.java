@@ -5,16 +5,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JavaDefinitionGenerator {
     private final Set<String> duplicateDefinitionNames;
     private final Map<DefinitionKey, JsonNode> definitions;
+    private final Map<String, JsonNode> inlineEnums = new HashMap<>();
     
     public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames, Map<DefinitionKey, JsonNode> definitions) {
         this.duplicateDefinitionNames = duplicateDefinitionNames != null ? duplicateDefinitionNames : new HashSet<>();
@@ -26,6 +29,9 @@ public class JavaDefinitionGenerator {
         if (isEnumDefinition(definition)) {
             return generateEnum(definitionKey, definition);
         }
+        
+        // Extract any inline enums from properties before generating the record
+        extractInlineEnums(definition, definitionKey.filename());
         
         String className = generateClassName(definitionKey);
         StringBuilder recordBuilder = new StringBuilder();
@@ -59,6 +65,67 @@ public class JavaDefinitionGenerator {
     
     public String getClassName(DefinitionKey definitionKey) {
         return generateClassName(definitionKey);
+    }
+    
+    public Map<String, JsonNode> getInlineEnums() {
+        return new HashMap<>(inlineEnums);
+    }
+    
+    public void writeInlineEnumToFile(String enumName, JsonNode enumDefinition, String outputDir) throws IOException {
+        String enumContent = generateInlineEnum(enumName, enumDefinition);
+        
+        Path outputPath = Paths.get(outputDir);
+        if (!Files.exists(outputPath)) {
+            Files.createDirectories(outputPath);
+        }
+        
+        Path filePath = outputPath.resolve(capitalizeFirstLetter(enumName) + ".java");
+        Files.writeString(filePath, enumContent);
+    }
+    
+    private String generateInlineEnum(String enumName, JsonNode enumDefinition) {
+        JsonNode enumValues = enumDefinition.get("enum");
+        
+        StringBuilder enumBuilder = new StringBuilder();
+        enumBuilder.append("package com.azure.simpleSDK;\n\n");
+        enumBuilder.append("import com.fasterxml.jackson.annotation.JsonValue;\n\n");
+        enumBuilder.append("public enum ").append(capitalizeFirstLetter(enumName)).append(" {\n");
+        
+        List<String> enumConstants = new ArrayList<>();
+        for (int i = 0; i < enumValues.size(); i++) {
+            String enumValue = enumValues.get(i).asText();
+            String enumConstantName = convertToEnumConstantName(enumValue);
+            
+            if (enumConstantName.equals(enumValue)) {
+                // No need for @JsonValue if the constant name matches the value
+                enumConstants.add("    " + enumConstantName);
+            } else {
+                // Use @JsonValue to map the constant to the original value
+                enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
+            }
+        }
+        
+        enumBuilder.append(String.join(",\n", enumConstants));
+        
+        // Add constructor and @JsonValue method if needed
+        boolean needsJsonValue = enumConstants.stream().anyMatch(constant -> constant.contains("(\""));
+        if (needsJsonValue) {
+            enumBuilder.append(";\n\n");
+            enumBuilder.append("    private final String value;\n\n");
+            enumBuilder.append("    ").append(capitalizeFirstLetter(enumName)).append("(String value) {\n");
+            enumBuilder.append("        this.value = value;\n");
+            enumBuilder.append("    }\n\n");
+            enumBuilder.append("    @JsonValue\n");
+            enumBuilder.append("    public String getValue() {\n");
+            enumBuilder.append("        return value;\n");
+            enumBuilder.append("    }\n");
+        } else {
+            enumBuilder.append("\n");
+        }
+        
+        enumBuilder.append("}\n");
+        
+        return enumBuilder.toString();
     }
     
     public void writeRecordToFile(DefinitionKey definitionKey, JsonNode definition, String outputDir) throws IOException {
@@ -147,6 +214,41 @@ public class JavaDefinitionGenerator {
         return constantName;
     }
     
+    private void extractInlineEnums(JsonNode definition, String filename) {
+        JsonNode properties = definition.get("properties");
+        if (properties != null && properties.isObject()) {
+            properties.fieldNames().forEachRemaining(propertyName -> {
+                JsonNode property = properties.get(propertyName);
+                if (isInlineEnum(property)) {
+                    JsonNode xMsEnum = property.get("x-ms-enum");
+                    if (xMsEnum != null && xMsEnum.has("name")) {
+                        String enumName = xMsEnum.get("name").asText();
+                        // Create a synthetic enum definition from the inline enum
+                        JsonNode enumDefinition = createEnumDefinition(property, xMsEnum);
+                        inlineEnums.put(enumName, enumDefinition);
+                    }
+                }
+            });
+        }
+    }
+    
+    private boolean isInlineEnum(JsonNode property) {
+        return property.has("type") && "string".equals(property.get("type").asText()) 
+               && property.has("enum") && property.has("x-ms-enum");
+    }
+    
+    private JsonNode createEnumDefinition(JsonNode property, JsonNode xMsEnum) {
+        ObjectMapper mapper = new ObjectMapper();
+        var enumDef = mapper.createObjectNode();
+        enumDef.put("type", "string");
+        enumDef.set("enum", property.get("enum"));
+        if (property.has("description")) {
+            enumDef.set("description", property.get("description"));
+        }
+        enumDef.set("x-ms-enum", xMsEnum);
+        return enumDef;
+    }
+    
     private String generateClassName(DefinitionKey definitionKey) {
         String definitionName = definitionKey.definitionKey();
         
@@ -166,8 +268,13 @@ public class JavaDefinitionGenerator {
         
         // Check for inline enum (has both type: "string" and enum array)
         if (property.has("type") && "string".equals(property.get("type").asText()) && property.has("enum")) {
-            // For inline enums, we could either generate them on-the-fly or use String
-            // For now, let's use String but this could be enhanced to generate inline enums
+            // Check if this inline enum has x-ms-enum with name
+            JsonNode xMsEnum = property.get("x-ms-enum");
+            if (xMsEnum != null && xMsEnum.has("name")) {
+                String enumName = xMsEnum.get("name").asText();
+                return capitalizeFirstLetter(enumName);
+            }
+            // Fallback to String if no x-ms-enum name is provided
             return "String";
         }
         
