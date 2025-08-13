@@ -3,3 +3,4 @@ azure-rest-api-specs/
 *.class
 build/
 .gradle
+sdk/src/main/java/com/azure/simpleSDK/models/

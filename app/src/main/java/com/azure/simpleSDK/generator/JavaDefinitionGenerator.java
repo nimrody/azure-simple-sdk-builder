@@ -36,7 +36,7 @@ public class JavaDefinitionGenerator {
         String className = generateClassName(definitionKey);
         StringBuilder recordBuilder = new StringBuilder();
         
-        recordBuilder.append("package com.azure.simpleSDK;\n\n");
+        recordBuilder.append("package com.azure.simpleSDK.models;\n\n");
         recordBuilder.append("import com.fasterxml.jackson.annotation.JsonProperty;\n");
         recordBuilder.append("import java.util.*;\n\n");
         recordBuilder.append("// Generated from ").append(definitionKey.filename()).append(":").append(definitionKey.lineNumber()).append("\n");
@@ -88,7 +88,7 @@ public class JavaDefinitionGenerator {
         JsonNode enumValues = enumDefinition.get("enum");
         
         StringBuilder enumBuilder = new StringBuilder();
-        enumBuilder.append("package com.azure.simpleSDK;\n\n");
+        enumBuilder.append("package com.azure.simpleSDK.models;\n\n");
         enumBuilder.append("import com.fasterxml.jackson.annotation.JsonValue;\n\n");
         enumBuilder.append("public enum ").append(capitalizeFirstLetter(enumName)).append(" {\n");
         
@@ -146,7 +146,7 @@ public class JavaDefinitionGenerator {
         JsonNode enumValues = definition.get("enum");
         
         StringBuilder enumBuilder = new StringBuilder();
-        enumBuilder.append("package com.azure.simpleSDK;\n\n");
+        enumBuilder.append("package com.azure.simpleSDK.models;\n\n");
         enumBuilder.append("import com.fasterxml.jackson.annotation.JsonValue;\n\n");
         enumBuilder.append("// Generated from ").append(definitionKey.filename()).append(":").append(definitionKey.lineNumber()).append("\n");
         enumBuilder.append("public enum ").append(className).append(" {\n");
