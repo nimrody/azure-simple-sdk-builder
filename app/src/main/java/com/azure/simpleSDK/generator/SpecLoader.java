@@ -1,10 +1,15 @@
 package com.azure.simpleSDK.generator;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SpecLoader {
     private final Path basePath;
@@ -38,7 +43,7 @@ public class SpecLoader {
                           
                           JsonNode definitionsNode = rootNode.get("definitions");
                           if (definitionsNode != null && definitionsNode.isObject()) {
-                              extractDefinitions(definitionsNode, filename, definitions);
+                              extractDefinitions(definitionsNode, filename, content, definitions);
                           }
                       } catch (IOException e) {
                           System.err.println("Error reading file " + file + ": " + e.getMessage());
@@ -88,12 +93,26 @@ public class SpecLoader {
         });
     }
 
-    private void extractDefinitions(JsonNode definitionsNode, String filename, Map<DefinitionKey, JsonNode> definitions) {
+    private void extractDefinitions(JsonNode definitionsNode, String filename, String content, Map<DefinitionKey, JsonNode> definitions) {
         definitionsNode.fieldNames().forEachRemaining(definitionKey -> {
             JsonNode definitionValue = definitionsNode.get(definitionKey);
-            DefinitionKey key = new DefinitionKey(filename, definitionKey);
+            int lineNumber = findDefinitionLineNumber(content, definitionKey);
+            DefinitionKey key = new DefinitionKey(filename, definitionKey, lineNumber);
             definitions.put(key, definitionValue);
         });
+    }
+    
+    private int findDefinitionLineNumber(String content, String definitionKey) {
+        String[] lines = content.split("\n");
+        Pattern pattern = Pattern.compile("\"" + Pattern.quote(definitionKey) + "\"\\s*:");
+        
+        for (int i = 0; i < lines.length; i++) {
+            Matcher matcher = pattern.matcher(lines[i]);
+            if (matcher.find()) {
+                return i + 1; // Line numbers are 1-based
+            }
+        }
+        return -1; // Not found
     }
 
     private Map<String, String> extractResponseSchemas(JsonNode operationNode) {

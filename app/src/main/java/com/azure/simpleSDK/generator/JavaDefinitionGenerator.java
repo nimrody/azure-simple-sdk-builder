@@ -39,6 +39,7 @@ public class JavaDefinitionGenerator {
         recordBuilder.append("package com.azure.simpleSDK;\n\n");
         recordBuilder.append("import com.fasterxml.jackson.annotation.JsonProperty;\n");
         recordBuilder.append("import java.util.*;\n\n");
+        recordBuilder.append("// Generated from ").append(definitionKey.filename()).append(":").append(definitionKey.lineNumber()).append("\n");
         recordBuilder.append("public record ").append(className).append("(\n");
         
         List<String> fields = new ArrayList<>();
@@ -147,6 +148,7 @@ public class JavaDefinitionGenerator {
         StringBuilder enumBuilder = new StringBuilder();
         enumBuilder.append("package com.azure.simpleSDK;\n\n");
         enumBuilder.append("import com.fasterxml.jackson.annotation.JsonValue;\n\n");
+        enumBuilder.append("// Generated from ").append(definitionKey.filename()).append(":").append(definitionKey.lineNumber()).append("\n");
         enumBuilder.append("public enum ").append(className).append(" {\n");
         
         List<String> enumConstants = new ArrayList<>();
@@ -337,8 +339,8 @@ public class JavaDefinitionGenerator {
 
         // Validate that the referenced definition exists in the scanned definitions
         String fullFilename = filename + ".json";
-        DefinitionKey referencedKey = new DefinitionKey(fullFilename, definitionName);
-        if (!definitions.containsKey(referencedKey)) {
+        DefinitionKey referencedKey = findDefinitionKey(fullFilename, definitionName);
+        if (referencedKey == null) {
             throw new IllegalArgumentException(
                 String.format("Referenced definition not found: %s in file %s. Available definitions: %s",
                     definitionName, fullFilename, getAvailableDefinitionsForFile(fullFilename)));
@@ -349,6 +351,13 @@ public class JavaDefinitionGenerator {
         } else {
             return capitalizeFirstLetter(definitionName);
         }
+    }
+    
+    private DefinitionKey findDefinitionKey(String filename, String definitionName) {
+        return definitions.keySet().stream()
+            .filter(key -> key.filename().equals(filename) && key.definitionKey().equals(definitionName))
+            .findFirst()
+            .orElse(null);
     }
     
     private String getAvailableDefinitionsForFile(String filename) {
