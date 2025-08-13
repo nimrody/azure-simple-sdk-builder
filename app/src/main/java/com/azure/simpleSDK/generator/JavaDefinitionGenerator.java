@@ -92,36 +92,28 @@ public class JavaDefinitionGenerator {
         enumBuilder.append("public enum ").append(capitalizeFirstLetter(enumName)).append(" {\n");
         
         List<String> enumConstants = new ArrayList<>();
+        
+        // Second pass: generate constants consistently
         for (int i = 0; i < enumValues.size(); i++) {
             String enumValue = enumValues.get(i).asText();
             String enumConstantName = convertToEnumConstantName(enumValue);
             
-            if (enumConstantName.equals(enumValue)) {
-                // No need for @JsonValue if the constant name matches the value
-                enumConstants.add("    " + enumConstantName);
-            } else {
-                // Use @JsonValue to map the constant to the original value
-                enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
-            }
+            // All constants need values when using @JsonValue
+            enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
         }
         
         enumBuilder.append(String.join(",\n", enumConstants));
         
         // Add constructor and @JsonValue method if needed
-        boolean needsJsonValue = enumConstants.stream().anyMatch(constant -> constant.contains("(\""));
-        if (needsJsonValue) {
-            enumBuilder.append(";\n\n");
-            enumBuilder.append("    private final String value;\n\n");
-            enumBuilder.append("    ").append(capitalizeFirstLetter(enumName)).append("(String value) {\n");
-            enumBuilder.append("        this.value = value;\n");
-            enumBuilder.append("    }\n\n");
-            enumBuilder.append("    @JsonValue\n");
-            enumBuilder.append("    public String getValue() {\n");
-            enumBuilder.append("        return value;\n");
-            enumBuilder.append("    }\n");
-        } else {
-            enumBuilder.append("\n");
-        }
+        enumBuilder.append(";\n\n");
+        enumBuilder.append("    private final String value;\n\n");
+        enumBuilder.append("    ").append(capitalizeFirstLetter(enumName)).append("(String value) {\n");
+        enumBuilder.append("        this.value = value;\n");
+        enumBuilder.append("    }\n\n");
+        enumBuilder.append("    @JsonValue\n");
+        enumBuilder.append("    public String getValue() {\n");
+        enumBuilder.append("        return value;\n");
+        enumBuilder.append("    }\n");
         
         enumBuilder.append("}\n");
         
@@ -158,36 +150,28 @@ public class JavaDefinitionGenerator {
         enumBuilder.append("public enum ").append(className).append(" {\n");
         
         List<String> enumConstants = new ArrayList<>();
+        
+        // Second pass: generate constants consistently
         for (int i = 0; i < enumValues.size(); i++) {
             String enumValue = enumValues.get(i).asText();
             String enumConstantName = convertToEnumConstantName(enumValue);
             
-            if (enumConstantName.equals(enumValue)) {
-                // No need for @JsonValue if the constant name matches the value
-                enumConstants.add("    " + enumConstantName);
-            } else {
-                // Use @JsonValue to map the constant to the original value
-                enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
-            }
+            // All constants need values when using @JsonValue
+            enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
         }
         
         enumBuilder.append(String.join(",\n", enumConstants));
         
         // Add constructor and @JsonValue method if needed
-        boolean needsJsonValue = enumConstants.stream().anyMatch(constant -> constant.contains("(\""));
-        if (needsJsonValue) {
-            enumBuilder.append(";\n\n");
-            enumBuilder.append("    private final String value;\n\n");
-            enumBuilder.append("    ").append(className).append("(String value) {\n");
-            enumBuilder.append("        this.value = value;\n");
-            enumBuilder.append("    }\n\n");
-            enumBuilder.append("    @JsonValue\n");
-            enumBuilder.append("    public String getValue() {\n");
-            enumBuilder.append("        return value;\n");
-            enumBuilder.append("    }\n");
-        } else {
-            enumBuilder.append("\n");
-        }
+        enumBuilder.append(";\n\n");
+        enumBuilder.append("    private final String value;\n\n");
+        enumBuilder.append("    ").append(className).append("(String value) {\n");
+        enumBuilder.append("        this.value = value;\n");
+        enumBuilder.append("    }\n\n");
+        enumBuilder.append("    @JsonValue\n");
+        enumBuilder.append("    public String getValue() {\n");
+        enumBuilder.append("        return value;\n");
+        enumBuilder.append("    }\n");
         
         enumBuilder.append("}\n");
         
