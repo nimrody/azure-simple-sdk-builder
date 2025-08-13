@@ -36,10 +36,8 @@ public class JavaDefinitionGenerator {
         String className = generateClassName(definitionKey);
         StringBuilder recordBuilder = new StringBuilder();
         
-        recordBuilder.append("package com.azure.simpleSDK.models;\n\n");
-        recordBuilder.append("import com.fasterxml.jackson.annotation.JsonProperty;\n");
-        recordBuilder.append("import java.util.*;\n\n");
-        recordBuilder.append("// Generated from ").append(definitionKey.filename()).append(":").append(definitionKey.lineNumber()).append("\n");
+        appendPackageAndImports(recordBuilder, "JsonProperty", "java.util.*");
+        appendSourceComment(recordBuilder, definitionKey);
         recordBuilder.append("public record ").append(className).append("(\n");
         
         List<String> fields = new ArrayList<>();
@@ -74,49 +72,18 @@ public class JavaDefinitionGenerator {
     
     public void writeInlineEnumToFile(String enumName, JsonNode enumDefinition, String outputDir) throws IOException {
         String enumContent = generateInlineEnum(enumName, enumDefinition);
-        
-        Path outputPath = Paths.get(outputDir);
-        if (!Files.exists(outputPath)) {
-            Files.createDirectories(outputPath);
-        }
-        
-        Path filePath = outputPath.resolve(capitalizeFirstLetter(enumName) + ".java");
-        Files.writeString(filePath, enumContent);
+        String fileName = capitalizeFirstLetter(enumName) + ".java";
+        writeToFile(enumContent, fileName, outputDir);
     }
     
     private String generateInlineEnum(String enumName, JsonNode enumDefinition) {
         JsonNode enumValues = enumDefinition.get("enum");
         
         StringBuilder enumBuilder = new StringBuilder();
-        enumBuilder.append("package com.azure.simpleSDK.models;\n\n");
-        enumBuilder.append("import com.fasterxml.jackson.annotation.JsonValue;\n\n");
+        appendPackageAndImports(enumBuilder, "JsonValue");
         enumBuilder.append("public enum ").append(capitalizeFirstLetter(enumName)).append(" {\n");
         
-        List<String> enumConstants = new ArrayList<>();
-        
-        // Second pass: generate constants consistently
-        for (int i = 0; i < enumValues.size(); i++) {
-            String enumValue = enumValues.get(i).asText();
-            String enumConstantName = convertToEnumConstantName(enumValue);
-            
-            // All constants need values when using @JsonValue
-            enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
-        }
-        
-        enumBuilder.append(String.join(",\n", enumConstants));
-        
-        // Add constructor and @JsonValue method if needed
-        enumBuilder.append(";\n\n");
-        enumBuilder.append("    private final String value;\n\n");
-        enumBuilder.append("    ").append(capitalizeFirstLetter(enumName)).append("(String value) {\n");
-        enumBuilder.append("        this.value = value;\n");
-        enumBuilder.append("    }\n\n");
-        enumBuilder.append("    @JsonValue\n");
-        enumBuilder.append("    public String getValue() {\n");
-        enumBuilder.append("        return value;\n");
-        enumBuilder.append("    }\n");
-        
-        enumBuilder.append("}\n");
+        appendEnumBody(enumBuilder, enumValues, capitalizeFirstLetter(enumName));
         
         return enumBuilder.toString();
     }
@@ -124,14 +91,8 @@ public class JavaDefinitionGenerator {
     public void writeRecordToFile(DefinitionKey definitionKey, JsonNode definition, String outputDir) throws IOException {
         String className = generateClassName(definitionKey);
         String recordContent = generateRecord(definitionKey, definition);
-        
-        Path outputPath = Paths.get(outputDir);
-        if (!Files.exists(outputPath)) {
-            Files.createDirectories(outputPath);
-        }
-        
-        Path filePath = outputPath.resolve(className + ".java");
-        Files.writeString(filePath, recordContent);
+        String fileName = className + ".java";
+        writeToFile(recordContent, fileName, outputDir);
     }
     
     private boolean isEnumDefinition(JsonNode definition) {
@@ -146,36 +107,11 @@ public class JavaDefinitionGenerator {
         JsonNode enumValues = definition.get("enum");
         
         StringBuilder enumBuilder = new StringBuilder();
-        enumBuilder.append("package com.azure.simpleSDK.models;\n\n");
-        enumBuilder.append("import com.fasterxml.jackson.annotation.JsonValue;\n\n");
-        enumBuilder.append("// Generated from ").append(definitionKey.filename()).append(":").append(definitionKey.lineNumber()).append("\n");
+        appendPackageAndImports(enumBuilder, "JsonValue");
+        appendSourceComment(enumBuilder, definitionKey);
         enumBuilder.append("public enum ").append(className).append(" {\n");
         
-        List<String> enumConstants = new ArrayList<>();
-        
-        // Second pass: generate constants consistently
-        for (int i = 0; i < enumValues.size(); i++) {
-            String enumValue = enumValues.get(i).asText();
-            String enumConstantName = convertToEnumConstantName(enumValue);
-            
-            // All constants need values when using @JsonValue
-            enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
-        }
-        
-        enumBuilder.append(String.join(",\n", enumConstants));
-        
-        // Add constructor and @JsonValue method if needed
-        enumBuilder.append(";\n\n");
-        enumBuilder.append("    private final String value;\n\n");
-        enumBuilder.append("    ").append(className).append("(String value) {\n");
-        enumBuilder.append("        this.value = value;\n");
-        enumBuilder.append("    }\n\n");
-        enumBuilder.append("    @JsonValue\n");
-        enumBuilder.append("    public String getValue() {\n");
-        enumBuilder.append("        return value;\n");
-        enumBuilder.append("    }\n");
-        
-        enumBuilder.append("}\n");
+        appendEnumBody(enumBuilder, enumValues, className);
         
         return enumBuilder.toString();
     }
@@ -495,5 +431,61 @@ public class JavaDefinitionGenerator {
             return str;
         }
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+    
+    private void appendPackageAndImports(StringBuilder builder, String... jacksonImports) {
+        builder.append("package com.azure.simpleSDK.models;\n\n");
+        
+        if (jacksonImports.length > 0) {
+            for (String jacksonImport : jacksonImports) {
+                if (!jacksonImport.startsWith("java.")) {
+                    builder.append("import com.fasterxml.jackson.annotation.").append(jacksonImport).append(";\n");
+                } else {
+                    builder.append("import ").append(jacksonImport).append(";\n");
+                }
+            }
+            builder.append("\n");
+        }
+    }
+    
+    private void appendSourceComment(StringBuilder builder, DefinitionKey definitionKey) {
+        builder.append("// Generated from ").append(definitionKey.filename()).append(":").append(definitionKey.lineNumber()).append("\n");
+    }
+    
+    private void appendEnumBody(StringBuilder enumBuilder, JsonNode enumValues, String className) {
+        List<String> enumConstants = new ArrayList<>();
+        
+        // Generate constants consistently
+        for (int i = 0; i < enumValues.size(); i++) {
+            String enumValue = enumValues.get(i).asText();
+            String enumConstantName = convertToEnumConstantName(enumValue);
+            
+            // All constants need values when using @JsonValue
+            enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
+        }
+        
+        enumBuilder.append(String.join(",\n", enumConstants));
+        
+        // Add constructor and @JsonValue method
+        enumBuilder.append(";\n\n");
+        enumBuilder.append("    private final String value;\n\n");
+        enumBuilder.append("    ").append(className).append("(String value) {\n");
+        enumBuilder.append("        this.value = value;\n");
+        enumBuilder.append("    }\n\n");
+        enumBuilder.append("    @JsonValue\n");
+        enumBuilder.append("    public String getValue() {\n");
+        enumBuilder.append("        return value;\n");
+        enumBuilder.append("    }\n");
+        enumBuilder.append("}\n");
+    }
+    
+    private void writeToFile(String content, String fileName, String outputDir) throws IOException {
+        Path outputPath = Paths.get(outputDir);
+        if (!Files.exists(outputPath)) {
+            Files.createDirectories(outputPath);
+        }
+        
+        Path filePath = outputPath.resolve(fileName);
+        Files.writeString(filePath, content);
     }
 }
