@@ -169,6 +169,120 @@ public enum EnumName {
 }
 ```
 
+## HTTP Layer Design
+
+The SDK includes a comprehensive HTTP layer built on Java 17's HTTP client for executing Azure REST API calls:
+
+### Core HTTP Components
+
+- **AzureHttpClient** (`com.azure.simpleSDK.http.AzureHttpClient`):
+  - Main synchronous HTTP client wrapper around Java 17's HttpClient
+  - Handles request execution, response processing, and error handling
+  - Integrates authentication, retry logic, and Azure-specific headers
+
+- **AzureRequest** (`com.azure.simpleSDK.http.AzureRequest`):
+  - Request builder with Azure-specific headers and authentication
+  - Supports GET, POST, PUT, DELETE, PATCH operations
+  - Automatic JSON serialization for request bodies
+
+- **AzureResponse<T>** (`com.azure.simpleSDK.http.AzureResponse`):
+  - Generic response wrapper with automatic deserialization
+  - Provides access to status code, headers, and typed response body
+  - Handles both JSON and binary response types
+
+### Authentication Support
+
+The HTTP layer supports multiple Azure authentication methods:
+
+- **Service Principal**: Client credentials flow with client ID/secret
+- **Bearer Tokens**: Direct token authentication
+
+**Authentication Interface**:
+```java
+public interface AzureCredentials {
+    String getAccessToken() throws AzureAuthenticationException;
+    boolean isExpired();
+    void refresh() throws AzureAuthenticationException;
+}
+```
+
+### Error Handling
+
+Comprehensive exception hierarchy for Azure-specific errors:
+
+- **AzureException** - Base exception for all Azure SDK errors
+- **AzureServiceException** - HTTP 4xx/5xx responses with Azure error details
+- **AzureNetworkException** - Network connectivity and timeout issues  
+- **AzureAuthenticationException** - Authentication failures (401/403)
+- **AzureResourceNotFoundException** - Resource not found errors (404)
+
+Azure error responses are parsed and mapped to structured exceptions:
+```java
+{
+  "error": {
+    "code": "InvalidResourceName",
+    "message": "Resource name is invalid", 
+    "details": [...],
+    "innererror": {...}
+  }
+}
+```
+
+### Retry and Resilience
+
+Built-in retry mechanism with exponential backoff:
+
+- **Retry Strategy**: Exponential backoff (100ms → 1600ms, max 5 attempts)
+- **Retryable Conditions**: Network errors, 502/503/504, timeouts, 429 rate limiting
+- **Non-retryable**: 4xx client errors (except 429)
+- **Respect Headers**: Honors `Retry-After` header when present
+
+### Azure-Specific Headers
+
+Automatic handling of standard Azure headers:
+
+- `Authorization: Bearer {token}` - Authentication
+- `x-ms-version: {apiVersion}` - API versioning  
+- `x-ms-client-request-id: {guid}` - Request correlation
+- `User-Agent: azure-simple-sdk/{version}` - Client identification
+- `Content-Type: application/json` - JSON content type
+- `Accept: application/json` - Expected response format
+
+### Usage Pattern
+
+Generated SDK operations use the HTTP layer like this:
+
+```java
+AzureHttpClient client = new AzureHttpClient(credentials);
+AzureResponse<VirtualNetworkGateway> response = client
+    .get("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworkGateways/{gatewayName}")
+    .version("2024-07-01")
+    .execute(VirtualNetworkGateway.class);
+
+VirtualNetworkGateway gateway = response.getBody();
+```
+
+### Package Structure
+
+```
+com.azure.simpleSDK.http/
+├── AzureHttpClient.java          # Main HTTP client
+├── AzureRequest.java             # Request builder
+├── AzureResponse.java            # Response wrapper
+├── auth/
+│   ├── AzureCredentials.java     # Authentication interface
+│   ├── ServicePrincipalCredentials.java
+│   └── ManagedIdentityCredentials.java
+├── exceptions/
+│   ├── AzureException.java       # Base exception
+│   ├── AzureServiceException.java
+│   ├── AzureNetworkException.java
+│   └── AzureAuthenticationException.java
+└── retry/
+    ├── RetryPolicy.java          # Retry configuration
+    └── ExponentialBackoffStrategy.java
+```
+
 ## Azure API Specifications
 
 The azure-rest-api-specs directory contains the complete Microsoft Azure REST API specification collection. Key locations:
