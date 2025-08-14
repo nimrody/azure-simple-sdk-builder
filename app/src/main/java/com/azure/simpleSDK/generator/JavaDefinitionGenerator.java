@@ -41,6 +41,32 @@ public class JavaDefinitionGenerator {
         recordBuilder.append("public record ").append(className).append("(\n");
         
         List<String> fields = new ArrayList<>();
+        Set<String> addedFieldNames = new HashSet<>();
+        
+        // First, collect fields from allOf references (inherited fields)
+        JsonNode allOf = definition.get("allOf");
+        if (allOf != null && allOf.isArray()) {
+            Set<String> visitedRefs = new HashSet<>();
+            for (JsonNode allOfItem : allOf) {
+                JsonNode ref = allOfItem.get("$ref");
+                if (ref != null && ref.isTextual()) {
+                    String refValue = ref.asText();
+                    
+                    // Prevent infinite recursion
+                    if (visitedRefs.contains(refValue)) {
+                        continue;
+                    }
+                    visitedRefs.add(refValue);
+                    
+                    ResolvedDefinition resolvedDef = resolveAllOfReference(refValue, definitionKey.filename());
+                    if (resolvedDef != null) {
+                        addFieldsFromDefinition(resolvedDef.getDefinition(), fields, resolvedDef.getFilename(), addedFieldNames);
+                    }
+                }
+            }
+        }
+        
+        // Then, collect fields from direct properties (skip duplicates)
         JsonNode properties = definition.get("properties");
         if (properties != null && properties.isObject()) {
             properties.fieldNames().forEachRemaining(propertyName -> {
@@ -48,11 +74,16 @@ public class JavaDefinitionGenerator {
                     return;
                 }
                 
+                String fieldName = convertToJavaFieldName(propertyName);
+                if (addedFieldNames.contains(fieldName)) {
+                    return; // Skip duplicate field
+                }
+                
                 JsonNode property = properties.get(propertyName);
                 String javaType = getJavaType(property, definitionKey.filename());
-                String fieldName = convertToJavaFieldName(propertyName);
                 String fieldDeclaration = generateFieldDeclaration(javaType, fieldName, propertyName);
                 fields.add(fieldDeclaration);
+                addedFieldNames.add(fieldName);
             });
         }
         
@@ -215,7 +246,8 @@ public class JavaDefinitionGenerator {
     
     private String getJavaType(JsonNode property, String currentFilename) {
         if (property.has("$ref")) {
-            return resolveReference(property.get("$ref").asText(), currentFilename);
+            String refValue = property.get("$ref").asText();
+            return resolveReference(refValue, currentFilename);
         }
         
         // Check for inline enum (has both type: "string" and enum array)
@@ -511,5 +543,84 @@ public class JavaDefinitionGenerator {
         
         Path filePath = outputPath.resolve(fileName);
         Files.writeString(filePath, content);
+    }
+    
+    private ResolvedDefinition resolveAllOfReference(String refValue, String currentFilename) {
+        if (refValue.startsWith("#/definitions/")) {
+            // Local reference within the same file
+            String definitionName = refValue.substring("#/definitions/".length());
+            JsonNode definition = findDefinitionByName(definitionName, currentFilename);
+            return definition != null ? new ResolvedDefinition(definition, currentFilename) : null;
+        } else if (refValue.startsWith("./") && refValue.contains("#/definitions/")) {
+            // External reference to another file
+            int hashIndex = refValue.indexOf("#");
+            String externalFilename = refValue.substring(2, hashIndex); // Remove "./"
+            String definitionName = refValue.substring(hashIndex + "#/definitions/".length());
+            JsonNode definition = findDefinitionByName(definitionName, externalFilename);
+            return definition != null ? new ResolvedDefinition(definition, externalFilename) : null;
+        }
+        return null;
+    }
+    
+    private static class ResolvedDefinition {
+        private final JsonNode definition;
+        private final String filename;
+        
+        public ResolvedDefinition(JsonNode definition, String filename) {
+            this.definition = definition;
+            this.filename = filename;
+        }
+        
+        public JsonNode getDefinition() { return definition; }
+        public String getFilename() { return filename; }
+    }
+    
+    private JsonNode findDefinitionByName(String definitionName, String filename) {
+        // Look for the definition in our loaded definitions
+        for (Map.Entry<DefinitionKey, JsonNode> entry : definitions.entrySet()) {
+            DefinitionKey key = entry.getKey();
+            if (key.definitionKey().equals(definitionName) && key.filename().equals(filename)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+    
+    private void addFieldsFromDefinition(JsonNode definition, List<String> fields, String currentFilename, Set<String> addedFieldNames) {
+        // Recursively handle allOf in the referenced definition  
+        JsonNode allOf = definition.get("allOf");
+        if (allOf != null && allOf.isArray()) {
+            for (JsonNode allOfItem : allOf) {
+                JsonNode ref = allOfItem.get("$ref");
+                if (ref != null && ref.isTextual()) {
+                    String refValue = ref.asText();
+                    ResolvedDefinition resolvedDef = resolveAllOfReference(refValue, currentFilename);
+                    if (resolvedDef != null) {
+                        addFieldsFromDefinition(resolvedDef.getDefinition(), fields, resolvedDef.getFilename(), addedFieldNames);
+                    }
+                }
+            }
+        }
+        
+        // Add properties from this definition (skip duplicates)
+        JsonNode properties = definition.get("properties");
+        if (properties != null && properties.isObject()) {
+            properties.fieldNames().forEachRemaining(propertyName -> {
+                if (shouldIgnoreProperty(propertyName)) {
+                    return;
+                }
+                
+                String fieldName = convertToJavaFieldName(propertyName);
+                if (addedFieldNames.contains(fieldName)) {
+                    return; // Skip duplicate field
+                }
+                
+                JsonNode property = properties.get(propertyName);
+                String javaType = getJavaType(property, currentFilename);
+                String fieldDeclaration = generateFieldDeclaration(javaType, fieldName, propertyName);
+                fields.add(fieldDeclaration);
+                addedFieldNames.add(fieldName);
+            });
+        }
     }
 }

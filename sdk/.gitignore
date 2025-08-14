@@ -4,5 +4,7 @@ azure-rest-api-specs/
 build/
 **/build/
 .gradle
+build.gradle
 sdk/src/main/java/com/azure/simpleSDK/models/
 sdk/src/main/java/com/azure/simpleSDK/client/
+.gitignore

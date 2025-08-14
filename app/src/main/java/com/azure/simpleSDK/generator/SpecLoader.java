@@ -21,12 +21,15 @@ public class SpecLoader {
     public SpecResult loadSpecs() throws IOException {
         Map<String, Operation> operations = new HashMap<>();
         Map<DefinitionKey, JsonNode> definitions = new HashMap<>();
+        Set<String> loadedFiles = new HashSet<>();
+        Set<String> externalRefsToLoad = new HashSet<>();
         ObjectMapper mapper = new ObjectMapper();
         
         if (!Files.exists(basePath) || !Files.isDirectory(basePath)) {
             throw new IOException("Path does not exist or is not a directory: " + basePath);
         }
 
+        // Phase 1: Load initial files and collect external references
         try (var stream = Files.walk(basePath)) {
             stream.filter(Files::isRegularFile)
                   .filter(file -> file.toString().endsWith(".json"))
@@ -36,20 +39,32 @@ public class SpecLoader {
                           String content = Files.readString(file);
                           JsonNode rootNode = mapper.readTree(content);
                           
+                          // Track loaded file
+                          loadedFiles.add(filename);
+                          
+                          // Extract operations
                           JsonNode pathsNode = rootNode.get("paths");
                           if (pathsNode != null && pathsNode.isObject()) {
                               extractOperations(pathsNode, operations);
                           }
                           
+                          // Extract definitions
                           JsonNode definitionsNode = rootNode.get("definitions");
                           if (definitionsNode != null && definitionsNode.isObject()) {
                               extractDefinitions(definitionsNode, filename, content, definitions);
                           }
+                          
+                          // Collect external references
+                          collectExternalReferences(rootNode, file.getParent(), externalRefsToLoad);
+                          
                       } catch (IOException e) {
                           System.err.println("Error reading file " + file + ": " + e.getMessage());
                       }
                   });
         }
+        
+        // Phase 2: Load external referenced files
+        loadExternalReferences(externalRefsToLoad, loadedFiles, definitions, mapper);
 
         return new SpecResult(operations, definitions);
     }
@@ -211,8 +226,107 @@ public class SpecLoader {
             if (inlineEnumCount > 0) {
                 System.out.println("Generated " + inlineEnumCount + " inline enum files in " + sdkOutputDir);
             }
+            
+            // Generate Azure client with GET operations
+            System.out.println("\nGenerating Azure SDK client with GET operations:");
+            String clientOutputDir = "sdk/src/main/java/com/azure/simpleSDK/client";
+            OperationGenerator operationGenerator = new OperationGenerator(result.operations(), duplicateNames, result.definitions());
+            
+            try {
+                operationGenerator.generateAzureClient(clientOutputDir);
+                System.out.println("Generated AzureSimpleSDKClient.java in " + clientOutputDir);
+            } catch (IOException e) {
+                System.err.println("Error generating Azure client: " + e.getMessage());
+            }
         } catch (IOException e) {
             System.err.println("Error loading files: " + e.getMessage());
+        }
+    }
+    
+    private void collectExternalReferences(JsonNode rootNode, Path currentFileDir, Set<String> externalRefsToLoad) {
+        collectExternalReferencesRecursive(rootNode, currentFileDir, externalRefsToLoad);
+    }
+    
+    private void collectExternalReferencesRecursive(JsonNode node, Path currentFileDir, Set<String> externalRefsToLoad) {
+        if (node.isObject()) {
+            JsonNode refNode = node.get("$ref");
+            if (refNode != null && refNode.isTextual()) {
+                String refValue = refNode.asText();
+                if (refValue.startsWith("./") || refValue.startsWith("../")) {
+                    // External reference - resolve the file path
+                    String filePath = refValue.contains("#") ? refValue.split("#")[0] : refValue;
+                    try {
+                        Path resolvedPath = currentFileDir.resolve(filePath).normalize();
+                        externalRefsToLoad.add(resolvedPath.toString());
+                    } catch (Exception e) {
+                        System.err.println("Error resolving external reference: " + refValue);
+                    }
+                }
+            }
+            
+            // Recursively check all object properties
+            node.fieldNames().forEachRemaining(fieldName -> {
+                collectExternalReferencesRecursive(node.get(fieldName), currentFileDir, externalRefsToLoad);
+            });
+        } else if (node.isArray()) {
+            // Recursively check all array elements
+            for (JsonNode arrayElement : node) {
+                collectExternalReferencesRecursive(arrayElement, currentFileDir, externalRefsToLoad);
+            }
+        }
+    }
+    
+    private void loadExternalReferences(Set<String> externalRefsToLoad, Set<String> loadedFiles, 
+                                      Map<DefinitionKey, JsonNode> definitions, ObjectMapper mapper) {
+        Set<String> processedExternal = new HashSet<>();
+        
+        for (String externalFilePath : externalRefsToLoad) {
+            loadExternalFile(externalFilePath, loadedFiles, definitions, mapper, processedExternal);
+        }
+    }
+    
+    private void loadExternalFile(String filePath, Set<String> loadedFiles, 
+                                Map<DefinitionKey, JsonNode> definitions, ObjectMapper mapper,
+                                Set<String> processedExternal) {
+        try {
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path) || !Files.isRegularFile(path) || processedExternal.contains(filePath)) {
+                return;
+            }
+            
+            processedExternal.add(filePath);
+            
+            String filename = path.getFileName().toString();
+            
+            // Skip if already loaded by filename (avoid duplicates)
+            if (loadedFiles.contains(filename)) {
+                return;
+            }
+            
+            String content = Files.readString(path);
+            JsonNode rootNode = mapper.readTree(content);
+            
+            // Extract definitions from external file
+            JsonNode definitionsNode = rootNode.get("definitions");
+            if (definitionsNode != null && definitionsNode.isObject()) {
+                extractDefinitions(definitionsNode, filename, content, definitions);
+                loadedFiles.add(filename);
+                System.out.println("Loaded external file: " + filename);
+            }
+            
+            // Look for more external references in this file
+            Set<String> moreExternalRefs = new HashSet<>();
+            collectExternalReferences(rootNode, path.getParent(), moreExternalRefs);
+            
+            // Recursively load newly found external references
+            for (String newExternalRef : moreExternalRefs) {
+                if (!processedExternal.contains(newExternalRef)) {
+                    loadExternalFile(newExternalRef, loadedFiles, definitions, mapper, processedExternal);
+                }
+            }
+            
+        } catch (IOException e) {
+            System.err.println("Error loading external file " + filePath + ": " + e.getMessage());
         }
     }
 }

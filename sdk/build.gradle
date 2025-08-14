@@ -14,3 +14,8 @@ dependencies {
 jar {
     archiveBaseName = 'azure-simple-sdk'
 }
+
+task cleanGenerated(type: Delete) {
+    delete "src/main/java/com/azure/simpleSDK/models/",
+           "src/main/java/com/azure/simpleSDK/client"
+}
