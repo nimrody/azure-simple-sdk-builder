@@ -73,23 +73,101 @@ The project uses Gradle with the wrapper script. All commands should be run from
 
 The tool processes Azure OpenAPI specifications from the azure-rest-api-specs directory:
 
-1. Locates the specified operation (e.g., `VirtualNetworkGateways_List`) in the appropriate JSON specification files
-2. Parses the OpenAPI/Swagger definitions to extract models and endpoints.
-   Handles cases where the definition refers to other definitions inside the
-   same file (starting with '#') or in other files in the same repository
-   (starting with "./" and followed by the filename)
-3. Generates immutable Java records for all data models
-4. Creates REST client code using Java 17's built-in HTTP client
-5. Uses Jackson for JSON serialization/deserialization
-6. Outputs all generated code to the sdk/ module
+1. **Specification Loading**: Scans all JSON files in the azure-rest-api-specs directory and extracts:
+   - Operations from the `paths` section
+   - Model definitions from the `definitions` section
+   - Records the file name and line number where each definition appears for traceability
+
+2. **Definition Processing**: 
+   - Handles references to other definitions within the same file (`#/definitions/ModelName`)
+   - Resolves external references to other files (`./otherFile.json#/definitions/ModelName`)
+   - Detects and handles duplicate definition names across files
+   - Recursively extracts inline enums from all property types (direct properties, array items, nested objects)
+
+3. **Code Generation**:
+   - Generates immutable Java records for complex data models in `com.azure.simpleSDK.models` package
+   - Creates Java enums for both standalone enum definitions and inline enums with `@JsonValue` annotations
+   - Handles reserved Java keywords by mapping them to safe field names
+   - Adds source traceability comments showing the originating file and line number
+
+4. **Type Resolution**:
+   - Maps OpenAPI types to appropriate Java types (string→String, integer→Integer/Long, etc.)
+   - Handles generic collections (arrays become `List<T>`, objects with additionalProperties become `Map<String, T>`)
+   - Resolves enum references and generates proper class names, handling duplicates with file prefixes
+
+5. **Output**: All generated code is placed in the `sdk/src/main/java/com/azure/simpleSDK/models/` directory
 
 ## Key Technical Decisions
 
 - **Java 17 HTTP Client**: Replaces complex async libraries with built-in synchronous HTTP support
-- **Jackson ObjectMapper**: Standard JSON processing for Azure API responses
-- **Immutable Records**: All model classes use Java records for immutability
+- **Jackson ObjectMapper**: Standard JSON processing for Azure API responses with `@JsonProperty` and `@JsonValue` annotations
+- **Immutable Records**: All model classes use Java records for immutability and thread safety
+- **Source Traceability**: Every generated class includes comments showing originating OpenAPI file and line number
+- **Recursive Enum Extraction**: Finds and generates enums from all property levels (direct, array items, nested objects)
+- **Package Organization**: All generated models are placed in `com.azure.simpleSDK.models` package
+- **Reserved Word Handling**: Java keywords are automatically mapped to safe alternatives (e.g., `default` → `dflt`)
 - **Latest API Versions**: When multiple versions exist, automatically select the most recent stable version
 - **Multi-module Build**: Separates code generation tool from generated SDK for clean distribution
+
+## Implementation Details
+
+### Core Components
+
+- **SpecLoader** (`app/src/main/java/com/azure/simpleSDK/generator/SpecLoader.java`):
+  - Scans OpenAPI specification files and extracts operations and definitions
+  - Tracks line numbers using regex pattern matching for source traceability
+  - Main entry point that orchestrates the entire generation process
+
+- **JavaDefinitionGenerator** (`app/src/main/java/com/azure/simpleSDK/generator/JavaDefinitionGenerator.java`):
+  - Converts OpenAPI definitions into Java code (records and enums)
+  - Handles type resolution, reference resolution, and code formatting
+  - Recursively extracts inline enums from nested property structures
+
+- **DefinitionKey** (`app/src/main/java/com/azure/simpleSDK/generator/DefinitionKey.java`):
+  - Immutable record storing filename, definition name, and line number
+  - Used as a composite key for tracking definition sources
+
+### Generated Code Structure
+
+All generated classes follow these patterns:
+
+```java
+// Records (for complex types)
+package com.azure.simpleSDK.models;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.*;
+
+// Generated from filename.json:123
+public record ModelName(
+    String property1,
+    @JsonProperty("property-name") String property2,
+    List<EnumType> enumList
+) {
+}
+
+// Enums (for enumeration types)
+package com.azure.simpleSDK.models;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+
+// Generated from filename.json:456
+public enum EnumName {
+    VALUE1("Value1"),
+    VALUE2("Value2");
+
+    private final String value;
+
+    EnumName(String value) {
+        this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+}
+```
 
 ## Azure API Specifications
 
