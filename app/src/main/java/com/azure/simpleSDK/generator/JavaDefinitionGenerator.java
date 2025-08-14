@@ -141,17 +141,41 @@ public class JavaDefinitionGenerator {
         if (properties != null && properties.isObject()) {
             properties.fieldNames().forEachRemaining(propertyName -> {
                 JsonNode property = properties.get(propertyName);
-                if (isInlineEnum(property)) {
-                    JsonNode xMsEnum = property.get("x-ms-enum");
-                    if (xMsEnum != null && xMsEnum.has("name")) {
-                        String rawEnumName = xMsEnum.get("name").asText();
-                        String enumName = cleanEnumName(rawEnumName);
-                        // Create a synthetic enum definition from the inline enum
-                        JsonNode enumDefinition = createEnumDefinition(property, xMsEnum);
-                        inlineEnums.put(enumName, enumDefinition);
-                    }
-                }
+                extractInlineEnumsFromProperty(property);
             });
+        }
+    }
+    
+    private void extractInlineEnumsFromProperty(JsonNode property) {
+        if (isInlineEnum(property)) {
+            JsonNode xMsEnum = property.get("x-ms-enum");
+            if (xMsEnum != null && xMsEnum.has("name")) {
+                String rawEnumName = xMsEnum.get("name").asText();
+                String enumName = cleanEnumName(rawEnumName);
+                // Create a synthetic enum definition from the inline enum
+                JsonNode enumDefinition = createEnumDefinition(property, xMsEnum);
+                inlineEnums.put(enumName, enumDefinition);
+            }
+        } else if (property.has("type")) {
+            String type = property.get("type").asText();
+            if ("array".equals(type)) {
+                JsonNode items = property.get("items");
+                if (items != null) {
+                    extractInlineEnumsFromProperty(items);
+                }
+            } else if ("object".equals(type)) {
+                JsonNode additionalProperties = property.get("additionalProperties");
+                if (additionalProperties != null && additionalProperties.isObject()) {
+                    extractInlineEnumsFromProperty(additionalProperties);
+                }
+                JsonNode properties = property.get("properties");
+                if (properties != null && properties.isObject()) {
+                    properties.fieldNames().forEachRemaining(propName -> {
+                        JsonNode nestedProperty = properties.get(propName);
+                        extractInlineEnumsFromProperty(nestedProperty);
+                    });
+                }
+            }
         }
     }
     
