@@ -31,12 +31,14 @@ and create models and code for this endpoint.
 
 ## Project Structure
 
-This is a multi-module Gradle project with two main components:
+This is a multi-module Gradle project with three main components:
 
 - **app/** - Main application module containing the code generation tool
 
 - **sdk/** - Generated SDK module that will contain the final Azure Simple SDK
   library
+
+- **demo/** - Demonstration application showing how to use the generated SDK
 
 - **azure-rest-api-specs/** - Git submodule containing Microsoft Azure REST API
   specifications
@@ -54,6 +56,9 @@ The project uses Gradle with the wrapper script. All commands should be run from
 
 # Build only the SDK module
 ./gradlew :sdk:build
+
+# Build and run the demo application
+./gradlew :demo:run
 
 # Run tests
 ./gradlew test
@@ -331,6 +336,8 @@ The SDK includes a comprehensive HTTP layer built on Java 17's HTTP client for e
   - Main synchronous HTTP client wrapper around Java 17's HttpClient
   - Handles request execution, response processing, and error handling
   - Integrates authentication, retry logic, and Azure-specific headers
+  - Automatically prepends Azure management endpoint (`https://management.azure.com`)
+  - Configures Jackson ObjectMapper to ignore unknown JSON properties for resilient deserialization
 
 - **AzureRequest** (`com.azure.simpleSDK.http.AzureRequest`):
   - Request builder with Azure-specific headers and authentication
@@ -357,6 +364,12 @@ public interface AzureCredentials {
     void refresh() throws AzureAuthenticationException;
 }
 ```
+
+**Service Principal Implementation**:
+- Handles OAuth2 client credentials flow with Azure AD
+- Automatically manages token refresh and expiration
+- Resilient token response parsing that ignores extra fields (`token_type`, `ext_expires_in`)
+- Thread-safe token caching with proper synchronization
 
 ### Error Handling
 
@@ -447,6 +460,76 @@ com.azure.simpleSDK.http/
     └── ExponentialBackoffStrategy.java
 ```
 
+## Demo Application
+
+The project includes a comprehensive demo application that demonstrates how to use the generated Azure Simple SDK to authenticate with Azure and interact with Azure resources.
+
+### Demo Features
+
+- **Service Principal Authentication**: Loads Azure credentials from a local properties file
+- **Azure API Integration**: Demonstrates real Azure API calls using the generated SDK  
+- **Firewall Enumeration**: Fetches and displays all Azure Firewalls in a subscription
+- **JSON Output**: Shows both structured data and raw JSON responses
+- **Error Handling**: Comprehensive error handling with helpful error messages
+
+### Demo Structure
+
+```
+demo/
+├── src/main/java/com/azure/simpleSDK/demo/
+│   └── DemoApplication.java         # Main demo application
+├── azure.properties.template        # Template for Azure credentials
+├── build.gradle                     # Demo module build configuration
+└── README.md                        # Complete demo documentation
+```
+
+### Running the Demo
+
+1. **Setup Credentials**: Copy `azure.properties.template` to `azure.properties` and fill in your Azure Service Principal credentials:
+   ```properties
+   azure.tenant-id=YOUR_TENANT_ID_HERE
+   azure.client-id=YOUR_CLIENT_ID_HERE  
+   azure.client-secret=YOUR_CLIENT_SECRET_HERE
+   azure.subscription-id=YOUR_SUBSCRIPTION_ID_HERE
+   ```
+
+2. **Run the Demo**: Execute from the project root:
+   ```bash
+   ./gradlew :demo:run
+   ```
+
+### Demo Output Example
+
+```
+Fetching Azure Firewalls for subscription: 12345678-1234-1234-1234-123456789abc
+==========================================
+Response Status: 200
+Number of firewalls found: 1
+
+Azure Firewalls:
+================
+Firewall Name: my-firewall
+Resource Group: my-resource-group
+Location: westeurope
+Provisioning State: Succeeded
+ID: /subscriptions/.../resourceGroups/my-rg/providers/Microsoft.Network/azureFirewalls/my-firewall
+
+Full JSON Response:
+==================
+{ "value": [...] }
+```
+
+### Demo Technical Details
+
+The demo application showcases:
+
+- **Authentication Flow**: Service Principal credential creation and token acquisition
+- **SDK Client Usage**: Creating `AzureSimpleSDKClient` with proper credentials
+- **API Method Calls**: Using generated methods like `listAllAzureFirewalls(subscriptionId)`
+- **Response Processing**: Accessing typed response data and raw JSON
+- **Resource Parsing**: Extracting resource group names from Azure resource IDs
+- **Error Handling**: Graceful handling of authentication and network errors
+
 ## Azure API Specifications
 
 The azure-rest-api-specs directory contains the complete Microsoft Azure REST API specification collection. Key locations:
@@ -467,7 +550,8 @@ The azure-rest-api-specs directory contains the complete Microsoft Azure REST AP
 ✅ **SDK Client Generation**: 346 type-safe GET operation methods  
 ✅ **Comprehensive Documentation**: Auto-generated Javadoc with OpenAPI metadata  
 ✅ **HTTP Layer**: Complete Azure authentication, retry, and error handling  
-✅ **Build Success**: Zero compilation errors, ready for production use  
+✅ **Demo Application**: Working demonstration with real Azure API calls  
+✅ **Production Ready**: Zero compilation errors, tested with live Azure APIs  
 
 ### Current Limitations
 
