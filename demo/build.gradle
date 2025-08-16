@@ -13,4 +13,6 @@ application {
 
 run {
     systemProperty 'file.encoding', 'UTF-8'
+    // Pass through system properties from command line
+    systemProperties System.getProperties()
 }

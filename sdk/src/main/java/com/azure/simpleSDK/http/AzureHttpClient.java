@@ -6,7 +6,9 @@ import com.azure.simpleSDK.http.retry.ExponentialBackoffStrategy;
 import com.azure.simpleSDK.http.retry.RetryPolicy;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
@@ -26,16 +28,26 @@ public class AzureHttpClient {
     private final ObjectMapper objectMapper;
     private final RetryPolicy retryPolicy;
     private final ExponentialBackoffStrategy backoffStrategy;
+    private final boolean failOnUnknownProperties;
 
     public AzureHttpClient(AzureCredentials credentials) {
-        this(credentials, RetryPolicy.DEFAULT);
+        this(credentials, RetryPolicy.DEFAULT, false);
     }
 
     public AzureHttpClient(AzureCredentials credentials, RetryPolicy retryPolicy) {
+        this(credentials, retryPolicy, false);
+    }
+
+    public AzureHttpClient(AzureCredentials credentials, boolean failOnUnknownProperties) {
+        this(credentials, RetryPolicy.DEFAULT, failOnUnknownProperties);
+    }
+
+    public AzureHttpClient(AzureCredentials credentials, RetryPolicy retryPolicy, boolean failOnUnknownProperties) {
         this.credentials = credentials;
         this.retryPolicy = retryPolicy;
+        this.failOnUnknownProperties = failOnUnknownProperties;
         this.objectMapper = new ObjectMapper();
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, failOnUnknownProperties);
         this.backoffStrategy = new ExponentialBackoffStrategy();
         this.httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
@@ -77,7 +89,17 @@ public class AzureHttpClient {
                 
                 T responseBody = null;
                 if (responseType != Void.class && response.body() != null && !response.body().isEmpty()) {
-                    responseBody = objectMapper.readValue(response.body(), responseType);
+                    try {
+                        responseBody = objectMapper.readValue(response.body(), responseType);
+                    } catch (UnrecognizedPropertyException e) {
+                        if (failOnUnknownProperties) {
+                            logUnknownPropertiesDetails(request.uri().toString(), response.body(), e);
+                            throw new AzureException("Unknown properties found in Azure API response", e);
+                        } else {
+                            // This shouldn't happen since we set FAIL_ON_UNKNOWN_PROPERTIES to false for non-strict mode
+                            throw new AzureException("Unexpected deserialization error", e);
+                        }
+                    }
                 }
                 
                 return new AzureResponse<>(response.statusCode(), responseHeaders, responseBody, response.body());
@@ -181,6 +203,72 @@ public class AzureHttpClient {
             default:
                 return new AzureServiceException(errorMessage, response.statusCode(), headers, errorCode, responseBody);
         }
+    }
+
+    private void logUnknownPropertiesDetails(String url, String responseBody, UnrecognizedPropertyException e) {
+        System.err.println("================================================================================");
+        System.err.println("UNKNOWN PROPERTIES DETECTED IN AZURE API RESPONSE");
+        System.err.println("================================================================================");
+        System.err.println("URL: " + url);
+        System.err.println("Unknown Property: " + e.getPropertyName());
+        System.err.println("Target Type: " + e.getReferringClass());
+        System.err.println("Reference Chain: " + e.getPathReference());
+        
+        // Try to extract the unknown property value from the JSON response
+        try {
+            JsonNode rootNode = objectMapper.readTree(responseBody);
+            String[] pathComponents = e.getPathReference().split("->");
+            JsonNode currentNode = rootNode;
+            
+            System.err.println("Navigation Path:");
+            for (int i = 0; i < pathComponents.length && currentNode != null; i++) {
+                String component = pathComponents[i].trim();
+                System.err.println("  [" + i + "] " + component);
+                
+                if (component.contains("[") && component.contains("]")) {
+                    // Handle array access like "java.util.ArrayList[0]"
+                    String arrayField = component.substring(0, component.indexOf('['));
+                    String indexStr = component.substring(component.indexOf('[') + 1, component.indexOf(']'));
+                    try {
+                        int index = Integer.parseInt(indexStr);
+                        if (currentNode.has(arrayField) && currentNode.get(arrayField).isArray()) {
+                            currentNode = currentNode.get(arrayField).get(index);
+                        }
+                    } catch (NumberFormatException ignored) {
+                        // Skip if index is not a number
+                    }
+                } else if (component.contains(".")) {
+                    // Skip class name parts like "com.azure.simpleSDK.models.SomeClass"
+                    String fieldName = component.substring(component.lastIndexOf('.') + 1);
+                    if (currentNode.has(fieldName)) {
+                        currentNode = currentNode.get(fieldName);
+                    }
+                }
+            }
+            
+            // Try to find the unknown property in the current context
+            if (currentNode != null && currentNode.has(e.getPropertyName())) {
+                JsonNode unknownValue = currentNode.get(e.getPropertyName());
+                System.err.println("Unknown Property Value: " + unknownValue.toString());
+                System.err.println("Value Type: " + unknownValue.getNodeType());
+            }
+            
+            // Also show all unknown properties at this level
+            if (currentNode != null && currentNode.isObject()) {
+                System.err.println("All properties at this level:");
+                currentNode.fields().forEachRemaining(entry -> {
+                    System.err.println("  " + entry.getKey() + " = " + entry.getValue().toString());
+                });
+            }
+            
+        } catch (Exception jsonException) {
+            System.err.println("Could not parse JSON to extract unknown property details: " + jsonException.getMessage());
+        }
+        
+        System.err.println("================================================================================");
+        System.err.println("Raw JSON Response (first 1000 chars):");
+        System.err.println(responseBody.length() > 1000 ? responseBody.substring(0, 1000) + "..." : responseBody);
+        System.err.println("================================================================================");
     }
 
     private static class AzureErrorResponse {

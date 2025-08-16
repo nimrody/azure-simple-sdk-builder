@@ -34,24 +34,45 @@ This demo application shows how to use the generated Azure Simple SDK to authent
 From the project root directory:
 
 ```bash
-# Build and run the demo
+# Build and run the demo (lenient mode - ignores unknown properties)
 ./gradlew :demo:run
+
+# Run in strict mode (fails on unknown properties with detailed logging)
+./gradlew :demo:run -Dstrict=true
 
 # Or build and run manually
 ./gradlew :demo:build
 cd demo
 java -jar build/libs/demo.jar
+java -Dstrict=true -jar build/libs/demo.jar  # strict mode
 ```
 
 ## What the Demo Does
 
 1. **Loads credentials** from `azure.properties` file
-2. **Creates Azure client** using Service Principal authentication
-3. **Fetches all Azure Firewalls** in the specified subscription
-4. **Displays results** including:
+2. **Detects runtime mode** (lenient or strict) via `-Dstrict=true` parameter
+3. **Creates Azure client** using Service Principal authentication with appropriate mode
+4. **Fetches all Azure Firewalls** in the specified subscription
+5. **Displays results** including:
    - Number of firewalls found
    - Basic firewall information (name, resource group, location, status)
    - Full JSON response for detailed inspection
+
+## Runtime Modes
+
+### Lenient Mode (Default)
+- Ignores unknown properties in Azure API responses
+- Allows the application to continue despite model mismatches
+- Suitable for production use when Azure APIs add new fields
+
+### Strict Mode (`-Dstrict=true`)
+- Fails immediately when unknown properties are detected
+- Provides detailed logging including:
+  - Exact URL that returned unknown properties
+  - Property name and value
+  - Target class and reference chain
+  - Raw JSON response excerpt
+- Useful for SDK development and model validation
 
 ## Sample Output
 

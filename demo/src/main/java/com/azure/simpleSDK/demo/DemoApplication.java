@@ -32,9 +32,17 @@ public class DemoApplication {
                 System.exit(1);
             }
             
-            // Create credentials and client
+            // Create credentials
             ServicePrincipalCredentials credentials = new ServicePrincipalCredentials(clientId, clientSecret, tenantId);
-            AzureSimpleSDKClient client = new AzureSimpleSDKClient(credentials);
+            
+            // Check if strict mode is requested via system property
+            boolean strictMode = Boolean.parseBoolean(System.getProperty("strict", "false"));
+            System.out.println("Running in " + (strictMode ? "STRICT" : "LENIENT") + " mode");
+            System.out.println("(Use -Dstrict=true to enable strict mode for unknown property detection)");
+            System.out.println();
+            
+            // Create client with appropriate mode
+            AzureSimpleSDKClient client = new AzureSimpleSDKClient(credentials, strictMode);
             
             System.out.println("Fetching Azure Firewalls for subscription: " + subscriptionId);
             System.out.println("==========================================");
