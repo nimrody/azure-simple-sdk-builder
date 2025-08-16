@@ -2,3 +2,4 @@ rootProject.name = 'azure-simple-sdk-builder'
 
 include 'app'
 include 'sdk'
+include 'demo'

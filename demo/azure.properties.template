@@ -1,0 +1,22 @@
+# Azure Service Principal Credentials
+# Copy this file to azure.properties and fill in your actual values
+
+# Azure Tenant ID (Directory ID)
+azure.tenant-id=YOUR_TENANT_ID_HERE
+
+# Azure Application (Client) ID
+azure.client-id=YOUR_CLIENT_ID_HERE
+
+# Azure Client Secret
+azure.client-secret=YOUR_CLIENT_SECRET_HERE
+
+# Azure Subscription ID
+azure.subscription-id=YOUR_SUBSCRIPTION_ID_HERE
+
+# How to get these values:
+# 1. Go to Azure Portal
+# 2. Navigate to Azure Active Directory > App registrations
+# 3. Create a new application registration or use existing one
+# 4. Copy the Application (client) ID and Directory (tenant) ID
+# 5. Go to Certificates & secrets, create a new client secret
+# 6. Copy the subscription ID from your Azure subscription

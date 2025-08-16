@@ -1,0 +1,16 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':sdk')
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+}
+
+application {
+    mainClass = 'com.azure.simpleSDK.demo.DemoApplication'
+}
+
+run {
+    systemProperty 'file.encoding', 'UTF-8'
+}
