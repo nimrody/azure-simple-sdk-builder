@@ -5,6 +5,7 @@ import com.azure.simpleSDK.http.exceptions.*;
 import com.azure.simpleSDK.http.retry.ExponentialBackoffStrategy;
 import com.azure.simpleSDK.http.retry.RetryPolicy;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -18,6 +19,8 @@ import java.util.Map;
 import java.util.concurrent.CompletionException;
 
 public class AzureHttpClient {
+    private static final String AZURE_MANAGEMENT_BASE_URL = "https://management.azure.com";
+    
     private final HttpClient httpClient;
     private final AzureCredentials credentials;
     private final ObjectMapper objectMapper;
@@ -32,6 +35,7 @@ public class AzureHttpClient {
         this.credentials = credentials;
         this.retryPolicy = retryPolicy;
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.backoffStrategy = new ExponentialBackoffStrategy();
         this.httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
@@ -39,11 +43,18 @@ public class AzureHttpClient {
     }
 
     public AzureRequest get(String url) {
-        return new AzureRequest("GET", url, credentials, objectMapper);
+        return new AzureRequest("GET", buildFullUrl(url), credentials, objectMapper);
     }
 
     public AzureRequest post(String url) {
-        return new AzureRequest("POST", url, credentials, objectMapper);
+        return new AzureRequest("POST", buildFullUrl(url), credentials, objectMapper);
+    }
+
+    private String buildFullUrl(String url) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return url;
+        }
+        return AZURE_MANAGEMENT_BASE_URL + (url.startsWith("/") ? url : "/" + url);
     }
 
     public <T> AzureResponse<T> execute(AzureRequest azureRequest, Class<T> responseType) throws AzureException {

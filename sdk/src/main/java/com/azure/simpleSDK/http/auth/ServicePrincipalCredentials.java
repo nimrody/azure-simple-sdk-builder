@@ -1,6 +1,7 @@
 package com.azure.simpleSDK.http.auth;
 
 import com.azure.simpleSDK.http.exceptions.AzureAuthenticationException;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -88,11 +89,15 @@ public class ServicePrincipalCredentials implements AzureCredentials {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class TokenResponse {
         @JsonProperty("access_token")
         public String accessToken;
 
         @JsonProperty("expires_in")
         public long expiresIn;
+
+        @JsonProperty("token_type")
+        public String tokenType;
     }
 }
