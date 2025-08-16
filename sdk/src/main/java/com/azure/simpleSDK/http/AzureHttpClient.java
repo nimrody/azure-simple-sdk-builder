@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -110,10 +111,7 @@ public class AzureHttpClient {
                 
                 // Handle pagination for list results
                 if (responseBody != null && isPaginatedListResult(responseType)) {
-                    AzureResponse<T> paginatedResponse = handlePagination(responseBody, responseType, response.statusCode(), responseHeaders);
-                    if (paginatedResponse != null) {
-                        return paginatedResponse;
-                    }
+                    return handlePaginationInline(responseBody, responseType, response.statusCode(), responseHeaders, response.body());
                 }
                 
                 return new AzureResponse<>(response.statusCode(), responseHeaders, responseBody, response.body());
@@ -301,14 +299,14 @@ public class AzureHttpClient {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> AzureResponse<T> handlePagination(T firstPage, Class<T> responseType, int statusCode, Map<String, String> headers) throws AzureException {
+    private <T> AzureResponse<T> handlePaginationInline(T firstPage, Class<T> responseType, int statusCode, Map<String, String> headers, String firstPageRawResponse) throws AzureException {
         try {
             Method nextLinkMethod = responseType.getMethod("nextLink");
             String nextLink = (String) nextLinkMethod.invoke(firstPage);
             
             if (nextLink == null || nextLink.trim().isEmpty()) {
-                // No pagination needed
-                return null;
+                // No pagination needed - return single page response
+                return new AzureResponse<>(statusCode, headers, firstPage, firstPageRawResponse);
             }
             
             List<T> allPages = new ArrayList<>();
@@ -319,12 +317,18 @@ public class AzureHttpClient {
             final int maxPages = 50; // Safety limit to prevent infinite loops
             
             while (currentNextLink != null && !currentNextLink.trim().isEmpty() && pageCount < maxPages) {
-                // Create a new request for the next page
-                AzureRequest nextPageRequest = new AzureRequest("GET", currentNextLink, credentials, objectMapper);
-                HttpRequest nextRequest = nextPageRequest.build();
-                
                 try {
-                    HttpResponse<String> nextResponse = httpClient.send(nextRequest, HttpResponse.BodyHandlers.ofString());
+                    HttpResponse<String> nextResponse = httpClient.send(
+                        HttpRequest.newBuilder()
+                            .uri(URI.create(currentNextLink))
+                            .timeout(Duration.ofSeconds(30))
+                            .header("Authorization", "Bearer " + credentials.getAccessToken())
+                            .header("Accept", "application/json")
+                            .header("User-Agent", "azure-simple-sdk/1.0.0")
+                            .GET()
+                            .build(),
+                        HttpResponse.BodyHandlers.ofString()
+                    );
                     
                     if (nextResponse.statusCode() >= 400) {
                         System.err.println("Warning: Failed to fetch page " + (pageCount + 1) + " of paginated results: HTTP " + nextResponse.statusCode());
@@ -354,17 +358,14 @@ public class AzureHttpClient {
             // Combine all pages into a single response
             T combinedResult = combinePagedResults(firstPage, allPages.subList(1, allPages.size()), responseType);
             
-            // Create combined raw response for debugging
-            StringBuilder combinedRawResponse = new StringBuilder();
-            combinedRawResponse.append("Combined response from ").append(pageCount).append(" pages");
-            
             System.out.println("Pagination: Successfully combined " + pageCount + " pages of results");
             
-            return new AzureResponse<>(statusCode, headers, combinedResult, combinedRawResponse.toString());
+            return new AzureResponse<>(statusCode, headers, combinedResult, "Combined response from " + pageCount + " pages");
             
         } catch (Exception e) {
             System.err.println("Warning: Error during pagination: " + e.getMessage());
-            return null; // Fall back to single page response
+            // Fall back to single page response
+            return new AzureResponse<>(statusCode, headers, firstPage, firstPageRawResponse);
         }
     }
 
