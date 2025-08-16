@@ -338,6 +338,8 @@ The SDK includes a comprehensive HTTP layer built on Java 17's HTTP client for e
   - Integrates authentication, retry logic, and Azure-specific headers
   - Automatically prepends Azure management endpoint (`https://management.azure.com`)
   - Configures Jackson ObjectMapper to ignore unknown JSON properties for resilient deserialization
+  - **Automatic Pagination**: Detects and handles paginated list responses automatically
+  - **Strict Mode Support**: Optional mode for unknown property detection with detailed logging
 
 - **AzureRequest** (`com.azure.simpleSDK.http.AzureRequest`):
   - Request builder with Azure-specific headers and authentication
@@ -413,6 +415,67 @@ Automatic handling of standard Azure headers:
 - `Content-Type: application/json` - JSON content type
 - `Accept: application/json` - Expected response format
 
+### Automatic Pagination Support
+
+The SDK automatically handles Azure API pagination for list operations:
+
+- **Detection**: Uses reflection to identify paginated list result types (with `value` and `nextLink` fields)
+- **Eager Pagination**: Automatically follows `nextLink` URLs and combines all pages into a single response
+- **Safety Limits**: Maximum 50 pages to prevent infinite loops
+- **Error Handling**: Gracefully handles pagination failures, returning partial results when possible
+- **Performance**: Only applies pagination logic to appropriate list result types
+
+#### Pagination Implementation Details
+
+```java
+// Automatic detection of paginated types
+private boolean isPaginatedListResult(Class<?> responseType) {
+    try {
+        Method valueMethod = responseType.getMethod("value");
+        Method nextLinkMethod = responseType.getMethod("nextLink");
+        
+        // Check if value() returns a List
+        Type returnType = valueMethod.getGenericReturnType();
+        if (returnType instanceof ParameterizedType) {
+            ParameterizedType paramType = (ParameterizedType) returnType;
+            return List.class.isAssignableFrom((Class<?>) paramType.getRawType());
+        }
+        return false;
+    } catch (NoSuchMethodException e) {
+        return false;
+    }
+}
+```
+
+#### Pagination Behavior
+
+- **Single Page**: When `nextLink` is null or empty, returns response immediately
+- **Multi-Page**: Automatically fetches all pages and combines results
+- **Combined Response**: Final response contains all items with `nextLink: null`
+- **Logging**: Prints "Pagination: Successfully combined X pages of results" when pagination occurs
+
+### Strict Mode and Unknown Properties
+
+The SDK supports two modes for handling unknown JSON properties:
+
+#### Lenient Mode (Default)
+- Ignores unknown properties in Azure API responses
+- Provides resilient parsing when Azure adds new fields
+- Best for production use where forward compatibility is important
+
+#### Strict Mode
+- Fails on unknown properties with detailed error logging
+- Shows exact URL, property names, values, and JSON context
+- Useful for development and API schema validation
+
+```java
+// Enable strict mode
+AzureSimpleSDKClient client = new AzureSimpleSDKClient(credentials, true);
+
+// Run demo in strict mode
+./gradlew :demo:run -Dstrict=true
+```
+
 ### Usage Pattern
 
 The generated SDK client provides a high-level interface:
@@ -423,6 +486,7 @@ AzureCredentials credentials = new ServicePrincipalCredentials(clientId, clientS
 AzureSimpleSDKClient client = new AzureSimpleSDKClient(credentials);
 
 // Call generated methods with full type safety and documentation
+// Pagination is handled automatically for list operations
 AzureResponse<VirtualNetworkGatewayListConnectionsResult> response = client
     .listConnectionsVirtualNetworkGateways(subscriptionId, resourceGroupName, gatewayName);
 
@@ -460,6 +524,67 @@ com.azure.simpleSDK.http/
     └── ExponentialBackoffStrategy.java
 ```
 
+## Testing Infrastructure
+
+The SDK includes a comprehensive unit test suite that verifies all core functionality:
+
+### Test Coverage
+
+The test suite includes **10 unit tests** with **100% pass rate** covering:
+
+#### Pagination Tests
+- **Single Page Response**: Tests responses with `nextLink: null`
+- **Multi-Page Pagination**: Tests automatic pagination across 3 pages with response merging
+- **Error Handling During Pagination**: Tests graceful fallback when second page returns HTTP 500
+- **Empty NextLink**: Tests responses with empty string `nextLink` values
+- **Maximum Page Limit**: Tests safety limit of 50 pages to prevent infinite loops
+
+#### Single-Value Request Tests  
+- **Complex Object Deserialization**: Tests realistic Azure resource JSON with nested properties
+- **Null Body Handling**: Tests HTTP 204 No Content responses
+- **Empty Body Handling**: Tests responses with empty string bodies
+
+#### Type Detection Tests
+- **Paginated Type Detection**: Tests reflection-based detection of list result types
+- **Non-Paginated Type Detection**: Tests types without `value()` and `nextLink()` methods
+
+### Test Architecture
+
+```java
+// Test structure
+sdk/src/test/java/com/azure/simpleSDK/http/
+├── AzureHttpClientPaginationTest.java  # Main test suite
+├── TestListResult.java                 # Mock paginated result model
+├── TestItem.java                       # Mock list item model
+└── [Various mock result models for single-value tests]
+```
+
+### Mock Setup
+
+Tests use Mockito to mock HTTP client behavior:
+- **HTTP Response Simulation**: Mocks multi-page JSON responses with realistic Azure data
+- **Error Scenario Testing**: Simulates network failures and HTTP error codes
+- **Reflection Mocking**: Uses reflection to inject mocked HttpClient for isolated testing
+
+### Test Execution
+
+```bash
+# Run all SDK tests
+./gradlew :sdk:test
+
+# View detailed test reports
+open sdk/build/reports/tests/test/index.html
+```
+
+### Test Validation
+
+Tests verify:
+- **Correct HTTP Call Counts**: Ensures proper number of requests for pagination scenarios
+- **Response Merging**: Validates that multi-page responses are correctly combined
+- **Type Safety**: Confirms proper deserialization of complex nested JSON structures
+- **Error Resilience**: Tests graceful degradation when pagination fails
+- **Performance**: Validates pagination limits and type detection efficiency
+
 ## Demo Application
 
 The project includes a comprehensive demo application that demonstrates how to use the generated Azure Simple SDK to authenticate with Azure and interact with Azure resources.
@@ -468,7 +593,9 @@ The project includes a comprehensive demo application that demonstrates how to u
 
 - **Service Principal Authentication**: Loads Azure credentials from a local properties file
 - **Azure API Integration**: Demonstrates real Azure API calls using the generated SDK  
-- **Firewall Enumeration**: Fetches and displays all Azure Firewalls in a subscription
+- **Multiple Resource Types**: Tests Azure Firewalls, Virtual Networks, and Network Interfaces
+- **Pagination Testing**: Exercises automatic pagination across different list operations
+- **Strict Mode Support**: Optional strict mode for unknown property detection (`-Dstrict=true`)
 - **JSON Output**: Shows both structured data and raw JSON responses
 - **Error Handling**: Comprehensive error handling with helpful error messages
 
@@ -501,22 +628,46 @@ demo/
 ### Demo Output Example
 
 ```
-Fetching Azure Firewalls for subscription: 12345678-1234-1234-1234-123456789abc
+Running in LENIENT mode
+(Use -Dstrict=true to enable strict mode for unknown property detection)
+
+Fetching Azure Resources for subscription: 12345678-1234-1234-1234-123456789abc
 ==========================================
-Response Status: 200
+
+--- Testing Azure Firewalls (pagination test) ---
+Firewall Response Status: 200
 Number of firewalls found: 1
 
-Azure Firewalls:
-================
-Firewall Name: my-firewall
-Resource Group: my-resource-group
-Location: westeurope
-Provisioning State: Succeeded
-ID: /subscriptions/.../resourceGroups/my-rg/providers/Microsoft.Network/azureFirewalls/my-firewall
+--- Testing Virtual Networks (pagination test) ---
+VNet Response Status: 200
+Number of virtual networks found: 11
 
-Full JSON Response:
-==================
-{ "value": [...] }
+--- Testing Network Interfaces (pagination test) ---
+NIC Response Status: 200
+Number of network interfaces found: 23
+
+Detailed Firewall Information:
+==============================
+Firewall Name: azfw-hub-vnet-Firewall
+Resource Group: eu-west-resource-group-1
+Location: westeurope
+Provisioning State: SUCCEEDED
+
+Virtual Networks Summary:
+========================
+VNet Name: vnet-1-us-west
+Resource Group: us-west-resource-group-1
+Location: westus
+[... additional vnets ...]
+
+Network Interfaces Summary:
+===========================
+NIC Name: ubuntu-azure-08564
+Resource Group: us-west-resource-group-1
+Location: westus
+Provisioning State: SUCCEEDED
+Primary: true
+[... additional NICs ...]
 ```
 
 ### Demo Technical Details
@@ -524,10 +675,12 @@ Full JSON Response:
 The demo application showcases:
 
 - **Authentication Flow**: Service Principal credential creation and token acquisition
-- **SDK Client Usage**: Creating `AzureSimpleSDKClient` with proper credentials
-- **API Method Calls**: Using generated methods like `listAllAzureFirewalls(subscriptionId)`
+- **SDK Client Usage**: Creating `AzureSimpleSDKClient` with proper credentials and strict mode options
+- **API Method Calls**: Using generated methods like `listAllAzureFirewalls(subscriptionId)`, `listAllVirtualNetworks(subscriptionId)`, `listAllNetworkInterfaces(subscriptionId)`
+- **Pagination Testing**: Demonstrates automatic pagination handling across different resource types
 - **Response Processing**: Accessing typed response data and raw JSON
 - **Resource Parsing**: Extracting resource group names from Azure resource IDs
+- **Strict Mode**: Optional strict mode for unknown property detection and validation
 - **Error Handling**: Graceful handling of authentication and network errors
 
 ## Azure API Specifications
@@ -550,7 +703,10 @@ The azure-rest-api-specs directory contains the complete Microsoft Azure REST AP
 ✅ **SDK Client Generation**: 346 type-safe GET operation methods  
 ✅ **Comprehensive Documentation**: Auto-generated Javadoc with OpenAPI metadata  
 ✅ **HTTP Layer**: Complete Azure authentication, retry, and error handling  
-✅ **Demo Application**: Working demonstration with real Azure API calls  
+✅ **Automatic Pagination**: Eager pagination with automatic nextLink following and response merging  
+✅ **Strict Mode Support**: Optional unknown property detection with detailed logging  
+✅ **Demo Application**: Working demonstration with real Azure API calls across multiple resource types  
+✅ **Comprehensive Testing**: Unit test suite with 100% pass rate covering pagination, single-value requests, and error scenarios  
 ✅ **Production Ready**: Zero compilation errors, tested with live Azure APIs  
 
 ### Current Limitations
