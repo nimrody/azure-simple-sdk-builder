@@ -7,6 +7,8 @@ import com.azure.simpleSDK.models.AzureFirewall;
 import com.azure.simpleSDK.models.AzureFirewallListResult;
 import com.azure.simpleSDK.models.VirtualNetwork;
 import com.azure.simpleSDK.models.VirtualNetworkListResult;
+import com.azure.simpleSDK.models.NetworkInterface;
+import com.azure.simpleSDK.models.NetworkInterfaceListResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -65,6 +67,14 @@ public class DemoApplication {
             System.out.println("VNet Response Status: " + vnetResponse.getStatusCode());
             System.out.println("Number of virtual networks found: " + (vnetList.value() != null ? vnetList.value().size() : 0));
             
+            // Third test: Get all Network Interfaces (most likely to have pagination)
+            System.out.println("\n--- Testing Network Interfaces (pagination test) ---");
+            AzureResponse<NetworkInterfaceListResult> nicResponse = client.listAllNetworkInterfaces(subscriptionId);
+            NetworkInterfaceListResult nicList = nicResponse.getBody();
+            
+            System.out.println("NIC Response Status: " + nicResponse.getStatusCode());
+            System.out.println("Number of network interfaces found: " + (nicList.value() != null ? nicList.value().size() : 0));
+            
             // Show detailed results for firewalls
             if (firewallList.value() != null && !firewallList.value().isEmpty()) {
                 System.out.println("\nDetailed Firewall Information:");
@@ -94,6 +104,25 @@ public class DemoApplication {
                 }
             } else {
                 System.out.println("No Virtual Networks found in subscription " + subscriptionId);
+            }
+            
+            // Show basic network interface information  
+            if (nicList.value() != null && !nicList.value().isEmpty()) {
+                System.out.println("\nNetwork Interfaces Summary:");
+                System.out.println("===========================");
+                
+                for (NetworkInterface nic : nicList.value()) {
+                    System.out.println("NIC Name: " + nic.name());
+                    System.out.println("Resource Group: " + extractResourceGroupFromId(nic.id()));
+                    System.out.println("Location: " + nic.location());
+                    if (nic.properties() != null) {
+                        System.out.println("Provisioning State: " + nic.properties().provisioningState());
+                        System.out.println("Primary: " + nic.properties().primary());
+                    }
+                    System.out.println();
+                }
+            } else {
+                System.out.println("No Network Interfaces found in subscription " + subscriptionId);
             }
             
         } catch (Exception e) {
