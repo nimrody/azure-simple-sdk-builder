@@ -5,6 +5,8 @@ import com.azure.simpleSDK.http.AzureResponse;
 import com.azure.simpleSDK.http.auth.ServicePrincipalCredentials;
 import com.azure.simpleSDK.models.AzureFirewall;
 import com.azure.simpleSDK.models.AzureFirewallListResult;
+import com.azure.simpleSDK.models.VirtualNetwork;
+import com.azure.simpleSDK.models.VirtualNetworkListResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -44,43 +46,58 @@ public class DemoApplication {
             // Create client with appropriate mode
             AzureSimpleSDKClient client = new AzureSimpleSDKClient(credentials, strictMode);
             
-            System.out.println("Fetching Azure Firewalls for subscription: " + subscriptionId);
+            System.out.println("Fetching Azure Resources for subscription: " + subscriptionId);
             System.out.println("==========================================");
             
-            // Get all Azure Firewalls in the subscription
-            AzureResponse<AzureFirewallListResult> response = client.listAllAzureFirewalls(subscriptionId);
-            AzureFirewallListResult firewallList = response.getBody();
+            // First test: Get all Azure Firewalls
+            System.out.println("\n--- Testing Azure Firewalls (pagination test) ---");
+            AzureResponse<AzureFirewallListResult> firewallResponse = client.listAllAzureFirewalls(subscriptionId);
+            AzureFirewallListResult firewallList = firewallResponse.getBody();
             
-            // Pretty print the results
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.enable(SerializationFeature.INDENT_OUTPUT);
-            
-            System.out.println("Response Status: " + response.getStatusCode());
+            System.out.println("Firewall Response Status: " + firewallResponse.getStatusCode());
             System.out.println("Number of firewalls found: " + (firewallList.value() != null ? firewallList.value().size() : 0));
-            System.out.println();
             
+            // Second test: Get all Virtual Networks (more likely to have pagination)
+            System.out.println("\n--- Testing Virtual Networks (pagination test) ---");
+            AzureResponse<VirtualNetworkListResult> vnetResponse = client.listAllVirtualNetworks(subscriptionId);
+            VirtualNetworkListResult vnetList = vnetResponse.getBody();
+            
+            System.out.println("VNet Response Status: " + vnetResponse.getStatusCode());
+            System.out.println("Number of virtual networks found: " + (vnetList.value() != null ? vnetList.value().size() : 0));
+            
+            // Show detailed results for firewalls
             if (firewallList.value() != null && !firewallList.value().isEmpty()) {
-                System.out.println("Azure Firewalls:");
-                System.out.println("================");
+                System.out.println("\nDetailed Firewall Information:");
+                System.out.println("==============================");
                 
                 for (AzureFirewall firewall : firewallList.value()) {
                     System.out.println("Firewall Name: " + firewall.name());
                     System.out.println("Resource Group: " + extractResourceGroupFromId(firewall.id()));
                     System.out.println("Location: " + firewall.location());
                     System.out.println("Provisioning State: " + (firewall.properties() != null ? firewall.properties().provisioningState() : "Unknown"));
-                    System.out.println("ID: " + firewall.id());
                     System.out.println();
                 }
-                
-                System.out.println("Full JSON Response:");
-                System.out.println("==================");
-                System.out.println(mapper.writeValueAsString(firewallList));
             } else {
                 System.out.println("No Azure Firewalls found in subscription " + subscriptionId);
             }
             
+            // Show basic virtual network information
+            if (vnetList.value() != null && !vnetList.value().isEmpty()) {
+                System.out.println("\nVirtual Networks Summary:");
+                System.out.println("========================");
+                
+                for (VirtualNetwork vnet : vnetList.value()) {
+                    System.out.println("VNet Name: " + vnet.name());
+                    System.out.println("Resource Group: " + extractResourceGroupFromId(vnet.id()));
+                    System.out.println("Location: " + vnet.location());
+                    System.out.println();
+                }
+            } else {
+                System.out.println("No Virtual Networks found in subscription " + subscriptionId);
+            }
+            
         } catch (Exception e) {
-            System.err.println("Error occurred while fetching Azure Firewalls:");
+            System.err.println("Error occurred while fetching Azure resources:");
             e.printStackTrace();
             System.exit(1);
         }

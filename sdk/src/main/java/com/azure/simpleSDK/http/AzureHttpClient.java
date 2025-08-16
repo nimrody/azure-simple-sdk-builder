@@ -10,6 +10,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -99,6 +105,14 @@ public class AzureHttpClient {
                             // This shouldn't happen since we set FAIL_ON_UNKNOWN_PROPERTIES to false for non-strict mode
                             throw new AzureException("Unexpected deserialization error", e);
                         }
+                    }
+                }
+                
+                // Handle pagination for list results
+                if (responseBody != null && isPaginatedListResult(responseType)) {
+                    AzureResponse<T> paginatedResponse = handlePagination(responseBody, responseType, response.statusCode(), responseHeaders);
+                    if (paginatedResponse != null) {
+                        return paginatedResponse;
                     }
                 }
                 
@@ -284,6 +298,135 @@ public class AzureHttpClient {
             System.err.println(responseBody.length() > 1000 ? responseBody.substring(0, 1000) + "..." : responseBody);
         }
         System.err.println("================================================================================");
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> AzureResponse<T> handlePagination(T firstPage, Class<T> responseType, int statusCode, Map<String, String> headers) throws AzureException {
+        try {
+            Method nextLinkMethod = responseType.getMethod("nextLink");
+            String nextLink = (String) nextLinkMethod.invoke(firstPage);
+            
+            if (nextLink == null || nextLink.trim().isEmpty()) {
+                // No pagination needed
+                return null;
+            }
+            
+            List<T> allPages = new ArrayList<>();
+            allPages.add(firstPage);
+            
+            String currentNextLink = nextLink;
+            int pageCount = 1;
+            final int maxPages = 50; // Safety limit to prevent infinite loops
+            
+            while (currentNextLink != null && !currentNextLink.trim().isEmpty() && pageCount < maxPages) {
+                // Create a new request for the next page
+                AzureRequest nextPageRequest = new AzureRequest("GET", currentNextLink, credentials, objectMapper);
+                HttpRequest nextRequest = nextPageRequest.build();
+                
+                try {
+                    HttpResponse<String> nextResponse = httpClient.send(nextRequest, HttpResponse.BodyHandlers.ofString());
+                    
+                    if (nextResponse.statusCode() >= 400) {
+                        System.err.println("Warning: Failed to fetch page " + (pageCount + 1) + " of paginated results: HTTP " + nextResponse.statusCode());
+                        break;
+                    }
+                    
+                    if (nextResponse.body() != null && !nextResponse.body().isEmpty()) {
+                        T nextPageData = objectMapper.readValue(nextResponse.body(), responseType);
+                        allPages.add(nextPageData);
+                        
+                        // Get the next link for the following page
+                        currentNextLink = (String) nextLinkMethod.invoke(nextPageData);
+                        pageCount++;
+                    } else {
+                        break;
+                    }
+                } catch (Exception e) {
+                    System.err.println("Warning: Error fetching page " + (pageCount + 1) + " of paginated results: " + e.getMessage());
+                    break;
+                }
+            }
+            
+            if (pageCount >= maxPages) {
+                System.err.println("Warning: Reached maximum page limit (" + maxPages + ") for paginated results. Some results may be missing.");
+            }
+            
+            // Combine all pages into a single response
+            T combinedResult = combinePagedResults(firstPage, allPages.subList(1, allPages.size()), responseType);
+            
+            // Create combined raw response for debugging
+            StringBuilder combinedRawResponse = new StringBuilder();
+            combinedRawResponse.append("Combined response from ").append(pageCount).append(" pages");
+            
+            System.out.println("Pagination: Successfully combined " + pageCount + " pages of results");
+            
+            return new AzureResponse<>(statusCode, headers, combinedResult, combinedRawResponse.toString());
+            
+        } catch (Exception e) {
+            System.err.println("Warning: Error during pagination: " + e.getMessage());
+            return null; // Fall back to single page response
+        }
+    }
+
+    private boolean isPaginatedListResult(Class<?> responseType) {
+        try {
+            // Check if the class has both 'value' and 'nextLink' methods (record accessors)
+            Method valueMethod = responseType.getMethod("value");
+            Method nextLinkMethod = responseType.getMethod("nextLink");
+            
+            // Check if value() returns a List
+            Type returnType = valueMethod.getGenericReturnType();
+            if (returnType instanceof ParameterizedType) {
+                ParameterizedType paramType = (ParameterizedType) returnType;
+                return List.class.isAssignableFrom((Class<?>) paramType.getRawType());
+            }
+            return false;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T combinePagedResults(T firstPage, List<T> additionalPages, Class<T> responseType) {
+        try {
+            Method valueMethod = responseType.getMethod("value");
+            
+            // Get the list from the first page
+            List<Object> combinedList = new ArrayList<>((List<Object>) valueMethod.invoke(firstPage));
+            
+            // Add items from all additional pages
+            for (T page : additionalPages) {
+                List<Object> pageItems = (List<Object>) valueMethod.invoke(page);
+                if (pageItems != null) {
+                    combinedList.addAll(pageItems);
+                }
+            }
+            
+            // Create a new instance with combined list and null nextLink
+            // Since these are records, we need to use reflection to create new instance
+            try {
+                // Try to find constructor that matches the record pattern
+                var constructors = responseType.getConstructors();
+                if (constructors.length > 0) {
+                    var constructor = constructors[0];
+                    var paramCount = constructor.getParameterCount();
+                    
+                    if (paramCount == 2) {
+                        // Assume first param is value (List), second is nextLink (String)
+                        return (T) constructor.newInstance(combinedList, null);
+                    }
+                }
+            } catch (Exception e) {
+                // If we can't create a new instance, return the first page as-is
+                System.err.println("Warning: Could not combine paginated results, returning first page only: " + e.getMessage());
+                return firstPage;
+            }
+            
+            return firstPage; // fallback
+        } catch (Exception e) {
+            System.err.println("Warning: Could not combine paginated results: " + e.getMessage());
+            return firstPage;
+        }
     }
 
     private static class AzureErrorResponse {
