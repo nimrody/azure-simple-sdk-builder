@@ -215,8 +215,9 @@ public class AzureHttpClient {
         System.err.println("Reference Chain: " + e.getPathReference());
         
         // Try to extract the unknown property value from the JSON response
+        JsonNode rootNode = null;
         try {
-            JsonNode rootNode = objectMapper.readTree(responseBody);
+            rootNode = objectMapper.readTree(responseBody);
             String[] pathComponents = e.getPathReference().split("->");
             JsonNode currentNode = rootNode;
             
@@ -266,8 +267,22 @@ public class AzureHttpClient {
         }
         
         System.err.println("================================================================================");
-        System.err.println("Raw JSON Response (first 1000 chars):");
-        System.err.println(responseBody.length() > 1000 ? responseBody.substring(0, 1000) + "..." : responseBody);
+        System.err.println("Complete JSON Response (pretty printed):");
+        if (rootNode != null) {
+            // Reuse the already parsed JsonNode for pretty printing
+            try {
+                String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
+                System.err.println(prettyJson);
+            } catch (Exception prettyPrintException) {
+                System.err.println("Failed to pretty print parsed JSON: " + prettyPrintException.getMessage());
+                System.err.println("Raw response (first 1000 chars):");
+                System.err.println(responseBody.length() > 1000 ? responseBody.substring(0, 1000) + "..." : responseBody);
+            }
+        } else {
+            // If JSON parsing failed above, fall back to raw response (first 1000 chars)
+            System.err.println("JSON parsing failed, showing raw response (first 1000 chars):");
+            System.err.println(responseBody.length() > 1000 ? responseBody.substring(0, 1000) + "..." : responseBody);
+        }
         System.err.println("================================================================================");
     }
 
