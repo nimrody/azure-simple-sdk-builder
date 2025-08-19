@@ -144,6 +144,12 @@ public class OperationGenerator {
                 String definitionName = responseSchema.substring("#/definitions/".length());
                 return resolveDefinitionClassName(definitionName);
             }
+            // Parse external reference like "./networkInterface.json#/definitions/NetworkInterfaceListResult"
+            else if (responseSchema.contains("#/definitions/")) {
+                int definitionsIndex = responseSchema.indexOf("#/definitions/");
+                String definitionName = responseSchema.substring(definitionsIndex + "#/definitions/".length());
+                return resolveDefinitionClassName(definitionName);
+            }
         }
         
         return "Object";
