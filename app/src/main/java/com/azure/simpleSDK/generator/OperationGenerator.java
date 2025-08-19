@@ -42,9 +42,13 @@ public class OperationGenerator {
         classContent.append("public class ").append(className).append(" {\n");
         classContent.append("    private final AzureHttpClient httpClient;\n\n");
 
-        // Constructor
+        // Constructors
         classContent.append("    public ").append(className).append("(AzureCredentials credentials) {\n");
         classContent.append("        this.httpClient = new AzureHttpClient(credentials);\n");
+        classContent.append("    }\n\n");
+        
+        classContent.append("    public ").append(className).append("(AzureCredentials credentials, boolean strictMode) {\n");
+        classContent.append("        this.httpClient = new AzureHttpClient(credentials, strictMode);\n");
         classContent.append("    }\n\n");
 
         // Generate methods for GET operations
