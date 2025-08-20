@@ -152,8 +152,21 @@ public class SpecLoader {
 
     public static void main(String[] args) {
         System.out.println("Current working directory: " + System.getProperty("user.dir"));
-        String path = "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/";
-        SpecLoader loader = new SpecLoader(path);
+        
+        // Specification paths for different Azure services
+        List<String> specsPaths = Arrays.asList(
+            "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/"
+            // Note: Compute APIs temporarily disabled due to external reference resolution issue
+            // "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/"
+        );
+        String modelsOutputDir = "sdk/src/main/java/com/azure/simpleSDK/models";
+        String clientOutputDir = "sdk/src/main/java/com/azure/simpleSDK/client";
+        
+        generateCombinedSDK(specsPaths, modelsOutputDir, clientOutputDir);
+    }
+    
+    public static void generateSDK(String specsPath, String modelsOutputDir, String clientOutputDir) {
+        SpecLoader loader = new SpecLoader(specsPath);
         
         try {
             SpecResult result = loader.loadSpecs();
@@ -190,7 +203,6 @@ public class SpecLoader {
             }
             
             System.out.println("\nGenerating Java records to SDK project:");
-            String sdkOutputDir = "sdk/src/main/java/com/azure/simpleSDK/models";
             
             JavaDefinitionGenerator generator = new JavaDefinitionGenerator(duplicateNames, result.definitions());
             int generatedCount = 0;
@@ -198,7 +210,7 @@ public class SpecLoader {
             for (Map.Entry<DefinitionKey, JsonNode> entry : result.definitions().entrySet()) {
                 try {
                     String className = generator.getClassName(entry.getKey());
-                    generator.writeRecordToFile(entry.getKey(), entry.getValue(), sdkOutputDir);
+                    generator.writeRecordToFile(entry.getKey(), entry.getValue(), modelsOutputDir);
                     System.out.println("Generated " + className + ".java from " + 
                                      entry.getKey().filename() + " -> " + entry.getKey().definitionKey());
                     generatedCount++;
@@ -214,7 +226,7 @@ public class SpecLoader {
                 try {
                     String enumName = enumEntry.getKey();
                     JsonNode enumDefinition = enumEntry.getValue();
-                    generator.writeInlineEnumToFile(enumName, enumDefinition, sdkOutputDir);
+                    generator.writeInlineEnumToFile(enumName, enumDefinition, modelsOutputDir);
                     System.out.println("Generated " + enumName + ".java (inline enum)");
                     inlineEnumCount++;
                 } catch (IOException e) {
@@ -222,14 +234,13 @@ public class SpecLoader {
                 }
             }
             
-            System.out.println("\nGenerated " + generatedCount + " Java record files in " + sdkOutputDir);
+            System.out.println("\nGenerated " + generatedCount + " Java record files in " + modelsOutputDir);
             if (inlineEnumCount > 0) {
-                System.out.println("Generated " + inlineEnumCount + " inline enum files in " + sdkOutputDir);
+                System.out.println("Generated " + inlineEnumCount + " inline enum files in " + modelsOutputDir);
             }
             
             // Generate Azure client with GET operations
             System.out.println("\nGenerating Azure SDK client with GET operations:");
-            String clientOutputDir = "sdk/src/main/java/com/azure/simpleSDK/client";
             OperationGenerator operationGenerator = new OperationGenerator(result.operations(), duplicateNames, result.definitions());
             
             try {
@@ -240,6 +251,100 @@ public class SpecLoader {
             }
         } catch (IOException e) {
             System.err.println("Error loading files: " + e.getMessage());
+        }
+    }
+    
+    public static void generateCombinedSDK(List<String> specsPaths, String modelsOutputDir, String clientOutputDir) {
+        Map<String, Operation> combinedOperations = new HashMap<>();
+        Map<DefinitionKey, JsonNode> combinedDefinitions = new HashMap<>();
+        
+        // Load specifications from all paths and combine them
+        for (String specsPath : specsPaths) {
+            System.out.println("\n=== Loading specifications from: " + specsPath + " ===");
+            SpecLoader loader = new SpecLoader(specsPath);
+            
+            try {
+                SpecResult result = loader.loadSpecs();
+                System.out.println("Found " + result.operations().size() + " operations");
+                System.out.println("Found " + result.definitions().size() + " definitions");
+                
+                // Merge operations (operations have unique IDs, so direct merge is safe)
+                combinedOperations.putAll(result.operations());
+                
+                // Merge definitions (may have duplicates, but our duplicate handling will manage this)
+                combinedDefinitions.putAll(result.definitions());
+                
+            } catch (IOException e) {
+                System.err.println("Error loading specifications from " + specsPath + ": " + e.getMessage());
+                continue;
+            }
+        }
+        
+        System.out.println("\n=== Combined Results ===");
+        System.out.println("Total operations: " + combinedOperations.size());
+        System.out.println("Total definitions: " + combinedDefinitions.size());
+        
+        // Find duplicate definition names across all loaded specifications
+        Set<String> duplicateNames = findDuplicateDefinitionNames(combinedDefinitions);
+        
+        System.out.println("\nDuplicate definitions across all files:");
+        if (duplicateNames.isEmpty()) {
+            System.out.println("No duplicate definition names found.");
+        } else {
+            for (String duplicateName : duplicateNames) {
+                System.out.println("Definition '" + duplicateName + "' appears in:");
+                combinedDefinitions.entrySet().stream()
+                        .filter(entry -> entry.getKey().definitionKey().equals(duplicateName))
+                        .forEach(entry -> System.out.println("  - " + entry.getKey().filename()));
+            }
+        }
+        
+        // Generate models from combined definitions
+        System.out.println("\nGenerating Java records to SDK project:");
+        JavaDefinitionGenerator generator = new JavaDefinitionGenerator(duplicateNames, combinedDefinitions);
+        int generatedCount = 0;
+        
+        for (Map.Entry<DefinitionKey, JsonNode> entry : combinedDefinitions.entrySet()) {
+            try {
+                String className = generator.getClassName(entry.getKey());
+                generator.writeRecordToFile(entry.getKey(), entry.getValue(), modelsOutputDir);
+                System.out.println("Generated " + className + ".java from " + 
+                                 entry.getKey().filename() + " -> " + entry.getKey().definitionKey());
+                generatedCount++;
+            } catch (IOException e) {
+                System.err.println("Error generating file for " + entry.getKey() + ": " + e.getMessage());
+            }
+        }
+        
+        // Generate inline enums as separate files
+        Map<String, JsonNode> inlineEnums = generator.getInlineEnums();
+        int inlineEnumCount = 0;
+        for (Map.Entry<String, JsonNode> enumEntry : inlineEnums.entrySet()) {
+            try {
+                String enumName = enumEntry.getKey();
+                JsonNode enumDefinition = enumEntry.getValue();
+                generator.writeInlineEnumToFile(enumName, enumDefinition, modelsOutputDir);
+                System.out.println("Generated " + enumName + ".java (inline enum)");
+                inlineEnumCount++;
+            } catch (IOException e) {
+                System.err.println("Error generating inline enum file for " + enumEntry.getKey() + ": " + e.getMessage());
+            }
+        }
+        
+        System.out.println("\nGenerated " + generatedCount + " Java record files in " + modelsOutputDir);
+        if (inlineEnumCount > 0) {
+            System.out.println("Generated " + inlineEnumCount + " inline enum files in " + modelsOutputDir);
+        }
+        
+        // Generate Azure client with GET operations from all combined operations
+        System.out.println("\nGenerating Azure SDK client with GET operations:");
+        OperationGenerator operationGenerator = new OperationGenerator(combinedOperations, duplicateNames, combinedDefinitions);
+        
+        try {
+            operationGenerator.generateAzureClient(clientOutputDir);
+            System.out.println("Generated AzureSimpleSDKClient.java in " + clientOutputDir);
+        } catch (IOException e) {
+            System.err.println("Error generating Azure client: " + e.getMessage());
         }
     }
     

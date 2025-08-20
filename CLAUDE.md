@@ -83,6 +83,36 @@ The project uses Gradle with the wrapper script. All commands should be run from
 3. Azure REST API specifications are located in `azure-rest-api-specs/specification/`
 4. Generated code will be placed in the `sdk/` module
 
+## Code Generation Architecture
+
+The code generation system has been refactored to support multiple Azure service specifications:
+
+- **`SpecLoader.generateSDK()`** - Generates SDK from a single specification directory
+- **`SpecLoader.generateCombinedSDK()`** - Generates combined SDK from multiple specification directories
+- **Modular Design** - Separates specification loading from code generation for reusability
+
+### Adding New Azure Services
+
+To add support for additional Azure services:
+
+1. Add the specification path to the `specsPaths` list in `SpecLoader.main()`
+2. Ensure external reference resolution works across service boundaries
+3. Test code generation and verify no duplicate definition conflicts
+
+**Current Status:**
+- ✅ **Network APIs (2024-07-01)** - Fully supported with 726 operations and 1,095 definitions
+- ⚠️ **Compute APIs (2024-11-01)** - Architecture ready but needs external reference resolution fix
+
+**Known Issue - Compute APIs:** The Compute API specifications reference external common types (e.g., `../../../common-types/v1/common.json`) that require cross-directory reference resolution. This needs to be implemented to enable Compute API support.
+
+Example:
+```java
+List<String> specsPaths = Arrays.asList(
+    "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/",
+    // "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/" // Disabled pending external ref fix
+);
+```
+
 ## Code Generation Process
 
 The tool processes Azure OpenAPI specifications from the azure-rest-api-specs directory:
