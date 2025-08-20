@@ -199,6 +199,7 @@ public class SpecLoader {
         final String modelsPackage;
         final String clientPackage;
         final String clientClassName;
+        final String apiVersion;
         
         ServiceSpec(String displayName, String specsPath, String modelsOutputDir, String clientOutputDir, 
                    String modelsPackage, String clientPackage, String clientClassName) {
@@ -209,6 +210,14 @@ public class SpecLoader {
             this.modelsPackage = modelsPackage;
             this.clientPackage = clientPackage;
             this.clientClassName = clientClassName;
+            this.apiVersion = extractApiVersionFromPath(specsPath);
+        }
+        
+        private String extractApiVersionFromPath(String specsPath) {
+            // Extract API version from path like "azure-rest-api-specs/specification/.../stable/2024-11-01/"
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("/(\\d{4}-\\d{2}-\\d{2})/");
+            java.util.regex.Matcher matcher = pattern.matcher(specsPath);
+            return matcher.find() ? matcher.group(1) : "2024-07-01"; // Default fallback
         }
     }
     
@@ -275,7 +284,7 @@ public class SpecLoader {
             // Generate service-specific client
             System.out.println("Generating " + serviceSpec.displayName + " client:");
             OperationGenerator operationGenerator = new OperationGenerator(result.operations(), duplicateNames, 
-                    result.definitions(), serviceSpec.modelsPackage, serviceSpec.clientPackage, serviceSpec.clientClassName);
+                    result.definitions(), serviceSpec.modelsPackage, serviceSpec.clientPackage, serviceSpec.clientClassName, serviceSpec.apiVersion);
             
             try {
                 operationGenerator.generateAzureClient(serviceSpec.clientOutputDir);

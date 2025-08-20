@@ -119,7 +119,7 @@ public class JavaDefinitionGenerator {
         JsonNode enumValues = enumDefinition.get("enum");
         
         StringBuilder enumBuilder = new StringBuilder();
-        appendPackageAndImports(enumBuilder, "JsonValue");
+        appendPackageAndImports(enumBuilder, "JsonValue", "JsonCreator");
         enumBuilder.append("public enum ").append(capitalizeFirstLetter(enumName)).append(" {\n");
         
         appendEnumBody(enumBuilder, enumValues, capitalizeFirstLetter(enumName));
@@ -146,7 +146,7 @@ public class JavaDefinitionGenerator {
         JsonNode enumValues = definition.get("enum");
         
         StringBuilder enumBuilder = new StringBuilder();
-        appendPackageAndImports(enumBuilder, "JsonValue");
+        appendPackageAndImports(enumBuilder, "JsonValue", "JsonCreator");
         appendSourceComment(enumBuilder, definitionKey);
         enumBuilder.append("public enum ").append(className).append(" {\n");
         
@@ -545,6 +545,9 @@ public class JavaDefinitionGenerator {
             enumConstants.add("    " + enumConstantName + "(\"" + enumValue + "\")");
         }
         
+        // Add catch-all for unknown values
+        enumConstants.add("    UNKNOWN_TO_SDK(null)");
+        
         enumBuilder.append(String.join(",\n", enumConstants));
         
         // Add constructor and @JsonValue method
@@ -556,6 +559,20 @@ public class JavaDefinitionGenerator {
         enumBuilder.append("    @JsonValue\n");
         enumBuilder.append("    public String getValue() {\n");
         enumBuilder.append("        return value;\n");
+        enumBuilder.append("    }\n\n");
+        
+        // Add custom deserializer method
+        enumBuilder.append("    @JsonCreator\n");
+        enumBuilder.append("    public static ").append(className).append(" fromValue(String value) {\n");
+        enumBuilder.append("        if (value == null) {\n");
+        enumBuilder.append("            return UNKNOWN_TO_SDK;\n");
+        enumBuilder.append("        }\n");
+        enumBuilder.append("        for (").append(className).append(" item : ").append(className).append(".values()) {\n");
+        enumBuilder.append("            if (item != UNKNOWN_TO_SDK && value.equals(item.value)) {\n");
+        enumBuilder.append("                return item;\n");
+        enumBuilder.append("            }\n");
+        enumBuilder.append("        }\n");
+        enumBuilder.append("        return UNKNOWN_TO_SDK;\n");
         enumBuilder.append("    }\n");
         enumBuilder.append("}\n");
     }

@@ -16,6 +16,7 @@ public class OperationGenerator {
     private final String modelsPackage;
     private final String clientPackage;
     private final String clientClassName;
+    private final String apiVersion;
 
     public OperationGenerator(Map<String, Operation> operations, Set<String> duplicateDefinitions, Map<DefinitionKey, JsonNode> definitions) {
         this.operations = operations;
@@ -24,6 +25,7 @@ public class OperationGenerator {
         this.modelsPackage = "com.azure.simpleSDK.models"; // Default for backwards compatibility
         this.clientPackage = "com.azure.simpleSDK.client";
         this.clientClassName = "AzureSimpleSDKClient";
+        this.apiVersion = "2024-07-01"; // Default for backwards compatibility
     }
     
     public OperationGenerator(Map<String, Operation> operations, Set<String> duplicateDefinitions, 
@@ -35,6 +37,19 @@ public class OperationGenerator {
         this.modelsPackage = modelsPackage != null ? modelsPackage : "com.azure.simpleSDK.models";
         this.clientPackage = clientPackage != null ? clientPackage : "com.azure.simpleSDK.client";
         this.clientClassName = clientClassName != null ? clientClassName : "AzureSimpleSDKClient";
+        this.apiVersion = "2024-07-01"; // Default for backwards compatibility
+    }
+    
+    public OperationGenerator(Map<String, Operation> operations, Set<String> duplicateDefinitions, 
+                            Map<DefinitionKey, JsonNode> definitions, String modelsPackage, 
+                            String clientPackage, String clientClassName, String apiVersion) {
+        this.operations = operations;
+        this.duplicateDefinitions = duplicateDefinitions;
+        this.definitions = definitions;
+        this.modelsPackage = modelsPackage != null ? modelsPackage : "com.azure.simpleSDK.models";
+        this.clientPackage = clientPackage != null ? clientPackage : "com.azure.simpleSDK.client";
+        this.clientClassName = clientClassName != null ? clientClassName : "AzureSimpleSDKClient";
+        this.apiVersion = apiVersion != null ? apiVersion : "2024-07-01";
     }
 
     public void generateAzureClient(String outputDir) throws IOException {
@@ -121,7 +136,7 @@ public class OperationGenerator {
         
         classContent.append("        String url = ").append(urlPath).append(";\n");
         classContent.append("        AzureRequest request = httpClient.get(url)\n");
-        classContent.append("                .version(\"2024-07-01\")");
+        classContent.append("                .version(\"").append(apiVersion).append("\")");
         
         // Add query parameters
         for (Parameter param : queryParams) {
