@@ -1,14 +1,17 @@
 package com.azure.simpleSDK.demo;
 
-import com.azure.simpleSDK.client.AzureSimpleSDKClient;
+import com.azure.simpleSDK.network.client.AzureNetworkClient;
+import com.azure.simpleSDK.compute.client.AzureComputeClient;
 import com.azure.simpleSDK.http.AzureResponse;
 import com.azure.simpleSDK.http.auth.ServicePrincipalCredentials;
-import com.azure.simpleSDK.models.AzureFirewall;
-import com.azure.simpleSDK.models.AzureFirewallListResult;
-import com.azure.simpleSDK.models.VirtualNetwork;
-import com.azure.simpleSDK.models.VirtualNetworkListResult;
-import com.azure.simpleSDK.models.NetworkInterface;
-import com.azure.simpleSDK.models.NetworkInterfaceListResult;
+import com.azure.simpleSDK.network.models.AzureFirewall;
+import com.azure.simpleSDK.network.models.AzureFirewallListResult;
+import com.azure.simpleSDK.network.models.VirtualNetwork;
+import com.azure.simpleSDK.network.models.VirtualNetworkListResult;
+import com.azure.simpleSDK.network.models.NetworkInterface;
+import com.azure.simpleSDK.network.models.NetworkInterfaceListResult;
+import com.azure.simpleSDK.compute.models.VirtualMachine;
+import com.azure.simpleSDK.compute.models.VirtualMachineListResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -45,15 +48,20 @@ public class DemoApplication {
             System.out.println("(Use -Dstrict=true to enable strict mode for unknown property detection)");
             System.out.println();
             
-            // Create client with appropriate mode
-            AzureSimpleSDKClient client = new AzureSimpleSDKClient(credentials, strictMode);
+            // Create separate clients for Network and Compute services
+            AzureNetworkClient networkClient = new AzureNetworkClient(credentials, strictMode);
+            AzureComputeClient computeClient = new AzureComputeClient(credentials, strictMode);
             
             System.out.println("Fetching Azure Resources for subscription: " + subscriptionId);
+            System.out.println("Using separate Network and Compute SDK clients");
             System.out.println("==========================================");
+            
+            // Test Network resources
+            System.out.println("\n=== NETWORK RESOURCES ===");
             
             // First test: Get all Azure Firewalls
             System.out.println("\n--- Testing Azure Firewalls (pagination test) ---");
-            AzureResponse<AzureFirewallListResult> firewallResponse = client.listAllAzureFirewalls(subscriptionId);
+            AzureResponse<AzureFirewallListResult> firewallResponse = networkClient.listAllAzureFirewalls(subscriptionId);
             AzureFirewallListResult firewallList = firewallResponse.getBody();
             
             System.out.println("Firewall Response Status: " + firewallResponse.getStatusCode());
@@ -61,7 +69,7 @@ public class DemoApplication {
             
             // Second test: Get all Virtual Networks (more likely to have pagination)
             System.out.println("\n--- Testing Virtual Networks (pagination test) ---");
-            AzureResponse<VirtualNetworkListResult> vnetResponse = client.listAllVirtualNetworks(subscriptionId);
+            AzureResponse<VirtualNetworkListResult> vnetResponse = networkClient.listAllVirtualNetworks(subscriptionId);
             VirtualNetworkListResult vnetList = vnetResponse.getBody();
             
             System.out.println("VNet Response Status: " + vnetResponse.getStatusCode());
@@ -69,11 +77,23 @@ public class DemoApplication {
             
             // Third test: Get all Network Interfaces (most likely to have pagination)
             System.out.println("\n--- Testing Network Interfaces (pagination test) ---");
-            AzureResponse<NetworkInterfaceListResult> nicResponse = client.listAllNetworkInterfaces(subscriptionId);
+            AzureResponse<NetworkInterfaceListResult> nicResponse = networkClient.listAllNetworkInterfaces(subscriptionId);
             NetworkInterfaceListResult nicList = nicResponse.getBody();
             
             System.out.println("NIC Response Status: " + nicResponse.getStatusCode());
             System.out.println("Number of network interfaces found: " + (nicList.value() != null ? nicList.value().size() : 0));
+            
+            // Test Compute resources
+            System.out.println("\n=== COMPUTE RESOURCES ===");
+            
+            // Test: Get all Virtual Machines (uses listAllVirtualMachines which accepts subscription-wide listing)
+            System.out.println("\n--- Testing Virtual Machines (pagination test) ---");
+            // Note: listAllVirtualMachines requires statusOnly, $filter, $expand parameters
+            AzureResponse<VirtualMachineListResult> vmResponse = computeClient.listAllVirtualMachines(subscriptionId, null, null, null);
+            VirtualMachineListResult vmList = vmResponse.getBody();
+            
+            System.out.println("VM Response Status: " + vmResponse.getStatusCode());
+            System.out.println("Number of virtual machines found: " + (vmList.value() != null ? vmList.value().size() : 0));
             
             // Show detailed results for firewalls
             if (firewallList.value() != null && !firewallList.value().isEmpty()) {
@@ -123,6 +143,33 @@ public class DemoApplication {
                 }
             } else {
                 System.out.println("No Network Interfaces found in subscription " + subscriptionId);
+            }
+            
+            // Show detailed results for virtual machines
+            if (vmList.value() != null && !vmList.value().isEmpty()) {
+                System.out.println("\nVirtual Machines Summary:");
+                System.out.println("=========================");
+                
+                for (VirtualMachine vm : vmList.value()) {
+                    // Note: The generated VirtualMachine record is missing basic Azure resource fields (name, id, location)
+                    // This appears to be an issue with the OpenAPI definition not including base resource properties
+                    System.out.println("VM Properties: " + (vm.properties() != null ? "Available" : "None"));
+                    if (vm.properties() != null) {
+                        System.out.println("Provisioning State: " + vm.properties().provisioningState());
+                        if (vm.properties().hardwareProfile() != null) {
+                            System.out.println("VM Size: " + vm.properties().hardwareProfile().vmSize());
+                        }
+                        if (vm.properties().osProfile() != null) {
+                            System.out.println("Computer Name: " + vm.properties().osProfile().computerName());
+                        }
+                    }
+                    if (vm.zones() != null && !vm.zones().isEmpty()) {
+                        System.out.println("Zones: " + String.join(", ", vm.zones()));
+                    }
+                    System.out.println();
+                }
+            } else {
+                System.out.println("No Virtual Machines found in subscription " + subscriptionId);
             }
             
         } catch (Exception e) {

@@ -13,11 +13,28 @@ public class OperationGenerator {
     private final Map<String, Operation> operations;
     private final Set<String> duplicateDefinitions;
     private final Map<DefinitionKey, JsonNode> definitions;
+    private final String modelsPackage;
+    private final String clientPackage;
+    private final String clientClassName;
 
     public OperationGenerator(Map<String, Operation> operations, Set<String> duplicateDefinitions, Map<DefinitionKey, JsonNode> definitions) {
         this.operations = operations;
         this.duplicateDefinitions = duplicateDefinitions;
         this.definitions = definitions;
+        this.modelsPackage = "com.azure.simpleSDK.models"; // Default for backwards compatibility
+        this.clientPackage = "com.azure.simpleSDK.client";
+        this.clientClassName = "AzureSimpleSDKClient";
+    }
+    
+    public OperationGenerator(Map<String, Operation> operations, Set<String> duplicateDefinitions, 
+                            Map<DefinitionKey, JsonNode> definitions, String modelsPackage, 
+                            String clientPackage, String clientClassName) {
+        this.operations = operations;
+        this.duplicateDefinitions = duplicateDefinitions;
+        this.definitions = definitions;
+        this.modelsPackage = modelsPackage != null ? modelsPackage : "com.azure.simpleSDK.models";
+        this.clientPackage = clientPackage != null ? clientPackage : "com.azure.simpleSDK.client";
+        this.clientClassName = clientClassName != null ? clientClassName : "AzureSimpleSDKClient";
     }
 
     public void generateAzureClient(String outputDir) throws IOException {
@@ -26,15 +43,15 @@ public class OperationGenerator {
                 .sorted(Comparator.comparing(Operation::operationId))
                 .collect(Collectors.toList());
 
-        String className = "AzureSimpleSDKClient";
+        String className = this.clientClassName;
         StringBuilder classContent = new StringBuilder();
         
         // Package and imports
-        classContent.append("package com.azure.simpleSDK.client;\n\n");
+        classContent.append("package ").append(clientPackage).append(";\n\n");
         classContent.append("import com.azure.simpleSDK.http.*;\n");
         classContent.append("import com.azure.simpleSDK.http.auth.AzureCredentials;\n");
         classContent.append("import com.azure.simpleSDK.http.exceptions.AzureException;\n");
-        classContent.append("import com.azure.simpleSDK.models.*;\n");
+        classContent.append("import ").append(modelsPackage).append(".*;\n");
         classContent.append("import java.util.Map;\n");
         classContent.append("import java.util.HashMap;\n\n");
 

@@ -18,10 +18,18 @@ public class JavaDefinitionGenerator {
     private final Set<String> duplicateDefinitionNames;
     private final Map<DefinitionKey, JsonNode> definitions;
     private final Map<String, JsonNode> inlineEnums = new HashMap<>();
+    private final String packageName;
     
     public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames, Map<DefinitionKey, JsonNode> definitions) {
         this.duplicateDefinitionNames = duplicateDefinitionNames != null ? duplicateDefinitionNames : new HashSet<>();
         this.definitions = definitions != null ? definitions : Map.of();
+        this.packageName = "com.azure.simpleSDK.models"; // Default package for backwards compatibility
+    }
+    
+    public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames, Map<DefinitionKey, JsonNode> definitions, String packageName) {
+        this.duplicateDefinitionNames = duplicateDefinitionNames != null ? duplicateDefinitionNames : new HashSet<>();
+        this.definitions = definitions != null ? definitions : Map.of();
+        this.packageName = packageName != null ? packageName : "com.azure.simpleSDK.models";
     }
     
     public String generateRecord(DefinitionKey definitionKey, JsonNode definition) {
@@ -507,7 +515,7 @@ public class JavaDefinitionGenerator {
     }
     
     private void appendPackageAndImports(StringBuilder builder, String... jacksonImports) {
-        builder.append("package com.azure.simpleSDK.models;\n\n");
+        builder.append("package ").append(packageName).append(";\n\n");
         
         if (jacksonImports.length > 0) {
             for (String jacksonImport : jacksonImports) {

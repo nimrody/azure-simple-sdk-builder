@@ -5,8 +5,10 @@ build/
 **/build/
 .gradle
 build.gradle
-src/main/java/com/azure/simpleSDK/models/
-src/main/java/com/azure/simpleSDK/client/
+src/main/java/com/azure/simpleSDK/compute/models/
+src/main/java/com/azure/simpleSDK/compute/client/
+src/main/java/com/azure/simpleSDK/network/models/
+src/main/java/com/azure/simpleSDK/network/client/
 src/main/java/com/azure/simpleSDK/http/
 src/test/java/com/azure/simpleSDK/http/
 .gitignore

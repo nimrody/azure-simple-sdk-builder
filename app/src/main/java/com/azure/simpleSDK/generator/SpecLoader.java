@@ -153,15 +153,139 @@ public class SpecLoader {
     public static void main(String[] args) {
         System.out.println("Current working directory: " + System.getProperty("user.dir"));
         
-        // Specification paths for different Azure services
-        List<String> specsPaths = Arrays.asList(
-            "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/",
-            "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/"
-        );
-        String modelsOutputDir = "sdk/src/main/java/com/azure/simpleSDK/models";
-        String clientOutputDir = "sdk/src/main/java/com/azure/simpleSDK/client";
+        // Generate separate SDKs for each service
+        generateSeparateSDKs();
+    }
+    
+    public static void generateSeparateSDKs() {
+        // Define service specifications
+        Map<String, ServiceSpec> serviceSpecs = new HashMap<>();
         
-        generateCombinedSDK(specsPaths, modelsOutputDir, clientOutputDir);
+        serviceSpecs.put("network", new ServiceSpec(
+            "Network",
+            "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/",
+            "sdk/src/main/java/com/azure/simpleSDK/network/models",
+            "sdk/src/main/java/com/azure/simpleSDK/network/client",
+            "com.azure.simpleSDK.network.models",
+            "com.azure.simpleSDK.network.client",
+            "AzureNetworkClient"
+        ));
+        
+        serviceSpecs.put("compute", new ServiceSpec(
+            "Compute", 
+            "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/",
+            "sdk/src/main/java/com/azure/simpleSDK/compute/models",
+            "sdk/src/main/java/com/azure/simpleSDK/compute/client", 
+            "com.azure.simpleSDK.compute.models",
+            "com.azure.simpleSDK.compute.client",
+            "AzureComputeClient"
+        ));
+        
+        // Generate SDK for each service
+        for (Map.Entry<String, ServiceSpec> entry : serviceSpecs.entrySet()) {
+            String serviceName = entry.getKey();
+            ServiceSpec spec = entry.getValue();
+            
+            System.out.println("\n=== Generating " + spec.displayName + " SDK ===");
+            generateServiceSDK(spec);
+        }
+    }
+    
+    private static class ServiceSpec {
+        final String displayName;
+        final String specsPath;
+        final String modelsOutputDir;
+        final String clientOutputDir;
+        final String modelsPackage;
+        final String clientPackage;
+        final String clientClassName;
+        
+        ServiceSpec(String displayName, String specsPath, String modelsOutputDir, String clientOutputDir, 
+                   String modelsPackage, String clientPackage, String clientClassName) {
+            this.displayName = displayName;
+            this.specsPath = specsPath;
+            this.modelsOutputDir = modelsOutputDir;
+            this.clientOutputDir = clientOutputDir;
+            this.modelsPackage = modelsPackage;
+            this.clientPackage = clientPackage;
+            this.clientClassName = clientClassName;
+        }
+    }
+    
+    private static void generateServiceSDK(ServiceSpec serviceSpec) {
+        SpecLoader loader = new SpecLoader(serviceSpec.specsPath);
+        
+        try {
+            SpecResult result = loader.loadSpecs();
+            System.out.println("Found " + result.operations().size() + " operations");
+            System.out.println("Found " + result.definitions().size() + " definitions");
+            
+            // Find duplicate definition names within this service
+            Set<String> duplicateNames = findDuplicateDefinitionNames(result.definitions());
+            
+            System.out.println("Duplicate definitions within service:");
+            if (duplicateNames.isEmpty()) {
+                System.out.println("No duplicate definition names found.");
+            } else {
+                for (String duplicateName : duplicateNames) {
+                    System.out.println("Definition '" + duplicateName + "' appears in:");
+                    result.definitions().entrySet().stream()
+                            .filter(entry -> entry.getKey().definitionKey().equals(duplicateName))
+                            .forEach(entry -> System.out.println("  - " + entry.getKey().filename()));
+                }
+            }
+            
+            // Generate models with service-specific package
+            System.out.println("Generating Java records to: " + serviceSpec.modelsOutputDir);
+            JavaDefinitionGenerator generator = new JavaDefinitionGenerator(duplicateNames, result.definitions(), serviceSpec.modelsPackage);
+            int generatedCount = 0;
+            
+            for (Map.Entry<DefinitionKey, JsonNode> entry : result.definitions().entrySet()) {
+                try {
+                    String className = generator.getClassName(entry.getKey());
+                    generator.writeRecordToFile(entry.getKey(), entry.getValue(), serviceSpec.modelsOutputDir);
+                    System.out.println("Generated " + className + ".java from " + 
+                                     entry.getKey().filename() + " -> " + entry.getKey().definitionKey());
+                    generatedCount++;
+                } catch (IOException e) {
+                    System.err.println("Error generating file for " + entry.getKey() + ": " + e.getMessage());
+                }
+            }
+            
+            // Generate inline enums as separate files
+            Map<String, JsonNode> inlineEnums = generator.getInlineEnums();
+            int inlineEnumCount = 0;
+            for (Map.Entry<String, JsonNode> enumEntry : inlineEnums.entrySet()) {
+                try {
+                    String enumName = enumEntry.getKey();
+                    JsonNode enumDefinition = enumEntry.getValue();
+                    generator.writeInlineEnumToFile(enumName, enumDefinition, serviceSpec.modelsOutputDir);
+                    System.out.println("Generated " + enumName + ".java (inline enum)");
+                    inlineEnumCount++;
+                } catch (IOException e) {
+                    System.err.println("Error generating inline enum file for " + enumEntry.getKey() + ": " + e.getMessage());
+                }
+            }
+            
+            System.out.println("Generated " + generatedCount + " Java record files");
+            if (inlineEnumCount > 0) {
+                System.out.println("Generated " + inlineEnumCount + " inline enum files");
+            }
+            
+            // Generate service-specific client
+            System.out.println("Generating " + serviceSpec.displayName + " client:");
+            OperationGenerator operationGenerator = new OperationGenerator(result.operations(), duplicateNames, 
+                    result.definitions(), serviceSpec.modelsPackage, serviceSpec.clientPackage, serviceSpec.clientClassName);
+            
+            try {
+                operationGenerator.generateAzureClient(serviceSpec.clientOutputDir);
+                System.out.println("Generated " + serviceSpec.clientClassName + ".java in " + serviceSpec.clientOutputDir);
+            } catch (IOException e) {
+                System.err.println("Error generating " + serviceSpec.displayName + " client: " + e.getMessage());
+            }
+        } catch (IOException e) {
+            System.err.println("Error loading " + serviceSpec.displayName + " specifications: " + e.getMessage());
+        }
     }
     
     public static void generateSDK(String specsPath, String modelsOutputDir, String clientOutputDir) {
