@@ -40,7 +40,7 @@ public class SpecLoader {
                           JsonNode rootNode = mapper.readTree(content);
                           
                           // Track loaded file
-                          loadedFiles.add(filename);
+                          loadedFiles.add(file.toString());
                           
                           // Extract operations
                           JsonNode pathsNode = rootNode.get("paths");
@@ -155,9 +155,8 @@ public class SpecLoader {
         
         // Specification paths for different Azure services
         List<String> specsPaths = Arrays.asList(
-            "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/"
-            // Note: Compute APIs temporarily disabled due to external reference resolution issue
-            // "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/"
+            "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/",
+            "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/"
         );
         String modelsOutputDir = "sdk/src/main/java/com/azure/simpleSDK/models";
         String clientOutputDir = "sdk/src/main/java/com/azure/simpleSDK/client";
@@ -403,8 +402,10 @@ public class SpecLoader {
             
             String filename = path.getFileName().toString();
             
-            // Skip if already loaded by filename (avoid duplicates)
-            if (loadedFiles.contains(filename)) {
+            // Skip if already loaded by full path (avoid duplicates)
+            // Note: We use full path instead of just filename to allow different services 
+            // to have files with same name but different content
+            if (loadedFiles.contains(filePath)) {
                 return;
             }
             
@@ -415,7 +416,7 @@ public class SpecLoader {
             JsonNode definitionsNode = rootNode.get("definitions");
             if (definitionsNode != null && definitionsNode.isObject()) {
                 extractDefinitions(definitionsNode, filename, content, definitions);
-                loadedFiles.add(filename);
+                loadedFiles.add(filePath);  // Use full path instead of just filename
                 System.out.println("Loaded external file: " + filename);
             }
             

@@ -235,13 +235,27 @@ public class JavaDefinitionGenerator {
     private String generateClassName(DefinitionKey definitionKey) {
         String definitionName = definitionKey.definitionKey();
         
+        // Sanitize definition name to be a valid Java class name
+        // Replace dots and other invalid characters with empty string or underscore
+        String sanitizedName = sanitizeJavaClassName(definitionName);
+        
         if (duplicateDefinitionNames.contains(definitionName)) {
             String filename = definitionKey.filename();
             String baseName = filename.replaceAll("\\.json$", "");
-            return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(definitionName);
+            return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(sanitizedName);
         }
         
-        return capitalizeFirstLetter(definitionName);
+        return capitalizeFirstLetter(sanitizedName);
+    }
+    
+    private String sanitizeJavaClassName(String name) {
+        if (name == null || name.isEmpty()) {
+            return name;
+        }
+        
+        // Replace dots and other invalid characters with empty string to create valid Java class name
+        // For "TypeSpec.Http.OkResponse" -> "TypeSpecHttpOkResponse"
+        return name.replaceAll("\\.", "").replaceAll("[^a-zA-Z0-9_]", "");
     }
     
     private String getJavaType(JsonNode property, String currentFilename) {
@@ -318,12 +332,15 @@ public class JavaDefinitionGenerator {
             filename = parts[0].replace("./", "").replace(".json", "");
             definitionName = parts[1];
         } else if (ref.contains(".json#/definitions/")) {
-            // handle external references without "./" prefix like "applicationGateway.json#/definitions/ApplicationGatewayFirewallRuleGroup"
+            // handle external references like "applicationGateway.json#/definitions/ApplicationGatewayFirewallRuleGroup"
+            // or "../../../common-types/v1/common.json#/definitions/SubResource"
             String[] parts = ref.split("#/definitions/");
             if (parts.length != 2) {
                 throw new IllegalArgumentException("Invalid external reference format: " + ref);
             }
-            filename = parts[0].replace(".json", "");
+            // Extract just the filename from the path (e.g., "common" from "../../../common-types/v1/common.json")
+            String filePath = parts[0];
+            filename = Paths.get(filePath).getFileName().toString().replace(".json", "");
             definitionName = parts[1];
         } else {
             throw new IllegalArgumentException("Unsupported reference format: " + ref);

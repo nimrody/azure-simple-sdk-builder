@@ -173,7 +173,8 @@ public class OperationGenerator {
             }
         }
         
-        return definitionName;
+        // Sanitize definition name even for non-duplicates
+        return sanitizeJavaClassName(definitionName);
     }
 
     private String extractDateFromFilename(String filename) {
@@ -191,12 +192,33 @@ public class OperationGenerator {
         }
         
         // Convert to PascalCase and append to definition name
-        String prefix = Arrays.stream(baseName.split("[^a-zA-Z0-9]"))
-                .filter(part -> !part.isEmpty())
-                .map(part -> Character.toUpperCase(part.charAt(0)) + part.substring(1).toLowerCase())
-                .collect(Collectors.joining(""));
+        // Special handling for already PascalCase names like "ComputeRP"
+        String prefix;
+        if (baseName.matches("^[A-Z][a-z]*[A-Z][A-Z]*$") || baseName.matches("^[A-Z][a-zA-Z]*$")) {
+            // Already in PascalCase format (e.g., "ComputeRP", "NetworkProfile")
+            prefix = baseName;
+        } else {
+            // Convert dashed or underscored names to PascalCase
+            prefix = Arrays.stream(baseName.split("[^a-zA-Z0-9]"))
+                    .filter(part -> !part.isEmpty())
+                    .map(part -> Character.toUpperCase(part.charAt(0)) + part.substring(1).toLowerCase())
+                    .collect(Collectors.joining(""));
+        }
         
-        return prefix + definitionName;
+        // Sanitize definition name to be a valid Java class name (same logic as JavaDefinitionGenerator)
+        String sanitizedDefinitionName = sanitizeJavaClassName(definitionName);
+        
+        return prefix + sanitizedDefinitionName;
+    }
+    
+    private String sanitizeJavaClassName(String name) {
+        if (name == null || name.isEmpty()) {
+            return name;
+        }
+        
+        // Replace dots and other invalid characters with empty string to create valid Java class name
+        // For "TypeSpec.Http.OkResponse" -> "TypeSpecHttpOkResponse"
+        return name.replaceAll("\\.", "").replaceAll("[^a-zA-Z0-9_]", "");
     }
 
     private List<Parameter> extractPathParameters(String apiPath, JsonNode operationSpec) {

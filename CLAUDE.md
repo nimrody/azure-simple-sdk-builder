@@ -100,16 +100,21 @@ To add support for additional Azure services:
 3. Test code generation and verify no duplicate definition conflicts
 
 **Current Status:**
-- ✅ **Network APIs (2024-07-01)** - Fully supported with 726 operations and 1,095 definitions
-- ⚠️ **Compute APIs (2024-11-01)** - Architecture ready but needs external reference resolution fix
+- ✅ **Network APIs (2024-07-01)** - Fully supported with 726 operations and 1,110 definitions  
+- ✅ **Compute APIs (2024-11-01)** - Fully supported with 184 operations and 431 definitions
+- ✅ **Combined SDK** - 909 total operations and 1,534 total definitions with proper duplicate resolution
 
-**Known Issue - Compute APIs:** The Compute API specifications reference external common types (e.g., `../../../common-types/v1/common.json`) that require cross-directory reference resolution. This needs to be implemented to enable Compute API support.
+**Recent Fixes Implemented:**
+1. **External Reference Resolution** - Fixed cross-service common type references (e.g., `../../../common-types/v1/common.json`)
+2. **Class Name Sanitization** - Fixed invalid Java class names containing dots (e.g., `TypeSpec.Http.OkResponse` → `TypeSpecHttpOkResponse`)
+3. **Consistent Type Resolution** - Unified class name generation between JavaDefinitionGenerator and OperationGenerator
+4. **Duplicate Definition Handling** - Proper prefixing for duplicate definitions across services
 
 Example:
 ```java
 List<String> specsPaths = Arrays.asList(
     "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/",
-    // "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/" // Disabled pending external ref fix
+    "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/"
 );
 ```
 
