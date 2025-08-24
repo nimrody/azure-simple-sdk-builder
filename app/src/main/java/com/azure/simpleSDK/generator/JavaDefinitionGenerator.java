@@ -593,11 +593,15 @@ public class JavaDefinitionGenerator {
             String definitionName = refValue.substring("#/definitions/".length());
             JsonNode definition = findDefinitionByName(definitionName, currentFilename);
             return definition != null ? new ResolvedDefinition(definition, currentFilename) : null;
-        } else if (refValue.startsWith("./") && refValue.contains("#/definitions/")) {
-            // External reference to another file
+        } else if (refValue.contains("#/definitions/")) {
+            // External reference to another file (handles both ./ and ../ patterns)
             int hashIndex = refValue.indexOf("#");
-            String externalFilename = refValue.substring(2, hashIndex); // Remove "./"
+            String relativePath = refValue.substring(0, hashIndex);
             String definitionName = refValue.substring(hashIndex + "#/definitions/".length());
+            
+            // Extract just the filename from the relative path
+            String externalFilename = relativePath.substring(relativePath.lastIndexOf('/') + 1);
+            
             JsonNode definition = findDefinitionByName(definitionName, externalFilename);
             return definition != null ? new ResolvedDefinition(definition, externalFilename) : null;
         }

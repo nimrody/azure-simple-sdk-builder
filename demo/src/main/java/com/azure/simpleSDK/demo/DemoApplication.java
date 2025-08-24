@@ -176,7 +176,7 @@ public class DemoApplication {
                         
                         // Network Security Group
                         if (nicProps.networkSecurityGroup() != null) {
-                            System.out.println("Network Security Group: " + nicProps.networkSecurityGroup().name());
+                            System.out.println("Network Security Group: " + nicProps.networkSecurityGroup().id());
                         } else {
                             System.out.println("Network Security Group: None");
                         }
