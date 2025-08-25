@@ -13,9 +13,48 @@ import java.util.regex.Pattern;
 
 public class SpecLoader {
     private final Path basePath;
+    private final Path azureSpecsRoot;
 
     public SpecLoader(String path) {
         this.basePath = Paths.get(path);
+        // Find the azure-rest-api-specs root directory
+        this.azureSpecsRoot = findAzureSpecsRoot(basePath);
+    }
+    
+    /**
+     * Finds the azure-rest-api-specs root directory by walking up the path
+     */
+    private Path findAzureSpecsRoot(Path currentPath) {
+        Path path = currentPath.toAbsolutePath();
+        while (path != null) {
+            if (path.getFileName() != null && path.getFileName().toString().equals("azure-rest-api-specs")) {
+                return path;
+            }
+            path = path.getParent();
+        }
+        throw new IllegalStateException("Could not find azure-rest-api-specs root directory from path: " + currentPath.toAbsolutePath());
+    }
+    
+    /**
+     * Converts an absolute path to a relative path from azure-rest-api-specs/
+     * @param absolutePath The absolute path to convert
+     * @return The relative path from azure-rest-api-specs/ (using forward slashes)
+     * @throws IllegalArgumentException if the path cannot be relativized
+     */
+    private String getRelativePathFromSpecsRoot(Path absolutePath) {
+        try {
+            Path normalizedAbsolute = absolutePath.toAbsolutePath().normalize();
+            Path normalizedRoot = azureSpecsRoot.toAbsolutePath().normalize();
+            
+            if (!normalizedAbsolute.startsWith(normalizedRoot)) {
+                throw new IllegalArgumentException("Path " + normalizedAbsolute + " is not under azure-rest-api-specs root: " + normalizedRoot);
+            }
+            
+            Path relativePath = normalizedRoot.relativize(normalizedAbsolute);
+            return relativePath.toString().replace('\\', '/'); // Normalize to forward slashes
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to relativize path " + absolutePath + " from azure-rest-api-specs root " + azureSpecsRoot, e);
+        }
     }
 
     public SpecResult loadSpecs() throws IOException {
@@ -36,6 +75,8 @@ public class SpecLoader {
                   .forEach(file -> {
                       try {
                           String filename = file.getFileName().toString();
+                          // Use relative path from azure-rest-api-specs root for consistency
+                          String relativePath = getRelativePathFromSpecsRoot(file);
                           String content = Files.readString(file);
                           JsonNode rootNode = mapper.readTree(content);
                           
@@ -51,7 +92,7 @@ public class SpecLoader {
                           // Extract definitions
                           JsonNode definitionsNode = rootNode.get("definitions");
                           if (definitionsNode != null && definitionsNode.isObject()) {
-                              extractDefinitions(definitionsNode, filename, content, definitions);
+                              extractDefinitions(definitionsNode, relativePath, content, definitions);
                           }
                           
                           // Collect external references
@@ -533,6 +574,8 @@ public class SpecLoader {
             
             processedExternal.add(filePath);
             
+            // Convert absolute path to relative path from azure-rest-api-specs/
+            String relativePath = getRelativePathFromSpecsRoot(path);
             String filename = path.getFileName().toString();
             
             // Skip if already loaded by full path (avoid duplicates)
@@ -545,12 +588,12 @@ public class SpecLoader {
             String content = Files.readString(path);
             JsonNode rootNode = mapper.readTree(content);
             
-            // Extract definitions from external file
+            // Extract definitions from external file using relative path
             JsonNode definitionsNode = rootNode.get("definitions");
             if (definitionsNode != null && definitionsNode.isObject()) {
-                extractDefinitions(definitionsNode, filename, content, definitions);
+                extractDefinitions(definitionsNode, relativePath, content, definitions);
                 loadedFiles.add(filePath);  // Use full path instead of just filename
-                System.out.println("Loaded external file: " + filename);
+                System.out.println("Loaded external file: " + filename + " (path: " + relativePath + ")");
             }
             
             // Look for more external references in this file

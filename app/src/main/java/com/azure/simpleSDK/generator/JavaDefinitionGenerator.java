@@ -322,48 +322,37 @@ public class JavaDefinitionGenerator {
         return "Object";
     }
     
-    String resolveReference(String ref, String currentFilename) {
-        String filename;
+    String resolveReference(String ref, String currentFilePath) {
+        String targetFilePath;
         String definitionName;
 
         if (ref.startsWith("#/definitions/")) {
-            // handle references to local definitions "#/definitions/VirtualNetworkGatewayPropertiesFormat"
-            filename = currentFilename.replace(".json", "");
-            definitionName = ref.replace("#/definitions/", "");
+            // Local reference within the same file
+            targetFilePath = currentFilePath;
+            definitionName = ref.substring("#/definitions/".length());
+        } else if (ref.contains("#/definitions/")) {
+            // External reference to another file
+            int hashIndex = ref.indexOf("#");
+            String relativePath = ref.substring(0, hashIndex);
+            definitionName = ref.substring(hashIndex + "#/definitions/".length());
             
-        } else if (ref.startsWith("./")) {
-            // handle external references like "./networkInterface.json#/definitions/NetworkInterface"
-            String[] parts = ref.split("#/definitions/");
-            if (parts.length != 2) {
-                throw new IllegalArgumentException("Invalid external reference format: " + ref);
-            }
-            filename = parts[0].replace("./", "").replace(".json", "");
-            definitionName = parts[1];
-        } else if (ref.contains(".json#/definitions/")) {
-            // handle external references like "applicationGateway.json#/definitions/ApplicationGatewayFirewallRuleGroup"
-            // or "../../../common-types/v1/common.json#/definitions/SubResource"
-            String[] parts = ref.split("#/definitions/");
-            if (parts.length != 2) {
-                throw new IllegalArgumentException("Invalid external reference format: " + ref);
-            }
-            // Extract just the filename from the path (e.g., "common" from "../../../common-types/v1/common.json")
-            String filePath = parts[0];
-            filename = Paths.get(filePath).getFileName().toString().replace(".json", "");
-            definitionName = parts[1];
+            // Resolve the target file path relative to the current file
+            targetFilePath = resolveRelativeReference(relativePath, currentFilePath);
         } else {
             throw new IllegalArgumentException("Unsupported reference format: " + ref);
         }
 
         // Validate that the referenced definition exists in the scanned definitions
-        String fullFilename = filename + ".json";
-        DefinitionKey referencedKey = findDefinitionKey(fullFilename, definitionName);
+        DefinitionKey referencedKey = findDefinitionKey(targetFilePath, definitionName);
         if (referencedKey == null) {
             throw new IllegalArgumentException(
                 String.format("Referenced definition not found: %s in file %s. Available definitions: %s",
-                    definitionName, fullFilename, getAvailableDefinitionsForFile(fullFilename)));
+                    definitionName, targetFilePath, getAvailableDefinitionsForFile(targetFilePath)));
         }
 
         if (duplicateDefinitionNames.contains(definitionName)) {
+            // Use the filename part of the path for class name prefixing
+            String filename = Paths.get(targetFilePath).getFileName().toString().replace(".json", "");
             return capitalizeFirstLetter(filename) + capitalizeFirstLetter(definitionName);
         } else {
             return capitalizeFirstLetter(definitionName);
@@ -587,25 +576,52 @@ public class JavaDefinitionGenerator {
         Files.writeString(filePath, content);
     }
     
-    private ResolvedDefinition resolveAllOfReference(String refValue, String currentFilename) {
+    private ResolvedDefinition resolveAllOfReference(String refValue, String currentFilePath) {
         if (refValue.startsWith("#/definitions/")) {
             // Local reference within the same file
             String definitionName = refValue.substring("#/definitions/".length());
-            JsonNode definition = findDefinitionByName(definitionName, currentFilename);
-            return definition != null ? new ResolvedDefinition(definition, currentFilename) : null;
+            JsonNode definition = findDefinitionByName(definitionName, currentFilePath);
+            return definition != null ? new ResolvedDefinition(definition, currentFilePath) : null;
         } else if (refValue.contains("#/definitions/")) {
-            // External reference to another file (handles both ./ and ../ patterns)
+            // External reference to another file - resolve the target path
             int hashIndex = refValue.indexOf("#");
             String relativePath = refValue.substring(0, hashIndex);
             String definitionName = refValue.substring(hashIndex + "#/definitions/".length());
             
-            // Extract just the filename from the relative path
-            String externalFilename = relativePath.substring(relativePath.lastIndexOf('/') + 1);
+            // Resolve the target file path relative to the current file
+            String targetFilePath = resolveRelativeReference(relativePath, currentFilePath);
             
-            JsonNode definition = findDefinitionByName(definitionName, externalFilename);
-            return definition != null ? new ResolvedDefinition(definition, externalFilename) : null;
+            JsonNode definition = findDefinitionByName(definitionName, targetFilePath);
+            return definition != null ? new ResolvedDefinition(definition, targetFilePath) : null;
         }
         return null;
+    }
+    
+    /**
+     * Resolves a relative reference from the current file to the target file.
+     * Both paths are relative to azure-rest-api-specs/
+     * 
+     * @param relativePath The relative path from the reference (e.g., "../../../common-types/v1/common.json")
+     * @param currentFilePath The current file path relative to azure-rest-api-specs/
+     * @return The resolved target file path relative to azure-rest-api-specs/
+     */
+    private String resolveRelativeReference(String relativePath, String currentFilePath) {
+        try {
+            // Convert current file path to Path object
+            Path currentPath = Paths.get(currentFilePath).getParent();
+            if (currentPath == null) {
+                currentPath = Paths.get(".");
+            }
+            
+            // Resolve the relative path from the current directory
+            Path resolvedPath = currentPath.resolve(relativePath).normalize();
+            
+            // Convert back to string with forward slashes
+            return resolvedPath.toString().replace('\\', '/');
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to resolve relative reference '" + relativePath + 
+                                             "' from current file '" + currentFilePath + "'", e);
+        }
     }
     
     private static class ResolvedDefinition {
