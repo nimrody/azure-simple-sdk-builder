@@ -11,10 +11,28 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Loads and processes Azure REST API specifications from OpenAPI JSON files.
+ * 
+ * This class performs a two-phase loading process:
+ * 1. Phase 1: Scan all JSON files in the specified directory to extract operations and definitions
+ * 2. Phase 2: Load external referenced files to resolve cross-file dependencies
+ * 
+ * All file paths are normalized to be relative to the azure-rest-api-specs/ root directory
+ * to ensure consistent referencing across different services and external files.
+ */
 public class SpecLoader {
+    /** The base directory to scan for OpenAPI specification files */
     private final Path basePath;
+    /** The root directory of azure-rest-api-specs (found by walking up the directory tree) */
     private final Path azureSpecsRoot;
 
+    /**
+     * Creates a new SpecLoader for the specified directory.
+     * 
+     * @param path The directory path containing OpenAPI JSON files to load
+     * @throws IllegalStateException if azure-rest-api-specs root directory cannot be found
+     */
     public SpecLoader(String path) {
         this.basePath = Paths.get(path);
         // Find the azure-rest-api-specs root directory
@@ -22,7 +40,11 @@ public class SpecLoader {
     }
     
     /**
-     * Finds the azure-rest-api-specs root directory by walking up the path
+     * Finds the azure-rest-api-specs root directory by walking up the path hierarchy.
+     * 
+     * @param currentPath The starting path to search from
+     * @return The absolute path to the azure-rest-api-specs directory
+     * @throws IllegalStateException if the azure-rest-api-specs directory is not found
      */
     private Path findAzureSpecsRoot(Path currentPath) {
         Path path = currentPath.toAbsolutePath();
@@ -57,6 +79,19 @@ public class SpecLoader {
         }
     }
 
+    /**
+     * Loads Azure REST API specifications from OpenAPI JSON files in a two-phase process.
+     * 
+     * Phase 1: Scans all JSON files in the base directory and extracts:
+     * - Operations from the 'paths' section (HTTP methods and endpoints)
+     * - Model definitions from the 'definitions' section  
+     * - External file references for phase 2 loading
+     * 
+     * Phase 2: Recursively loads external referenced files to resolve cross-file dependencies
+     * 
+     * @return SpecResult containing all loaded operations and definitions with their metadata
+     * @throws IOException if files cannot be read or parsed
+     */
     public SpecResult loadSpecs() throws IOException {
         Map<String, Operation> operations = new HashMap<>();
         Map<DefinitionKey, JsonNode> definitions = new HashMap<>();
@@ -123,6 +158,20 @@ public class SpecLoader {
                 .collect(java.util.stream.Collectors.toSet());
     }
 
+    /**
+     * Extracts REST API operations from the OpenAPI 'paths' section.
+     * 
+     * Input: OpenAPI paths node containing endpoint definitions
+     * Output: Populates operations map with Operation objects containing:
+     * - operationId (unique identifier)
+     * - API path template (e.g., "/subscriptions/{subscriptionId}/...")
+     * - HTTP method (GET, POST, PUT, DELETE, etc.)
+     * - Complete operation specification
+     * - Response schema mappings for type generation
+     * 
+     * @param pathsNode The 'paths' section from an OpenAPI specification
+     * @param operations Map to populate with extracted operations (keyed by operationId)
+     */
     private void extractOperations(JsonNode pathsNode, Map<String, Operation> operations) {
         pathsNode.fieldNames().forEachRemaining(apiPath -> {
             JsonNode pathNode = pathsNode.get(apiPath);
@@ -149,6 +198,22 @@ public class SpecLoader {
         });
     }
 
+    /**
+     * Extracts model definitions from the OpenAPI 'definitions' section.
+     * 
+     * Input: OpenAPI definitions node containing model schemas
+     * Output: Populates definitions map with DefinitionKey -> JsonNode mappings
+     * 
+     * Each DefinitionKey contains:
+     * - filename: relative path from azure-rest-api-specs/ 
+     * - definitionKey: the model name (e.g., "VirtualMachine")
+     * - lineNumber: source line number for traceability
+     * 
+     * @param definitionsNode The 'definitions' section from an OpenAPI specification
+     * @param filename The relative path of the source file from azure-rest-api-specs/
+     * @param content The complete file content (used for line number calculation)
+     * @param definitions Map to populate with extracted definitions
+     */
     private void extractDefinitions(JsonNode definitionsNode, String filename, String content, Map<DefinitionKey, JsonNode> definitions) {
         definitionsNode.fieldNames().forEachRemaining(definitionKey -> {
             JsonNode definitionValue = definitionsNode.get(definitionKey);
@@ -158,6 +223,16 @@ public class SpecLoader {
         });
     }
     
+    /**
+     * Finds the line number where a specific definition appears in the source file.
+     * 
+     * Uses regex pattern matching to locate the definition key in the JSON content.
+     * This enables source traceability for generated code comments.
+     * 
+     * @param content The complete file content to search
+     * @param definitionKey The definition name to locate (e.g., "VirtualMachine")
+     * @return The 1-based line number where the definition is found, or 0 if not found
+     */
     private int findDefinitionLineNumber(String content, String definitionKey) {
         String[] lines = content.split("\n");
         Pattern pattern = Pattern.compile("\"" + Pattern.quote(definitionKey) + "\"\\s*:");
@@ -232,14 +307,50 @@ public class SpecLoader {
         }
     }
     
+    /**
+     * Configuration container for service-specific SDK generation.
+     * 
+     * This class encapsulates all settings needed to generate a separate SDK for 
+     * a specific Azure service (e.g., Network, Compute, Storage, etc.).
+     * 
+     * Each service gets:
+     * - Separate package namespace (com.azure.simpleSDK.{service}.*)
+     * - Dedicated client class (e.g., AzureNetworkClient, AzureComputeClient)
+     * - Isolated models directory structure  
+     * - Service-specific API version extraction
+     * 
+     * This enables the multi-service architecture where applications can depend
+     * only on the Azure services they need, rather than a monolithic SDK.
+     * 
+     * Example:
+     * ```java
+     * new ServiceSpec(
+     *     "Network",                                           // Display name
+     *     "azure-rest-api-specs/.../network/.../2024-07-01/", // OpenAPI specs path
+     *     "sdk/.../network/models",                            // Models output directory  
+     *     "sdk/.../network/client",                            // Client output directory
+     *     "com.azure.simpleSDK.network.models",               // Models package
+     *     "com.azure.simpleSDK.network.client",               // Client package
+     *     "AzureNetworkClient"                                 // Client class name
+     * )
+     * ```
+     */
     private static class ServiceSpec {
+        /** Human-readable service name for logging (e.g., "Network", "Compute") */
         final String displayName;
+        /** Path to OpenAPI specification files for this service */
         final String specsPath;
+        /** Output directory for generated model classes */
         final String modelsOutputDir;
+        /** Output directory for generated client class */
         final String clientOutputDir;
+        /** Java package name for model classes */
         final String modelsPackage;
+        /** Java package name for client class */
         final String clientPackage;
+        /** Name of generated client class */
         final String clientClassName;
+        /** API version extracted from specs path */
         final String apiVersion;
         
         ServiceSpec(String displayName, String specsPath, String modelsOutputDir, String clientOutputDir, 
@@ -521,10 +632,31 @@ public class SpecLoader {
         }
     }
     
+    /**
+     * Collects external file references from an OpenAPI specification for phase 2 loading.
+     * 
+     * Scans the entire JSON tree for $ref properties that point to external files:
+     * - "./file.json#/definitions/Type" (same directory)
+     * - "../path/file.json#/definitions/Type" (parent/child directories)
+     * 
+     * @param rootNode The root JSON node to scan for external references
+     * @param currentFileDir The directory of the current file (for resolving relative paths)
+     * @param externalRefsToLoad Set to populate with absolute paths of external files to load
+     */
     private void collectExternalReferences(JsonNode rootNode, Path currentFileDir, Set<String> externalRefsToLoad) {
         collectExternalReferencesRecursive(rootNode, currentFileDir, externalRefsToLoad);
     }
     
+    /**
+     * Recursively scans JSON nodes for external file references.
+     * 
+     * Traverses all JSON objects and arrays looking for $ref properties
+     * that contain relative file paths (starting with ./ or ../).
+     * 
+     * @param node Current JSON node being examined
+     * @param currentFileDir Directory of the source file (for path resolution)
+     * @param externalRefsToLoad Set to collect external file paths
+     */
     private void collectExternalReferencesRecursive(JsonNode node, Path currentFileDir, Set<String> externalRefsToLoad) {
         if (node.isObject()) {
             JsonNode refNode = node.get("$ref");

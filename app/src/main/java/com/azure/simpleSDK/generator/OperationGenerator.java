@@ -9,15 +9,49 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * Generates Azure SDK client classes from OpenAPI operations.
+ * 
+ * This generator creates type-safe Java client classes that wrap Azure REST APIs:
+ * 
+ * Generated Output:
+ * - Java client class with methods for each GET operation
+ * - Type-safe method signatures with proper parameter extraction
+ * - Comprehensive Javadoc with operation metadata
+ * - Response types using generated model classes
+ * - Proper exception handling with AzureException
+ * 
+ * Key Features:
+ * - Operation ID to Java method name conversion
+ * - Parameter extraction from OpenAPI specs (path, query, body)
+ * - Response schema resolution with duplicate handling
+ * - Service-specific package and class name support
+ * - API version configuration
+ * - HTML escaping for Javadoc safety
+ */
 public class OperationGenerator {
+    /** All loaded OpenAPI operations indexed by operation ID */
     private final Map<String, Operation> operations;
+    /** Set of definition names that appear in multiple files */
     private final Set<String> duplicateDefinitions;
+    /** All loaded definitions for response type resolution */
     private final Map<DefinitionKey, JsonNode> definitions;
+    /** Target package for model classes (e.g., "com.azure.simpleSDK.network.models") */
     private final String modelsPackage;
+    /** Target package for client classes (e.g., "com.azure.simpleSDK.network.client") */
     private final String clientPackage;
+    /** Name of the generated client class (e.g., "AzureNetworkClient") */
     private final String clientClassName;
+    /** Azure API version to use in requests */
     private final String apiVersion;
 
+    /**
+     * Creates an OperationGenerator with default package names and settings.
+     * 
+     * @param operations All loaded operations from OpenAPI specifications
+     * @param duplicateDefinitions Set of definition names that appear in multiple files
+     * @param definitions All loaded definitions for response type resolution
+     */
     public OperationGenerator(Map<String, Operation> operations, Set<String> duplicateDefinitions, Map<DefinitionKey, JsonNode> definitions) {
         this.operations = operations;
         this.duplicateDefinitions = duplicateDefinitions;
@@ -28,6 +62,16 @@ public class OperationGenerator {
         this.apiVersion = "2024-07-01"; // Default for backwards compatibility
     }
     
+    /**
+     * Creates an OperationGenerator with custom package and class names for service-specific generation.
+     * 
+     * @param operations All loaded operations from OpenAPI specifications
+     * @param duplicateDefinitions Set of definition names that appear in multiple files
+     * @param definitions All loaded definitions for response type resolution
+     * @param modelsPackage Target package for model classes (e.g., "com.azure.simpleSDK.network.models")
+     * @param clientPackage Target package for client class (e.g., "com.azure.simpleSDK.network.client")
+     * @param clientClassName Name of generated client class (e.g., "AzureNetworkClient")
+     */
     public OperationGenerator(Map<String, Operation> operations, Set<String> duplicateDefinitions, 
                             Map<DefinitionKey, JsonNode> definitions, String modelsPackage, 
                             String clientPackage, String clientClassName) {
@@ -40,6 +84,17 @@ public class OperationGenerator {
         this.apiVersion = "2024-07-01"; // Default for backwards compatibility
     }
     
+    /**
+     * Creates an OperationGenerator with full customization including API version.
+     * 
+     * @param operations All loaded operations from OpenAPI specifications
+     * @param duplicateDefinitions Set of definition names that appear in multiple files
+     * @param definitions All loaded definitions for response type resolution
+     * @param modelsPackage Target package for model classes (e.g., "com.azure.simpleSDK.network.models")
+     * @param clientPackage Target package for client class (e.g., "com.azure.simpleSDK.network.client")
+     * @param clientClassName Name of generated client class (e.g., "AzureNetworkClient")
+     * @param apiVersion Azure API version for requests (e.g., "2024-07-01")
+     */
     public OperationGenerator(Map<String, Operation> operations, Set<String> duplicateDefinitions, 
                             Map<DefinitionKey, JsonNode> definitions, String modelsPackage, 
                             String clientPackage, String clientClassName, String apiVersion) {
@@ -52,6 +107,29 @@ public class OperationGenerator {
         this.apiVersion = apiVersion != null ? apiVersion : "2024-07-01";
     }
 
+    /**
+     * Generates a complete Azure SDK client class with methods for all GET operations.
+     * 
+     * Input: Output directory path for the generated client
+     * Output: Java client class file with complete implementation
+     * 
+     * Generated Client Features:
+     * - Constructor accepting AzureCredentials and optional strict mode
+     * - Methods for all GET operations with proper parameter extraction
+     * - Type-safe return types using generated model classes  
+     * - Comprehensive Javadoc with operation metadata
+     * - Proper exception handling and HTTP client integration
+     * 
+     * Method Generation Process:
+     * 1. Filter operations to GET requests only
+     * 2. Convert operation IDs to Java method names (e.g., "VirtualMachines_List" -> "listVirtualMachines")
+     * 3. Extract parameters from OpenAPI path and query parameters
+     * 4. Resolve response types with duplicate handling
+     * 5. Generate complete Javadoc with operation details
+     * 
+     * @param outputDir The directory path where the client class file will be created
+     * @throws IOException if file writing fails
+     */
     public void generateAzureClient(String outputDir) throws IOException {
         List<Operation> getOperations = operations.values().stream()
                 .filter(op -> "GET".equals(op.httpMethod()))
@@ -150,6 +228,27 @@ public class OperationGenerator {
         classContent.append("    }\n\n");
     }
 
+    /**
+     * Converts OpenAPI operation IDs to proper Java method names.
+     * 
+     * Input: Azure operation ID (e.g., "VirtualNetworkGateways_Get", "VirtualMachines_List")  
+     * Output: camelCase Java method name
+     * 
+     * Conversion Examples:
+     * - "VirtualNetworkGateways_Get" -> "getVirtualNetworkGateways"
+     * - "VirtualNetworkGateways_ListConnections" -> "listConnectionsVirtualNetworkGateways" 
+     * - "VirtualMachines_List" -> "listVirtualMachines"
+     * - "PublicIPAddresses_GetCloudServicePublicIPAddress" -> "getCloudServicePublicIPAddressPublicIPAddresses"
+     * 
+     * Algorithm:
+     * 1. Split on underscore to get [Resource, Verb] parts
+     * 2. Handle compound verbs (e.g., "ListConnections" -> "listConnections") 
+     * 3. Convert first verb word to lowercase, keep rest capitalized
+     * 4. Append resource name with first letter capitalized
+     * 
+     * @param operationId The Azure OpenAPI operation ID
+     * @return Java method name in camelCase
+     */
     private String convertOperationIdToMethodName(String operationId) {
         // Convert operation ID like "VirtualNetworkGateways_Get" to "getVirtualNetworkGateways"
         // Handle compound verbs like "VirtualNetworkGateways_ListConnections" to "listConnectionsVirtualNetworkGateways"

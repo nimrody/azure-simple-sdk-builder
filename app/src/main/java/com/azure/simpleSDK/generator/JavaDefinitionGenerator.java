@@ -14,24 +14,80 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Generates Java model classes (records and enums) from OpenAPI schema definitions.
+ * 
+ * This generator converts OpenAPI JSON Schema definitions into type-safe Java code:
+ * 
+ * Generated Output:
+ * - Immutable Java records for complex object types
+ * - Java enums for string enumerations with Jackson annotations
+ * - Proper field mappings with @JsonProperty annotations
+ * - Source traceability comments linking back to OpenAPI files
+ * 
+ * Key Features:
+ * - AllOf inheritance support (schema composition)
+ * - External reference resolution across files
+ * - Duplicate definition handling with filename prefixes
+ * - Reserved Java keyword handling
+ * - Inline enum extraction and generation
+ * - Recursive type resolution for nested objects and arrays
+ */
 public class JavaDefinitionGenerator {
+    /** Set of definition names that appear in multiple files (requiring filename prefixes) */
     private final Set<String> duplicateDefinitionNames;
+    /** All loaded definitions mapped by their source location */
     private final Map<DefinitionKey, JsonNode> definitions;
+    /** Extracted inline enum definitions for separate file generation */
     private final Map<String, JsonNode> inlineEnums = new HashMap<>();
+    /** Target Java package name for generated classes */
     private final String packageName;
     
+    /**
+     * Creates a JavaDefinitionGenerator with default package name.
+     * 
+     * @param duplicateDefinitionNames Set of definition names that appear in multiple files
+     * @param definitions All loaded OpenAPI definitions with their source locations
+     */
     public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames, Map<DefinitionKey, JsonNode> definitions) {
         this.duplicateDefinitionNames = duplicateDefinitionNames != null ? duplicateDefinitionNames : new HashSet<>();
         this.definitions = definitions != null ? definitions : Map.of();
         this.packageName = "com.azure.simpleSDK.models"; // Default package for backwards compatibility
     }
     
+    /**
+     * Creates a JavaDefinitionGenerator with custom package name for service-specific generation.
+     * 
+     * @param duplicateDefinitionNames Set of definition names that appear in multiple files
+     * @param definitions All loaded OpenAPI definitions with their source locations
+     * @param packageName Target Java package for generated classes (e.g., "com.azure.simpleSDK.network.models")
+     */
     public JavaDefinitionGenerator(Set<String> duplicateDefinitionNames, Map<DefinitionKey, JsonNode> definitions, String packageName) {
         this.duplicateDefinitionNames = duplicateDefinitionNames != null ? duplicateDefinitionNames : new HashSet<>();
         this.definitions = definitions != null ? definitions : Map.of();
         this.packageName = packageName != null ? packageName : "com.azure.simpleSDK.models";
     }
     
+    /**
+     * Generates Java source code (record or enum) from an OpenAPI definition.
+     * 
+     * Input: OpenAPI schema definition (object or string with enum values)
+     * Output: Complete Java source code as a string
+     * 
+     * Process:
+     * 1. Detect if definition is an enum (type: string + enum array) -> generate enum
+     * 2. Extract any inline enums from nested properties for separate generation
+     * 3. Generate Java record with:
+     *    - Proper class name (with duplicate prefixing if needed)
+     *    - Package declaration and imports
+     *    - Source traceability comment
+     *    - AllOf inheritance field merging
+     *    - Field declarations with Jackson annotations
+     * 
+     * @param definitionKey The source location and name of the definition
+     * @param definition The OpenAPI schema definition (JSON object or enum)
+     * @return Complete Java source code for the class
+     */
     public String generateRecord(DefinitionKey definitionKey, JsonNode definition) {
         // Check if this is actually an enum definition
         if (isEnumDefinition(definition)) {
@@ -267,6 +323,25 @@ public class JavaDefinitionGenerator {
         return name.replaceAll("\\.", "").replaceAll("[^a-zA-Z0-9_]", "");
     }
     
+    /**
+     * Converts an OpenAPI property schema to the corresponding Java type.
+     * 
+     * Input: OpenAPI property definition (type, format, $ref, enum, etc.)
+     * Output: Java type name as string
+     * 
+     * Type Mappings:
+     * - string -> String (or custom enum for inline enums)
+     * - integer -> Integer/Long (based on format)  
+     * - number -> Double
+     * - boolean -> Boolean
+     * - array -> List<T> (with recursive item type resolution)
+     * - object -> Map<String, T> (for additionalProperties)
+     * - $ref -> Resolved class name (with duplicate prefixing)
+     * 
+     * @param property The OpenAPI property schema
+     * @param currentFilename The current file context for reference resolution
+     * @return Java type name (e.g., "String", "List<VirtualMachine>", "Map<String, Object>")
+     */
     private String getJavaType(JsonNode property, String currentFilename) {
         if (property.has("$ref")) {
             String refValue = property.get("$ref").asText();
@@ -323,6 +398,26 @@ public class JavaDefinitionGenerator {
         return "Object";
     }
     
+    /**
+     * Resolves an OpenAPI $ref to a Java class name with proper duplicate handling.
+     * 
+     * Input: OpenAPI reference string and current file context
+     * Output: Java class name (potentially prefixed for duplicates)
+     * 
+     * Reference Formats:
+     * - "#/definitions/ModelName" -> same file reference
+     * - "./file.json#/definitions/ModelName" -> external file reference
+     * - "../path/file.json#/definitions/ModelName" -> cross-directory reference
+     * 
+     * Duplicate Handling:
+     * - Non-duplicate: "Plan" -> "Plan"
+     * - Duplicate: "Plan" -> "ComputeRPPlan" (prefixed with source filename)
+     * 
+     * @param ref The OpenAPI $ref string (e.g., "#/definitions/VirtualMachine")
+     * @param currentFilePath The current file for resolving relative paths
+     * @return Java class name for the referenced type
+     * @throws IllegalArgumentException if reference format is invalid or target not found
+     */
     String resolveReference(String ref, String currentFilePath) {
         String targetFilePath;
         String definitionName;
@@ -600,11 +695,23 @@ public class JavaDefinitionGenerator {
     
     /**
      * Resolves a relative reference from the current file to the target file.
-     * Both paths are relative to azure-rest-api-specs/
+     * 
+     * Input: Relative path (e.g., "../../../common-types/v1/common.json") and current file context
+     * Output: Absolute path relative to azure-rest-api-specs/ root
+     * 
+     * Examples:
+     * - relativePath: "./networkInterface.json"
+     * - currentFile: "specification/network/.../network.json" 
+     * - result: "specification/network/.../networkInterface.json"
+     * 
+     * - relativePath: "../../../common-types/v5/types.json"
+     * - currentFile: "specification/network/stable/2024-07-01/network.json"
+     * - result: "specification/common-types/resource-management/v5/types.json"
      * 
      * @param relativePath The relative path from the reference (e.g., "../../../common-types/v1/common.json")
      * @param currentFilePath The current file path relative to azure-rest-api-specs/
      * @return The resolved target file path relative to azure-rest-api-specs/
+     * @throws IllegalArgumentException if path resolution fails
      */
     private String resolveRelativeReference(String relativePath, String currentFilePath) {
         try {
