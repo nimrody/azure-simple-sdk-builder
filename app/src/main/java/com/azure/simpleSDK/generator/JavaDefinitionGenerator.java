@@ -249,7 +249,8 @@ public class JavaDefinitionGenerator {
         
         if (duplicateDefinitionNames.contains(definitionName)) {
             String filename = definitionKey.filename();
-            String baseName = filename.replaceAll("\\.json$", "");
+            // Extract just the base filename without path and extension for prefixing
+            String baseName = Paths.get(filename).getFileName().toString().replaceAll("\\.json$", "");
             return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(sanitizedName);
         }
         
@@ -351,7 +352,7 @@ public class JavaDefinitionGenerator {
         }
 
         if (duplicateDefinitionNames.contains(definitionName)) {
-            // Use the filename part of the path for class name prefixing
+            // Use just the base filename for class name prefixing
             String filename = Paths.get(targetFilePath).getFileName().toString().replace(".json", "");
             return capitalizeFirstLetter(filename) + capitalizeFirstLetter(definitionName);
         } else {
