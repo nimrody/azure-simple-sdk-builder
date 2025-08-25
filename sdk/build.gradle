@@ -24,8 +24,10 @@ jar {
 }
 
 task cleanGenerated(type: Delete) {
-    delete "src/main/java/com/azure/simpleSDK/models/",
-           "src/main/java/com/azure/simpleSDK/client"
+    delete "src/main/java/com/azure/simpleSDK/compute/models/",
+           "src/main/java/com/azure/simpleSDK/network/models/",
+           "src/main/java/com/azure/simpleSDK/compute/client/",
+           "src/main/java/com/azure/simpleSDK/network/client/"
 }
 
 task generateCode {
@@ -46,3 +48,5 @@ compileJava.dependsOn generateCode
 
 // Also make the build task explicitly depend on code generation
 build.dependsOn generateCode
+
+clean.dependsOn cleanGenerated
