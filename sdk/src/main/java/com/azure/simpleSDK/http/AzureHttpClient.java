@@ -147,7 +147,8 @@ public class AzureHttpClient {
                 Thread.currentThread().interrupt();
                 throw new AzureException("Request was interrupted", e);
             } catch (Exception e) {
-                throw new AzureException("Unexpected error during request execution", e);
+                // e.g. AzureAuthenticationException
+                throw e;
             }
         }
         

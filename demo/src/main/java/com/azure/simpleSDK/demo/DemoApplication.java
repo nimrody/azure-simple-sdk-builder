@@ -259,6 +259,147 @@ public class DemoApplication {
                 System.out.println("No Network Security Groups found in subscription " + subscriptionId);
             }
             
+            // Get detailed information for specific Network Security Groups
+            System.out.println("\n--- Getting detailed NSG information ---");
+            
+            // First NSG: shared-services-neu-nsg
+            try {
+                System.out.println("\nFetching details for NSG: shared-services-neu-nsg");
+                AzureResponse<NetworkSecurityGroup> nsg1Response = networkClient.getNetworkSecurityGroups(
+                    subscriptionId, 
+                    "nsg-neu-rg", 
+                    "shared-services-neu-nsg",
+                    null // $expand parameter - null for no expansion
+                );
+                NetworkSecurityGroup nsg1 = nsg1Response.getBody();
+                
+                System.out.println("Response Status: " + nsg1Response.getStatusCode());
+                if (nsg1 != null) {
+                    System.out.println("NSG Name: " + nsg1.name());
+                    System.out.println("NSG ID: " + nsg1.id());
+                    System.out.println("Location: " + nsg1.location());
+                    System.out.println("Resource Group: " + extractResourceGroupFromId(nsg1.id()));
+                    
+                    if (nsg1.properties() != null) {
+                        var nsgProps = nsg1.properties();
+                        System.out.println("Provisioning State: " + nsgProps.provisioningState());
+                        
+                        // Security Rules
+                        if (nsgProps.securityRules() != null) {
+                            System.out.println("Custom Security Rules: " + nsgProps.securityRules().size());
+                            for (var rule : nsgProps.securityRules()) {
+                                System.out.println("  - " + rule.name() + ": " + rule.properties().access() + 
+                                                 " " + rule.properties().protocol() + " from " + 
+                                                 rule.properties().sourceAddressPrefix() + " to " + 
+                                                 rule.properties().destinationAddressPrefix());
+                            }
+                        }
+                        
+                        // Default Security Rules
+                        if (nsgProps.defaultSecurityRules() != null) {
+                            System.out.println("Default Security Rules: " + nsgProps.defaultSecurityRules().size());
+                        }
+                        
+                        // Associated Subnets
+                        if (nsgProps.subnets() != null) {
+                            System.out.println("Associated Subnets: " + nsgProps.subnets().size());
+                            for (var subnet : nsgProps.subnets()) {
+                                System.out.println("  - " + extractResourceNameFromId(subnet.id()));
+                            }
+                        }
+                        
+                        // Associated NICs
+                        if (nsgProps.networkInterfaces() != null) {
+                            System.out.println("Associated NICs: " + nsgProps.networkInterfaces().size());
+                            for (var nic : nsgProps.networkInterfaces()) {
+                                System.out.println("  - " + extractResourceNameFromId(nic.id()));
+                            }
+                        }
+                    }
+                    
+                    // Tags
+                    if (nsg1.tags() != null && !nsg1.tags().isEmpty()) {
+                        System.out.println("Tags: " + nsg1.tags().size());
+                        nsg1.tags().forEach((key, value) -> 
+                            System.out.println("  " + key + ": " + value));
+                    }
+                } else {
+                    System.out.println("NSG details: null response body");
+                }
+                
+            } catch (Exception e) {
+                System.out.println("Error fetching NSG 'shared-services-neu-nsg': " + e.getMessage());
+            }
+            
+            // Second NSG: xxxx
+            try {
+                System.out.println("\nFetching details for NSG: xxxx");
+                AzureResponse<NetworkSecurityGroup> nsg2Response = networkClient.getNetworkSecurityGroups(
+                    subscriptionId, 
+                    "nsg-zzz", 
+                    "xxxx",
+                    null // $expand parameter - null for no expansion
+                );
+                NetworkSecurityGroup nsg2 = nsg2Response.getBody();
+                
+                System.out.println("Response Status: " + nsg2Response.getStatusCode());
+                if (nsg2 != null) {
+                    System.out.println("NSG Name: " + nsg2.name());
+                    System.out.println("NSG ID: " + nsg2.id());
+                    System.out.println("Location: " + nsg2.location());
+                    System.out.println("Resource Group: " + extractResourceGroupFromId(nsg2.id()));
+                    
+                    if (nsg2.properties() != null) {
+                        var nsgProps = nsg2.properties();
+                        System.out.println("Provisioning State: " + nsgProps.provisioningState());
+                        
+                        // Security Rules
+                        if (nsgProps.securityRules() != null) {
+                            System.out.println("Custom Security Rules: " + nsgProps.securityRules().size());
+                            for (var rule : nsgProps.securityRules()) {
+                                System.out.println("  - " + rule.name() + ": " + rule.properties().access() + 
+                                                 " " + rule.properties().protocol() + " from " + 
+                                                 rule.properties().sourceAddressPrefix() + " to " + 
+                                                 rule.properties().destinationAddressPrefix());
+                            }
+                        }
+                        
+                        // Default Security Rules
+                        if (nsgProps.defaultSecurityRules() != null) {
+                            System.out.println("Default Security Rules: " + nsgProps.defaultSecurityRules().size());
+                        }
+                        
+                        // Associated Subnets
+                        if (nsgProps.subnets() != null) {
+                            System.out.println("Associated Subnets: " + nsgProps.subnets().size());
+                            for (var subnet : nsgProps.subnets()) {
+                                System.out.println("  - " + extractResourceNameFromId(subnet.id()));
+                            }
+                        }
+                        
+                        // Associated NICs
+                        if (nsgProps.networkInterfaces() != null) {
+                            System.out.println("Associated NICs: " + nsgProps.networkInterfaces().size());
+                            for (var nic : nsgProps.networkInterfaces()) {
+                                System.out.println("  - " + extractResourceNameFromId(nic.id()));
+                            }
+                        }
+                    }
+                    
+                    // Tags
+                    if (nsg2.tags() != null && !nsg2.tags().isEmpty()) {
+                        System.out.println("Tags: " + nsg2.tags().size());
+                        nsg2.tags().forEach((key, value) -> 
+                            System.out.println("  " + key + ": " + value));
+                    }
+                } else {
+                    System.out.println("NSG details: null response body");
+                }
+                
+            } catch (Exception e) {
+                System.out.println("Error fetching NSG 'xxxx': " + e.getMessage());
+            }
+            
             // Show detailed results for virtual machines
             if (vmList.value() != null && !vmList.value().isEmpty()) {
                 System.out.println("\nVirtual Machines Summary:");
@@ -283,7 +424,7 @@ public class DemoApplication {
                     System.out.println();
                 }
             } else {
-                System.out.println("No Virtual Machines found in subscription " + subscriptionId);
+                System.out.println("\nNo Virtual Machines found in subscription " + subscriptionId);
             }
             
         } catch (Exception e) {
