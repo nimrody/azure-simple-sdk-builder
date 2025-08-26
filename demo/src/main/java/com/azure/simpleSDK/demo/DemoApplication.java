@@ -12,6 +12,8 @@ import com.azure.simpleSDK.network.models.NetworkInterface;
 import com.azure.simpleSDK.network.models.NetworkInterfaceListResult;
 import com.azure.simpleSDK.network.models.NetworkSecurityGroup;
 import com.azure.simpleSDK.network.models.NetworkSecurityGroupListResult;
+import com.azure.simpleSDK.network.models.NetworkInterfacePropertiesFormat;
+import com.azure.simpleSDK.network.models.NetworkSecurityGroupPropertiesFormat;
 import com.azure.simpleSDK.compute.models.VirtualMachine;
 import com.azure.simpleSDK.compute.models.VirtualMachineListResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,414 +25,422 @@ import java.util.Properties;
 
 public class DemoApplication {
     
+    private static AzureNetworkClient networkClient;
+    private static AzureComputeClient computeClient;
+    private static String subscriptionId;
+    
     public static void main(String[] args) {
         try {
-            // Load credentials from properties file
-            Properties props = loadCredentials();
-            String tenantId = props.getProperty("azure.tenant-id");
-            String clientId = props.getProperty("azure.client-id");
-            String clientSecret = props.getProperty("azure.client-secret");
-            String subscriptionId = props.getProperty("azure.subscription-id");
-            
-            if (tenantId == null || clientId == null || clientSecret == null || subscriptionId == null) {
-                System.err.println("Missing required properties. Please ensure azure.properties contains:");
-                System.err.println("azure.tenant-id=<your-tenant-id>");
-                System.err.println("azure.client-id=<your-client-id>");
-                System.err.println("azure.client-secret=<your-client-secret>");
-                System.err.println("azure.subscription-id=<your-subscription-id>");
-                System.exit(1);
-            }
-            
-            // Create credentials
-            ServicePrincipalCredentials credentials = new ServicePrincipalCredentials(clientId, clientSecret, tenantId);
-            
-            // Check if strict mode is requested via system property
-            boolean strictMode = Boolean.parseBoolean(System.getProperty("strict", "false"));
-            System.out.println("Running in " + (strictMode ? "STRICT" : "LENIENT") + " mode");
-            System.out.println("(Use -Dstrict=true to enable strict mode for unknown property detection)");
-            System.out.println();
-            
-            // Create separate clients for Network and Compute services
-            AzureNetworkClient networkClient = new AzureNetworkClient(credentials, strictMode);
-            AzureComputeClient computeClient = new AzureComputeClient(credentials, strictMode);
+            initializeClients(args);
             
             System.out.println("Fetching Azure Resources for subscription: " + subscriptionId);
             System.out.println("Using separate Network and Compute SDK clients");
             System.out.println("==========================================");
             
             // Test Network resources
-            System.out.println("\n=== NETWORK RESOURCES ===");
+            testNetworkResources();
             
-            // First test: Get all Azure Firewalls
-            System.out.println("\n--- Testing Azure Firewalls (pagination test) ---");
-            AzureResponse<AzureFirewallListResult> firewallResponse = networkClient.listAllAzureFirewalls(subscriptionId);
-            AzureFirewallListResult firewallList = firewallResponse.getBody();
-            
-            System.out.println("Firewall Response Status: " + firewallResponse.getStatusCode());
-            System.out.println("Number of firewalls found: " + (firewallList.value() != null ? firewallList.value().size() : 0));
-            
-            // Second test: Get all Virtual Networks (more likely to have pagination)
-            System.out.println("\n--- Testing Virtual Networks (pagination test) ---");
-            AzureResponse<VirtualNetworkListResult> vnetResponse = networkClient.listAllVirtualNetworks(subscriptionId);
-            VirtualNetworkListResult vnetList = vnetResponse.getBody();
-            
-            System.out.println("VNet Response Status: " + vnetResponse.getStatusCode());
-            System.out.println("Number of virtual networks found: " + (vnetList.value() != null ? vnetList.value().size() : 0));
-            
-            // Third test: Get all Network Interfaces (most likely to have pagination)
-            System.out.println("\n--- Testing Network Interfaces (pagination test) ---");
-            AzureResponse<NetworkInterfaceListResult> nicResponse = networkClient.listAllNetworkInterfaces(subscriptionId);
-            NetworkInterfaceListResult nicList = nicResponse.getBody();
-            
-            System.out.println("NIC Response Status: " + nicResponse.getStatusCode());
-            System.out.println("Number of network interfaces found: " + (nicList.value() != null ? nicList.value().size() : 0));
-            
-            // Fourth test: Get all Network Security Groups (pagination test)
-            System.out.println("\n--- Testing Network Security Groups (pagination test) ---");
-            AzureResponse<NetworkSecurityGroupListResult> nsgResponse = networkClient.listAllNetworkSecurityGroups(subscriptionId);
-            NetworkSecurityGroupListResult nsgList = nsgResponse.getBody();
-            
-            System.out.println("NSG Response Status: " + nsgResponse.getStatusCode());
-            System.out.println("Number of network security groups found: " + (nsgList.value() != null ? nsgList.value().size() : 0));
-            
-            // Test Compute resources
-            System.out.println("\n=== COMPUTE RESOURCES ===");
-            
-            // Test: Get all Virtual Machines (uses listByLocationVirtualMachines for a specific location)
-            System.out.println("\n--- Testing Virtual Machines (pagination test) ---");
-            // Note: Using location-based listing which is more reliable than subscription-wide listing
-            VirtualMachineListResult vmList = null;
-            try {
-                AzureResponse<VirtualMachineListResult> vmResponse = computeClient.listByLocationVirtualMachines(subscriptionId, "eastus");
-                vmList = vmResponse.getBody();
-                
-                System.out.println("VM Response Status: " + vmResponse.getStatusCode());
-                System.out.println("Number of virtual machines found: " + (vmList.value() != null ? vmList.value().size() : 0));
-            } catch (Exception e) {
-                System.out.println("VM API call succeeded but encountered data model issue:");
-                System.out.println("This demonstrates that the API version fix worked - we got valid data from Azure Compute API");
-                if (e.getMessage().contains("Standard_B2ts_v2")) {
-                    System.out.println("The error shows Azure returned VM size 'Standard_B2ts_v2' which is not in our OpenAPI spec");
-                    System.out.println("This is expected - Azure supports more VM sizes than documented in the 2024-11-01 spec");
-                }
-                System.out.println("Error details: " + e.getMessage().substring(0, Math.min(200, e.getMessage().length())));
-            }
-            
-            // Show detailed results for firewalls
-            if (firewallList.value() != null && !firewallList.value().isEmpty()) {
-                System.out.println("\nDetailed Firewall Information:");
-                System.out.println("==============================");
-                
-                for (AzureFirewall firewall : firewallList.value()) {
-                    System.out.println("Firewall Name: " + firewall.name());
-                    System.out.println("Resource Group: " + extractResourceGroupFromId(firewall.id()));
-                    System.out.println("Location: " + firewall.location());
-                    System.out.println("Provisioning State: " + (firewall.properties() != null ? firewall.properties().provisioningState() : "Unknown"));
-                    System.out.println();
-                }
-            } else {
-                System.out.println("No Azure Firewalls found in subscription " + subscriptionId);
-            }
-            
-            // Show basic virtual network information
-            if (vnetList.value() != null && !vnetList.value().isEmpty()) {
-                System.out.println("\nVirtual Networks Summary:");
-                System.out.println("========================");
-                
-                for (VirtualNetwork vnet : vnetList.value()) {
-                    System.out.println("VNet Name: " + vnet.name());
-                    System.out.println("Resource Group: " + extractResourceGroupFromId(vnet.id()));
-                    System.out.println("Location: " + vnet.location());
-                    System.out.println();
-                }
-            } else {
-                System.out.println("No Virtual Networks found in subscription " + subscriptionId);
-            }
-            
-            // Show detailed network interface information  
-            if (nicList.value() != null && !nicList.value().isEmpty()) {
-                System.out.println("\nNetwork Interfaces Detailed Summary:");
-                System.out.println("====================================");
-                
-                for (NetworkInterface nic : nicList.value()) {
-                    System.out.println("NIC Name: " + nic.name());
-                    System.out.println("Resource Group: " + extractResourceGroupFromId(nic.id()));
-                    System.out.println("Location: " + nic.location());
-                    System.out.println("Type: " + nic.type());
-                    
-                    if (nic.properties() != null) {
-                        var nicProps = nic.properties();
-                        System.out.println("Provisioning State: " + nicProps.provisioningState());
-                        System.out.println("Primary: " + nicProps.primary());
-                        System.out.println("MAC Address: " + nicProps.macAddress());
-                        System.out.println("Accelerated Networking: " + nicProps.enableAcceleratedNetworking());
-                        System.out.println("IP Forwarding: " + nicProps.enableIPForwarding());
-                        System.out.println("VNet Encryption Supported: " + nicProps.vnetEncryptionSupported());
-                        
-                        // Virtual Machine association
-                        if (nicProps.virtualMachine() != null) {
-                            System.out.println("Associated VM: " + extractResourceNameFromId(nicProps.virtualMachine().id()));
-                        } else {
-                            System.out.println("Associated VM: None");
-                        }
-                        
-                        // Network Security Group
-                        if (nicProps.networkSecurityGroup() != null) {
-                            System.out.println("Network Security Group: " + nicProps.networkSecurityGroup().id());
-                        } else {
-                            System.out.println("Network Security Group: None");
-                        }
-                        
-                        // IP Configurations
-                        if (nicProps.ipConfigurations() != null && !nicProps.ipConfigurations().isEmpty()) {
-                            System.out.println("IP Configurations: " + nicProps.ipConfigurations().size());
-                            for (int i = 0; i < nicProps.ipConfigurations().size(); i++) {
-                                var ipConfig = nicProps.ipConfigurations().get(i);
-                                System.out.println("  IP Config " + (i + 1) + ":");
-                                System.out.println("    Name: " + ipConfig.name());
-                                
-                                if (ipConfig.properties() != null) {
-                                    var ipProps = ipConfig.properties();
-                                    System.out.println("    Primary: " + ipProps.primary());
-                                    System.out.println("    Private IP: " + ipProps.privateIPAddress());
-                                    System.out.println("    Private IP Allocation: " + ipProps.privateIPAllocationMethod());
-                                    
-                                    if (ipProps.subnet() != null) {
-                                        System.out.println("    Subnet: " + extractResourceNameFromId(ipProps.subnet().id()));
-                                    }
-                                    
-                                    if (ipProps.publicIPAddress() != null) {
-                                        System.out.println("    Public IP: " + extractResourceNameFromId(ipProps.publicIPAddress().id()));
-                                    } else {
-                                        System.out.println("    Public IP: None");
-                                    }
-                                }
-                            }
-                        } else {
-                            System.out.println("IP Configurations: 0");
-                        }
-                        
-                        // DNS Settings
-                        if (nicProps.dnsSettings() != null) {
-                            System.out.println("DNS Settings: Available");
-                        }
-                    }
-                    
-                    // Tags
-                    if (nic.tags() != null && !nic.tags().isEmpty()) {
-                        System.out.println("Tags: " + nic.tags().size());
-                        nic.tags().forEach((key, value) -> 
-                            System.out.println("  " + key + ": " + value));
-                    }
-                    
-                    System.out.println();
-                }
-            } else {
-                System.out.println("No Network Interfaces found in subscription " + subscriptionId);
-            }
-            
-            // Show basic network security group information
-            if (nsgList.value() != null && !nsgList.value().isEmpty()) {
-                System.out.println("\nNetwork Security Groups Summary:");
-                System.out.println("================================");
-                
-                for (NetworkSecurityGroup nsg : nsgList.value()) {
-                    System.out.println("NSG Name: " + nsg.name());
-                    System.out.println("Resource Group: " + extractResourceGroupFromId(nsg.id()));
-                    System.out.println("Location: " + nsg.location());
-                    if (nsg.properties() != null) {
-                        System.out.println("Provisioning State: " + nsg.properties().provisioningState());
-                        if (nsg.properties().securityRules() != null) {
-                            System.out.println("Custom Security Rules: " + nsg.properties().securityRules().size());
-                        }
-                        if (nsg.properties().defaultSecurityRules() != null) {
-                            System.out.println("Default Security Rules: " + nsg.properties().defaultSecurityRules().size());
-                        }
-                        if (nsg.properties().subnets() != null) {
-                            System.out.println("Associated Subnets: " + nsg.properties().subnets().size());
-                        }
-                        if (nsg.properties().networkInterfaces() != null) {
-                            System.out.println("Associated NICs: " + nsg.properties().networkInterfaces().size());
-                        }
-                    }
-                    System.out.println();
-                }
-            } else {
-                System.out.println("No Network Security Groups found in subscription " + subscriptionId);
-            }
-            
-            // Get detailed information for specific Network Security Groups
-            System.out.println("\n--- Getting detailed NSG information ---");
-            
-            // First NSG: shared-services-neu-nsg
-            try {
-                System.out.println("\nFetching details for NSG: shared-services-neu-nsg");
-                AzureResponse<NetworkSecurityGroup> nsg1Response = networkClient.getNetworkSecurityGroups(
-                    subscriptionId, 
-                    "nsg-neu-rg", 
-                    "shared-services-neu-nsg",
-                    null // $expand parameter - null for no expansion
-                );
-                NetworkSecurityGroup nsg1 = nsg1Response.getBody();
-                
-                System.out.println("Response Status: " + nsg1Response.getStatusCode());
-                if (nsg1 != null) {
-                    System.out.println("NSG Name: " + nsg1.name());
-                    System.out.println("NSG ID: " + nsg1.id());
-                    System.out.println("Location: " + nsg1.location());
-                    System.out.println("Resource Group: " + extractResourceGroupFromId(nsg1.id()));
-                    
-                    if (nsg1.properties() != null) {
-                        var nsgProps = nsg1.properties();
-                        System.out.println("Provisioning State: " + nsgProps.provisioningState());
-                        
-                        // Security Rules
-                        if (nsgProps.securityRules() != null) {
-                            System.out.println("Custom Security Rules: " + nsgProps.securityRules().size());
-                            for (var rule : nsgProps.securityRules()) {
-                                System.out.println("  - " + rule.name() + ": " + rule.properties().access() + 
-                                                 " " + rule.properties().protocol() + " from " + 
-                                                 rule.properties().sourceAddressPrefix() + " to " + 
-                                                 rule.properties().destinationAddressPrefix());
-                            }
-                        }
-                        
-                        // Default Security Rules
-                        if (nsgProps.defaultSecurityRules() != null) {
-                            System.out.println("Default Security Rules: " + nsgProps.defaultSecurityRules().size());
-                        }
-                        
-                        // Associated Subnets
-                        if (nsgProps.subnets() != null) {
-                            System.out.println("Associated Subnets: " + nsgProps.subnets().size());
-                            for (var subnet : nsgProps.subnets()) {
-                                System.out.println("  - " + extractResourceNameFromId(subnet.id()));
-                            }
-                        }
-                        
-                        // Associated NICs
-                        if (nsgProps.networkInterfaces() != null) {
-                            System.out.println("Associated NICs: " + nsgProps.networkInterfaces().size());
-                            for (var nic : nsgProps.networkInterfaces()) {
-                                System.out.println("  - " + extractResourceNameFromId(nic.id()));
-                            }
-                        }
-                    }
-                    
-                    // Tags
-                    if (nsg1.tags() != null && !nsg1.tags().isEmpty()) {
-                        System.out.println("Tags: " + nsg1.tags().size());
-                        nsg1.tags().forEach((key, value) -> 
-                            System.out.println("  " + key + ": " + value));
-                    }
-                } else {
-                    System.out.println("NSG details: null response body");
-                }
-                
-            } catch (Exception e) {
-                System.out.println("Error fetching NSG 'shared-services-neu-nsg': " + e.getMessage());
-            }
-            
-            // Second NSG: xxxx
-            try {
-                System.out.println("\nFetching details for NSG: xxxx");
-                AzureResponse<NetworkSecurityGroup> nsg2Response = networkClient.getNetworkSecurityGroups(
-                    subscriptionId, 
-                    "nsg-zzz", 
-                    "xxxx",
-                    null // $expand parameter - null for no expansion
-                );
-                NetworkSecurityGroup nsg2 = nsg2Response.getBody();
-                
-                System.out.println("Response Status: " + nsg2Response.getStatusCode());
-                if (nsg2 != null) {
-                    System.out.println("NSG Name: " + nsg2.name());
-                    System.out.println("NSG ID: " + nsg2.id());
-                    System.out.println("Location: " + nsg2.location());
-                    System.out.println("Resource Group: " + extractResourceGroupFromId(nsg2.id()));
-                    
-                    if (nsg2.properties() != null) {
-                        var nsgProps = nsg2.properties();
-                        System.out.println("Provisioning State: " + nsgProps.provisioningState());
-                        
-                        // Security Rules
-                        if (nsgProps.securityRules() != null) {
-                            System.out.println("Custom Security Rules: " + nsgProps.securityRules().size());
-                            for (var rule : nsgProps.securityRules()) {
-                                System.out.println("  - " + rule.name() + ": " + rule.properties().access() + 
-                                                 " " + rule.properties().protocol() + " from " + 
-                                                 rule.properties().sourceAddressPrefix() + " to " + 
-                                                 rule.properties().destinationAddressPrefix());
-                            }
-                        }
-                        
-                        // Default Security Rules
-                        if (nsgProps.defaultSecurityRules() != null) {
-                            System.out.println("Default Security Rules: " + nsgProps.defaultSecurityRules().size());
-                        }
-                        
-                        // Associated Subnets
-                        if (nsgProps.subnets() != null) {
-                            System.out.println("Associated Subnets: " + nsgProps.subnets().size());
-                            for (var subnet : nsgProps.subnets()) {
-                                System.out.println("  - " + extractResourceNameFromId(subnet.id()));
-                            }
-                        }
-                        
-                        // Associated NICs
-                        if (nsgProps.networkInterfaces() != null) {
-                            System.out.println("Associated NICs: " + nsgProps.networkInterfaces().size());
-                            for (var nic : nsgProps.networkInterfaces()) {
-                                System.out.println("  - " + extractResourceNameFromId(nic.id()));
-                            }
-                        }
-                    }
-                    
-                    // Tags
-                    if (nsg2.tags() != null && !nsg2.tags().isEmpty()) {
-                        System.out.println("Tags: " + nsg2.tags().size());
-                        nsg2.tags().forEach((key, value) -> 
-                            System.out.println("  " + key + ": " + value));
-                    }
-                } else {
-                    System.out.println("NSG details: null response body");
-                }
-                
-            } catch (Exception e) {
-                System.out.println("Error fetching NSG 'xxxx': " + e.getMessage());
-            }
-            
-            // Show detailed results for virtual machines
-            if (vmList.value() != null && !vmList.value().isEmpty()) {
-                System.out.println("\nVirtual Machines Summary:");
-                System.out.println("=========================");
-                
-                for (VirtualMachine vm : vmList.value()) {
-                    // Note: The generated VirtualMachine record is missing basic Azure resource fields (name, id, location)
-                    // This appears to be an issue with the OpenAPI definition not including base resource properties
-                    System.out.println("VM Properties: " + (vm.properties() != null ? "Available" : "None"));
-                    if (vm.properties() != null) {
-                        System.out.println("Provisioning State: " + vm.properties().provisioningState());
-                        if (vm.properties().hardwareProfile() != null) {
-                            System.out.println("VM Size: " + vm.properties().hardwareProfile().vmSize());
-                        }
-                        if (vm.properties().osProfile() != null) {
-                            System.out.println("Computer Name: " + vm.properties().osProfile().computerName());
-                        }
-                    }
-                    if (vm.zones() != null && !vm.zones().isEmpty()) {
-                        System.out.println("Zones: " + String.join(", ", vm.zones()));
-                    }
-                    System.out.println();
-                }
-            } else {
-                System.out.println("\nNo Virtual Machines found in subscription " + subscriptionId);
-            }
+            // Test Compute resources  
+            testComputeResources();
             
         } catch (Exception e) {
             System.err.println("Error occurred while fetching Azure resources:");
             e.printStackTrace();
             System.exit(1);
+        }
+    }
+    
+    private static void initializeClients(String[] args) throws IOException {
+        // Load credentials from properties file
+        Properties props = loadCredentials();
+        String tenantId = props.getProperty("azure.tenant-id");
+        String clientId = props.getProperty("azure.client-id");
+        String clientSecret = props.getProperty("azure.client-secret");
+        subscriptionId = props.getProperty("azure.subscription-id");
+        
+        if (tenantId == null || clientId == null || clientSecret == null || subscriptionId == null) {
+            System.err.println("Missing required properties. Please ensure azure.properties contains:");
+            System.err.println("azure.tenant-id=<your-tenant-id>");
+            System.err.println("azure.client-id=<your-client-id>");
+            System.err.println("azure.client-secret=<your-client-secret>");
+            System.err.println("azure.subscription-id=<your-subscription-id>");
+            System.exit(1);
+        }
+        
+        // Create credentials
+        ServicePrincipalCredentials credentials = new ServicePrincipalCredentials(clientId, clientSecret, tenantId);
+        
+        // Check if strict mode is requested via system property
+        boolean strictMode = Boolean.parseBoolean(System.getProperty("strict", "false"));
+        System.out.println("Running in " + (strictMode ? "STRICT" : "LENIENT") + " mode");
+        System.out.println("(Use -Dstrict=true to enable strict mode for unknown property detection)");
+        System.out.println();
+        
+        // Create separate clients for Network and Compute services
+        networkClient = new AzureNetworkClient(credentials, strictMode);
+        computeClient = new AzureComputeClient(credentials, strictMode);
+    }
+    
+    private static void testNetworkResources() {
+        System.out.println("\n=== NETWORK RESOURCES ===");
+        
+        // Test all network resource types
+        AzureFirewallListResult firewallList = testAzureFirewalls();
+        VirtualNetworkListResult vnetList = testVirtualNetworks();
+        NetworkInterfaceListResult nicList = testNetworkInterfaces();
+        NetworkSecurityGroupListResult nsgList = testNetworkSecurityGroups();
+        
+        // Test individual NSG details
+        testIndividualNSGDetails();
+        
+        // Show detailed results
+        showFirewallDetails(firewallList);
+        showVirtualNetworkSummary(vnetList);
+        showNetworkInterfaceDetails(nicList);
+        showNetworkSecurityGroupSummary(nsgList);
+    }
+    
+    private static AzureFirewallListResult testAzureFirewalls() {
+        System.out.println("\n--- Testing Azure Firewalls (pagination test) ---");
+        try {
+            AzureResponse<AzureFirewallListResult> response = networkClient.listAllAzureFirewalls(subscriptionId);
+            AzureFirewallListResult result = response.getBody();
+            
+            System.out.println("Firewall Response Status: " + response.getStatusCode());
+            System.out.println("Number of firewalls found: " + (result.value() != null ? result.value().size() : 0));
+            
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error fetching Azure Firewalls: " + e.getMessage());
+            return new AzureFirewallListResult(null, null);
+        }
+    }
+    
+    private static VirtualNetworkListResult testVirtualNetworks() {
+        System.out.println("\n--- Testing Virtual Networks (pagination test) ---");
+        try {
+            AzureResponse<VirtualNetworkListResult> response = networkClient.listAllVirtualNetworks(subscriptionId);
+            VirtualNetworkListResult result = response.getBody();
+            
+            System.out.println("VNet Response Status: " + response.getStatusCode());
+            System.out.println("Number of virtual networks found: " + (result.value() != null ? result.value().size() : 0));
+            
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error fetching Virtual Networks: " + e.getMessage());
+            return new VirtualNetworkListResult(null, null);
+        }
+    }
+    
+    private static NetworkInterfaceListResult testNetworkInterfaces() {
+        System.out.println("\n--- Testing Network Interfaces (pagination test) ---");
+        try {
+            AzureResponse<NetworkInterfaceListResult> response = networkClient.listAllNetworkInterfaces(subscriptionId);
+            NetworkInterfaceListResult result = response.getBody();
+            
+            System.out.println("NIC Response Status: " + response.getStatusCode());
+            System.out.println("Number of network interfaces found: " + (result.value() != null ? result.value().size() : 0));
+            
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error fetching Network Interfaces: " + e.getMessage());
+            return new NetworkInterfaceListResult(null, null);
+        }
+    }
+    
+    private static NetworkSecurityGroupListResult testNetworkSecurityGroups() {
+        System.out.println("\n--- Testing Network Security Groups (pagination test) ---");
+        try {
+            AzureResponse<NetworkSecurityGroupListResult> response = networkClient.listAllNetworkSecurityGroups(subscriptionId);
+            NetworkSecurityGroupListResult result = response.getBody();
+            
+            System.out.println("NSG Response Status: " + response.getStatusCode());
+            System.out.println("Number of network security groups found: " + (result.value() != null ? result.value().size() : 0));
+            
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error fetching Network Security Groups: " + e.getMessage());
+            return new NetworkSecurityGroupListResult(null, null);
+        }
+    }
+    
+    private static void testIndividualNSGDetails() {
+        System.out.println("\n--- Getting detailed NSG information ---");
+        
+        // Test specific NSGs
+        testSingleNSG("shared-services-neu-nsg", "nsg-neu-rg");
+        testSingleNSG("xxxx", "nsg-zzz");
+    }
+    
+    private static void testSingleNSG(String nsgName, String resourceGroup) {
+        try {
+            System.out.println("\nFetching details for NSG: " + nsgName);
+            AzureResponse<NetworkSecurityGroup> response = networkClient.getNetworkSecurityGroups(
+                subscriptionId, resourceGroup, nsgName, null);
+            NetworkSecurityGroup nsg = response.getBody();
+            
+            System.out.println("Response Status: " + response.getStatusCode());
+            if (nsg != null) {
+                showNSGDetails(nsg);
+            } else {
+                System.out.println("NSG details: null response body");
+            }
+            
+        } catch (Exception e) {
+            System.out.println("Error fetching NSG '" + nsgName + "': " + e.getMessage());
+        }
+    }
+    
+    private static void testComputeResources() {
+        System.out.println("\n=== COMPUTE RESOURCES ===");
+        
+        VirtualMachineListResult vmList = testVirtualMachines();
+        showVirtualMachineDetails(vmList);
+    }
+    
+    private static VirtualMachineListResult testVirtualMachines() {
+        System.out.println("\n--- Testing Virtual Machines (pagination test) ---");
+        try {
+            AzureResponse<VirtualMachineListResult> response = computeClient.listByLocationVirtualMachines(subscriptionId, "eastus");
+            VirtualMachineListResult result = response.getBody();
+            
+            System.out.println("VM Response Status: " + response.getStatusCode());
+            System.out.println("Number of virtual machines found: " + (result.value() != null ? result.value().size() : 0));
+            
+            return result;
+        } catch (Exception e) {
+            System.out.println("VM API call succeeded but encountered data model issue:");
+            System.out.println("This demonstrates that the API version fix worked - we got valid data from Azure Compute API");
+            if (e.getMessage().contains("Standard_B2ts_v2")) {
+                System.out.println("The error shows Azure returned VM size 'Standard_B2ts_v2' which is not in our OpenAPI spec");
+                System.out.println("This is expected - Azure supports more VM sizes than documented in the 2024-11-01 spec");
+            }
+            System.out.println("Error details: " + e.getMessage().substring(0, Math.min(200, e.getMessage().length())));
+            return new VirtualMachineListResult(null, null);
+        }
+    }
+    
+    // Display methods - extracted common display logic
+    
+    private static void showFirewallDetails(AzureFirewallListResult firewallList) {
+        if (firewallList.value() != null && !firewallList.value().isEmpty()) {
+            System.out.println("\nDetailed Firewall Information:");
+            System.out.println("==============================");
+            
+            for (AzureFirewall firewall : firewallList.value()) {
+                System.out.println("Firewall Name: " + firewall.name());
+                System.out.println("Resource Group: " + extractResourceGroupFromId(firewall.id()));
+                System.out.println("Location: " + firewall.location());
+                System.out.println("Provisioning State: " + (firewall.properties() != null ? firewall.properties().provisioningState() : "Unknown"));
+                System.out.println();
+            }
+        } else {
+            System.out.println("No Azure Firewalls found in subscription " + subscriptionId);
+        }
+    }
+    
+    private static void showVirtualNetworkSummary(VirtualNetworkListResult vnetList) {
+        if (vnetList.value() != null && !vnetList.value().isEmpty()) {
+            System.out.println("\nVirtual Networks Summary:");
+            System.out.println("========================");
+            
+            for (VirtualNetwork vnet : vnetList.value()) {
+                System.out.println("VNet Name: " + vnet.name());
+                System.out.println("Resource Group: " + extractResourceGroupFromId(vnet.id()));
+                System.out.println("Location: " + vnet.location());
+                System.out.println();
+            }
+        } else {
+            System.out.println("No Virtual Networks found in subscription " + subscriptionId);
+        }
+    }
+    
+    private static void showNetworkInterfaceDetails(NetworkInterfaceListResult nicList) {
+        if (nicList.value() != null && !nicList.value().isEmpty()) {
+            System.out.println("\nNetwork Interfaces Detailed Summary:");
+            System.out.println("====================================");
+            
+            for (NetworkInterface nic : nicList.value()) {
+                System.out.println("NIC Name: " + nic.name());
+                System.out.println("Resource Group: " + extractResourceGroupFromId(nic.id()));
+                System.out.println("Location: " + nic.location());
+                System.out.println("Type: " + nic.type());
+                
+                if (nic.properties() != null) {
+                    showNICProperties(nic.properties());
+                }
+                
+                showResourceTags(nic.tags());
+                System.out.println();
+            }
+        } else {
+            System.out.println("No Network Interfaces found in subscription " + subscriptionId);
+        }
+    }
+    
+    private static void showNICProperties(NetworkInterfacePropertiesFormat nicProps) {
+        System.out.println("Provisioning State: " + nicProps.provisioningState());
+        System.out.println("Primary: " + nicProps.primary());
+        System.out.println("MAC Address: " + nicProps.macAddress());
+        System.out.println("Accelerated Networking: " + nicProps.enableAcceleratedNetworking());
+        System.out.println("IP Forwarding: " + nicProps.enableIPForwarding());
+        System.out.println("VNet Encryption Supported: " + nicProps.vnetEncryptionSupported());
+        
+        // Virtual Machine association
+        if (nicProps.virtualMachine() != null) {
+            System.out.println("Associated VM: " + extractResourceNameFromId(nicProps.virtualMachine().id()));
+        } else {
+            System.out.println("Associated VM: None");
+        }
+        
+        // Network Security Group
+        if (nicProps.networkSecurityGroup() != null) {
+            System.out.println("Network Security Group: " + nicProps.networkSecurityGroup().id());
+        } else {
+            System.out.println("Network Security Group: None");
+        }
+        
+        // IP Configurations
+        if (nicProps.ipConfigurations() != null && !nicProps.ipConfigurations().isEmpty()) {
+            System.out.println("IP Configurations: " + nicProps.ipConfigurations().size());
+            for (int i = 0; i < nicProps.ipConfigurations().size(); i++) {
+                var ipConfig = nicProps.ipConfigurations().get(i);
+                System.out.println("  IP Config " + (i + 1) + ":");
+                System.out.println("    Name: " + ipConfig.name());
+                
+                if (ipConfig.properties() != null) {
+                    var ipProps = ipConfig.properties();
+                    System.out.println("    Primary: " + ipProps.primary());
+                    System.out.println("    Private IP: " + ipProps.privateIPAddress());
+                    System.out.println("    Private IP Allocation: " + ipProps.privateIPAllocationMethod());
+                    
+                    if (ipProps.subnet() != null) {
+                        System.out.println("    Subnet: " + extractResourceNameFromId(ipProps.subnet().id()));
+                    }
+                    
+                    if (ipProps.publicIPAddress() != null) {
+                        System.out.println("    Public IP: " + extractResourceNameFromId(ipProps.publicIPAddress().id()));
+                    } else {
+                        System.out.println("    Public IP: None");
+                    }
+                }
+            }
+        } else {
+            System.out.println("IP Configurations: 0");
+        }
+        
+        // DNS Settings
+        if (nicProps.dnsSettings() != null) {
+            System.out.println("DNS Settings: Available");
+        }
+    }
+    
+    private static void showNetworkSecurityGroupSummary(NetworkSecurityGroupListResult nsgList) {
+        if (nsgList.value() != null && !nsgList.value().isEmpty()) {
+            System.out.println("\nNetwork Security Groups Summary:");
+            System.out.println("================================");
+            
+            for (NetworkSecurityGroup nsg : nsgList.value()) {
+                System.out.println("NSG Name: " + nsg.name());
+                System.out.println("Resource Group: " + extractResourceGroupFromId(nsg.id()));
+                System.out.println("Location: " + nsg.location());
+                if (nsg.properties() != null) {
+                    System.out.println("Provisioning State: " + nsg.properties().provisioningState());
+                    showNSGRuleCounts(nsg.properties());
+                }
+                System.out.println();
+            }
+        } else {
+            System.out.println("No Network Security Groups found in subscription " + subscriptionId);
+        }
+    }
+    
+    private static void showNSGDetails(NetworkSecurityGroup nsg) {
+        System.out.println("NSG Name: " + nsg.name());
+        System.out.println("NSG ID: " + nsg.id());
+        System.out.println("Location: " + nsg.location());
+        System.out.println("Resource Group: " + extractResourceGroupFromId(nsg.id()));
+        
+        if (nsg.properties() != null) {
+            var nsgProps = nsg.properties();
+            System.out.println("Provisioning State: " + nsgProps.provisioningState());
+            
+            // Security Rules
+            if (nsgProps.securityRules() != null) {
+                System.out.println("Custom Security Rules: " + nsgProps.securityRules().size());
+                for (var rule : nsgProps.securityRules()) {
+                    System.out.println("  - " + rule.name() + ": " + rule.properties().access() + 
+                                     " " + rule.properties().protocol() + " from " + 
+                                     rule.properties().sourceAddressPrefix() + " to " + 
+                                     rule.properties().destinationAddressPrefix());
+                }
+            }
+            
+            showNSGRuleCounts(nsgProps);
+            showNSGAssociations(nsgProps);
+        }
+        
+        showResourceTags(nsg.tags());
+    }
+    
+    private static void showNSGRuleCounts(NetworkSecurityGroupPropertiesFormat nsgProps) {
+        if (nsgProps.securityRules() != null) {
+            System.out.println("Custom Security Rules: " + nsgProps.securityRules().size());
+        }
+        if (nsgProps.defaultSecurityRules() != null) {
+            System.out.println("Default Security Rules: " + nsgProps.defaultSecurityRules().size());
+        }
+    }
+    
+    private static void showNSGAssociations(NetworkSecurityGroupPropertiesFormat nsgProps) {
+        if (nsgProps.subnets() != null) {
+            System.out.println("Associated Subnets: " + nsgProps.subnets().size());
+            for (var subnet : nsgProps.subnets()) {
+                System.out.println("  - " + extractResourceNameFromId(subnet.id()));
+            }
+        }
+        
+        if (nsgProps.networkInterfaces() != null) {
+            System.out.println("Associated NICs: " + nsgProps.networkInterfaces().size());
+            for (var nic : nsgProps.networkInterfaces()) {
+                System.out.println("  - " + extractResourceNameFromId(nic.id()));
+            }
+        }
+    }
+    
+    private static void showVirtualMachineDetails(VirtualMachineListResult vmList) {
+        if (vmList.value() != null && !vmList.value().isEmpty()) {
+            System.out.println("\nVirtual Machines Summary:");
+            System.out.println("=========================");
+            
+            for (VirtualMachine vm : vmList.value()) {
+                System.out.println("VM Properties: " + (vm.properties() != null ? "Available" : "None"));
+                if (vm.properties() != null) {
+                    System.out.println("Provisioning State: " + vm.properties().provisioningState());
+                    if (vm.properties().hardwareProfile() != null) {
+                        System.out.println("VM Size: " + vm.properties().hardwareProfile().vmSize());
+                    }
+                    if (vm.properties().osProfile() != null) {
+                        System.out.println("Computer Name: " + vm.properties().osProfile().computerName());
+                    }
+                }
+                if (vm.zones() != null && !vm.zones().isEmpty()) {
+                    System.out.println("Zones: " + String.join(", ", vm.zones()));
+                }
+                System.out.println();
+            }
+        } else {
+            System.out.println("No Virtual Machines found in subscription " + subscriptionId);
+        }
+    }
+    
+    // Utility methods
+    
+    private static void showResourceTags(java.util.Map<String, String> tags) {
+        if (tags != null && !tags.isEmpty()) {
+            System.out.println("Tags: " + tags.size());
+            tags.forEach((key, value) -> 
+                System.out.println("  " + key + ": " + value));
         }
     }
     
