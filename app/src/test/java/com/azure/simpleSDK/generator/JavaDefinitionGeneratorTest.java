@@ -39,16 +39,16 @@ class JavaDefinitionGeneratorTest {
         JsonNode emptyObject = mapper.createObjectNode();
         
         // Add the definitions that are referenced in the tests
-        definitions.put(new DefinitionKey("virtualNetworkGateway.json", "VirtualNetworkGateway"), emptyObject);
-        definitions.put(new DefinitionKey("virtualNetworkGateway.json", "Resource"), emptyObject);
-        definitions.put(new DefinitionKey("virtualNetworkGateway.json", "virtualNetworkGatewayConnectionStatus"), emptyObject);
-        definitions.put(new DefinitionKey("networkInterface.json", "NetworkInterface"), emptyObject);
-        definitions.put(new DefinitionKey("networkInterface.json", "Resource"), emptyObject);
-        definitions.put(new DefinitionKey("publicIpAddress.json", "PublicIPAddress"), emptyObject);
-        definitions.put(new DefinitionKey("applicationGateway.json", "ApplicationGatewayFirewallRuleGroup"), emptyObject);
-        definitions.put(new DefinitionKey("test.json", "TestDefinition"), emptyObject);
-        definitions.put(new DefinitionKey("test.json", "TestEnum"), emptyObject);
-        definitions.put(new DefinitionKey("test.json", "SimpleEnum"), emptyObject);
+        definitions.put(new DefinitionKey("virtualNetworkGateway.json", "VirtualNetworkGateway", 10), emptyObject);
+        definitions.put(new DefinitionKey("virtualNetworkGateway.json", "Resource", 20), emptyObject);
+        definitions.put(new DefinitionKey("virtualNetworkGateway.json", "virtualNetworkGatewayConnectionStatus", 30), emptyObject);
+        definitions.put(new DefinitionKey("networkInterface.json", "NetworkInterface", 40), emptyObject);
+        definitions.put(new DefinitionKey("networkInterface.json", "Resource", 50), emptyObject);
+        definitions.put(new DefinitionKey("publicIpAddress.json", "PublicIPAddress", 60), emptyObject);
+        definitions.put(new DefinitionKey("applicationGateway.json", "ApplicationGatewayFirewallRuleGroup", 70), emptyObject);
+        definitions.put(new DefinitionKey("test.json", "TestDefinition", 80), emptyObject);
+        definitions.put(new DefinitionKey("test.json", "TestEnum", 90), emptyObject);
+        definitions.put(new DefinitionKey("test.json", "SimpleEnum", 100), emptyObject);
         
         return definitions;
     }
@@ -189,7 +189,7 @@ class JavaDefinitionGeneratorTest {
     @Test
     @DisplayName("Should generate record with reserved word field names properly mapped")
     void testGenerateRecord_ReservedWordFields() {
-        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition");
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition", 1);
         
         // Create a test definition with reserved word properties
         ObjectMapper mapper = new ObjectMapper();
@@ -219,7 +219,7 @@ class JavaDefinitionGeneratorTest {
     @Test
     @DisplayName("Should handle hyphenated property names that become reserved words")
     void testGenerateRecord_HyphenatedReservedWords() {
-        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition");
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition", 1);
         
         // Create a test definition with hyphenated properties that might become reserved words
         ObjectMapper mapper = new ObjectMapper();
@@ -240,7 +240,7 @@ class JavaDefinitionGeneratorTest {
     @Test
     @DisplayName("Should generate Java enum for OpenAPI enum definition")
     void testGenerateRecord_EnumDefinition() {
-        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestEnum");
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestEnum", 1);
         
         // Create a test enum definition
         ObjectMapper mapper = new ObjectMapper();
@@ -266,7 +266,7 @@ class JavaDefinitionGeneratorTest {
     @Test
     @DisplayName("Should generate simple enum without JsonValue when names match values")
     void testGenerateRecord_SimpleEnum() {
-        DefinitionKey definitionKey = new DefinitionKey("test.json", "SimpleEnum");
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "SimpleEnum", 1);
         
         // Create a simple enum definition with values that match constant names
         ObjectMapper mapper = new ObjectMapper();
@@ -290,7 +290,7 @@ class JavaDefinitionGeneratorTest {
     @Test
     @DisplayName("Should handle inline enum in property as String type")
     void testGenerateRecord_InlineEnum() {
-        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition");
+        DefinitionKey definitionKey = new DefinitionKey("test.json", "TestDefinition", 1);
         
         // Create a definition with an inline enum property
         ObjectMapper mapper = new ObjectMapper();
