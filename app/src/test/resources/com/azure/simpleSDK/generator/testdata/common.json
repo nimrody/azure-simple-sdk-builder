@@ -1,0 +1,107 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Common Types",
+    "version": "2024-07-01"
+  },
+  "definitions": {
+    "BaseProfile": {
+      "type": "object",
+      "description": "Base profile properties",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Profile identifier"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the profile was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the profile was last updated"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Additional metadata as key-value pairs"
+        },
+        "class": {
+          "type": "string",
+          "description": "Profile class (reserved keyword test)"
+        }
+      },
+      "required": ["id", "createdAt"]
+    },
+    "Resource": {
+      "type": "object",
+      "description": "Generic Azure resource (duplicate name for testing)",
+      "properties": {
+        "id": {
+          "type": "string",
+          "readOnly": true,
+          "description": "Fully qualified resource ID"
+        },
+        "name": {
+          "type": "string",
+          "readOnly": true,
+          "description": "The name of the resource"
+        },
+        "type": {
+          "type": "string",
+          "readOnly": true,
+          "description": "The type of the resource"
+        },
+        "location": {
+          "type": "string",
+          "description": "The geo-location where the resource lives"
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Resource tags"
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "description": "Standard error response",
+      "properties": {
+        "error": {
+          "$ref": "#/definitions/ErrorDetail"
+        }
+      }
+    },
+    "ErrorDetail": {
+      "type": "object",
+      "description": "Error details",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Error code"
+        },
+        "message": {
+          "type": "string",
+          "description": "Error message"
+        },
+        "target": {
+          "type": "string",
+          "description": "Error target"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ErrorDetail"
+          },
+          "description": "Additional error details"
+        }
+      }
+    }
+  }
+}

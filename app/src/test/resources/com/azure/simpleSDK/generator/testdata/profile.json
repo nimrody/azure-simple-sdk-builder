@@ -1,0 +1,86 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Profile API",
+    "version": "2024-07-01"
+  },
+  "definitions": {
+    "UserProfile": {
+      "allOf": [
+        {
+          "$ref": "./common.json#/definitions/BaseProfile"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "displayName": {
+              "type": "string",
+              "description": "Display name for the user"
+            },
+            "avatar": {
+              "$ref": "#/definitions/Avatar"
+            },
+            "visibility": {
+              "$ref": "#/definitions/ProfileVisibility"
+            },
+            "interface": {
+              "type": "string",
+              "description": "Interface preference (reserved keyword test)"
+            },
+            "settings": {
+              "type": "object",
+              "properties": {
+                "theme": {
+                  "type": "string",
+                  "enum": ["light", "dark", "auto"]
+                },
+                "notifications": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "required": ["displayName", "visibility"]
+        }
+      ]
+    },
+    "Avatar": {
+      "type": "object",
+      "description": "User avatar information",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL to the avatar image"
+        },
+        "size": {
+          "type": "integer",
+          "description": "Size of the avatar in pixels"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["png", "jpg", "gif", "svg"]
+        }
+      }
+    },
+    "ProfileVisibility": {
+      "type": "string",
+      "description": "Visibility level of the profile",
+      "enum": ["Public", "Private", "Friends"]
+    },
+    "UserProfileListResult": {
+      "type": "object",
+      "description": "List of user profiles",
+      "properties": {
+        "value": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserProfile"
+          }
+        },
+        "nextLink": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

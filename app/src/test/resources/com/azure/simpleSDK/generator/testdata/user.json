@@ -1,0 +1,176 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "User API",
+    "version": "2024-07-01"
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "description": "Represents a user in the system",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user"
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address"
+        },
+        "status": {
+          "$ref": "#/definitions/UserStatus"
+        },
+        "profile": {
+          "$ref": "./profile.json#/definitions/UserProfile"
+        },
+        "preferences": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "User preferences as key-value pairs"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of user tags"
+        },
+        "default": {
+          "type": "boolean",
+          "description": "Whether this is the default user (reserved keyword test)"
+        }
+      },
+      "required": ["id", "email", "status"]
+    },
+    "UserStatus": {
+      "type": "string",
+      "description": "Status of the user account",
+      "enum": ["Active", "Inactive", "Pending", "Suspended"]
+    },
+    "UserListResult": {
+      "type": "object",
+      "description": "Paginated list of users",
+      "properties": {
+        "value": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/User"
+          },
+          "description": "List of users"
+        },
+        "nextLink": {
+          "type": "string",
+          "description": "URL to get the next page of results"
+        }
+      }
+    },
+    "Resource": {
+      "type": "object",
+      "description": "Base resource type (duplicate name for testing)",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Resource identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Resource name"
+        },
+        "type": {
+          "type": "string",
+          "description": "Resource type"
+        }
+      }
+    }
+  },
+  "paths": {
+    "/users/{userId}": {
+      "get": {
+        "operationId": "Users_Get",
+        "description": "Gets a specific user by ID",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The ID of the user to retrieve"
+          },
+          {
+            "name": "expand",
+            "in": "query",
+            "type": "string",
+            "description": "Comma-separated list of properties to expand"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "./common.json#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "Users_List",
+        "description": "Lists all users with optional filtering",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "type": "string",
+            "description": "OData filter expression"
+          },
+          {
+            "name": "top",
+            "in": "query",
+            "type": "integer",
+            "description": "Maximum number of results to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/UserListResult"
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/profiles": {
+      "get": {
+        "operationId": "Users_ListProfiles",
+        "description": "Gets all profiles for a specific user",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The ID of the user"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "./profile.json#/definitions/UserProfileListResult"
+            }
+          }
+        }
+      }
+    }
+  }
+}

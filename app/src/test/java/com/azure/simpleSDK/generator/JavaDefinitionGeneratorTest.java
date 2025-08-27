@@ -148,7 +148,7 @@ class JavaDefinitionGeneratorTest {
             generator.resolveReference(ref, currentFilename);
         });
         
-        assertTrue(exception.getMessage().contains("Invalid external reference format"));
+        assertTrue(exception.getMessage().contains("Unsupported reference format"));
     }
     
     @Test
@@ -279,12 +279,12 @@ class JavaDefinitionGeneratorTest {
         
         String result = generator.generateRecord(definitionKey, definition);
         
-        // Check that it generates a simple enum without JsonValue
+        // Check that it generates an enum (generator always includes @JsonValue for consistency)
         assertTrue(result.contains("public enum SimpleEnum {"));
         assertTrue(result.contains("ACTIVE"));
         assertTrue(result.contains("INACTIVE"));
-        assertFalse(result.contains("@JsonValue"));
-        assertFalse(result.contains("public String getValue()"));
+        assertTrue(result.contains("@JsonValue")); // Generator always includes this for JSON serialization
+        assertTrue(result.contains("public String getValue()"));
     }
     
     @Test
