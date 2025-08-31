@@ -6,9 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.locks.ReentrantLock;
@@ -62,9 +64,12 @@ public class ServicePrincipalCredentials implements AzureCredentials {
     @Override
     public void refresh() throws AzureAuthenticationException {
         try {
+            // URL-encode the credentials to handle special characters
             String requestBody = String.format(
                 "grant_type=client_credentials&client_id=%s&client_secret=%s&scope=%s",
-                clientId, clientSecret, scope);
+                URLEncoder.encode(clientId, StandardCharsets.UTF_8),
+                URLEncoder.encode(clientSecret, StandardCharsets.UTF_8),
+                URLEncoder.encode(scope, StandardCharsets.UTF_8));
 
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(String.format("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantId)))

@@ -6,7 +6,9 @@ import com.azure.simpleSDK.http.exceptions.AzureException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -139,16 +141,17 @@ public class AzureRequest {
 
         StringBuilder urlBuilder = new StringBuilder(url);
         urlBuilder.append(url.contains("?") ? "&" : "?");
-        
+
         boolean first = true;
         for (Map.Entry<String, String> param : queryParameters.entrySet()) {
             if (!first) {
                 urlBuilder.append("&");
             }
-            urlBuilder.append(param.getKey()).append("=").append(param.getValue());
+            // URL-encode the parameter value to handle special characters
+            urlBuilder.append(param.getKey()).append("=").append(URLEncoder.encode(param.getValue(), StandardCharsets.UTF_8));
             first = false;
         }
-        
+
         return urlBuilder.toString();
     }
 

@@ -77,23 +77,31 @@ public class AzureHttpClient {
     }
 
     public <T> AzureResponse<T> execute(AzureRequest azureRequest, Class<T> responseType) throws AzureException {
+        return executeInternal(azureRequest, responseType, this.retryPolicy);
+    }
+
+    public <T> AzureResponse<T> execute(AzureRequest azureRequest, Class<T> responseType, RetryPolicy customRetryPolicy) throws AzureException {
+        return executeInternal(azureRequest, responseType, customRetryPolicy);
+    }
+
+    private <T> AzureResponse<T> executeInternal(AzureRequest azureRequest, Class<T> responseType, RetryPolicy retryPolicy) throws AzureException {
         HttpRequest request = azureRequest.build();
         Exception lastException = null;
-        
+
         for (int attempt = 1; attempt <= retryPolicy.getMaxAttempts(); attempt++) {
             try {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 Map<String, String> responseHeaders = extractHeaders(response);
-                
+
                 if (response.statusCode() >= 400) {
-                    if (shouldRetry(response.statusCode(), attempt)) {
-                        sleepBeforeRetry(attempt, responseHeaders);
+                    if (shouldRetry(response.statusCode(), attempt, retryPolicy)) {
+                        sleepBeforeRetry(attempt, responseHeaders, retryPolicy);
                         continue;
                     }
-                    
+
                     throw createServiceException(response, responseHeaders);
                 }
-                
+
                 T responseBody = null;
                 if (responseType != Void.class && response.body() != null && !response.body().isEmpty()) {
                     try {
@@ -108,26 +116,26 @@ public class AzureHttpClient {
                         }
                     }
                 }
-                
+
                 // Handle pagination for list results
                 if (responseBody != null && isPaginatedListResult(responseType)) {
                     return handlePaginationInline(responseBody, responseType, response.statusCode(), responseHeaders, response.body());
                 }
-                
+
                 return new AzureResponse<>(response.statusCode(), responseHeaders, responseBody, response.body());
-                
+
             } catch (HttpTimeoutException e) {
                 lastException = e;
-                if (retryPolicy.shouldRetryOnTimeout() && shouldRetry(attempt)) {
-                    sleepBeforeRetry(attempt, null);
+                if (retryPolicy.shouldRetryOnTimeout() && shouldRetry(attempt, retryPolicy)) {
+                    sleepBeforeRetry(attempt, null, retryPolicy);
                     continue;
                 } else {
                     throw new AzureNetworkException("Request timeout", e);
                 }
             } catch (IOException e) {
                 lastException = e;
-                if (retryPolicy.shouldRetryOnNetworkError() && shouldRetry(attempt)) {
-                    sleepBeforeRetry(attempt, null);
+                if (retryPolicy.shouldRetryOnNetworkError() && shouldRetry(attempt, retryPolicy)) {
+                    sleepBeforeRetry(attempt, null, retryPolicy);
                     continue;
                 } else {
                     throw new AzureNetworkException("Network error", e);
@@ -135,8 +143,8 @@ public class AzureHttpClient {
             } catch (CompletionException e) {
                 if (e.getCause() instanceof HttpTimeoutException) {
                     lastException = e;
-                    if (retryPolicy.shouldRetryOnTimeout() && shouldRetry(attempt)) {
-                        sleepBeforeRetry(attempt, null);
+                    if (retryPolicy.shouldRetryOnTimeout() && shouldRetry(attempt, retryPolicy)) {
+                        sleepBeforeRetry(attempt, null, retryPolicy);
                         continue;
                     } else {
                         throw new AzureNetworkException("Request timeout", e.getCause());
@@ -151,16 +159,8 @@ public class AzureHttpClient {
                 throw e;
             }
         }
-        
-        throw new AzureException("Request failed after " + retryPolicy.getMaxAttempts() + " attempts", lastException);
-    }
 
-    public <T> AzureResponse<T> execute(AzureRequest azureRequest, Class<T> responseType, RetryPolicy customRetryPolicy) throws AzureException {
-        RetryPolicy originalPolicy = this.retryPolicy;
-        try {
-            return execute(azureRequest, responseType);
-        } finally {
-        }
+        throw new AzureException("Request failed after " + retryPolicy.getMaxAttempts() + " attempts", lastException);
     }
 
     private Map<String, String> extractHeaders(HttpResponse<String> response) {
@@ -173,15 +173,15 @@ public class AzureHttpClient {
         return headers;
     }
 
-    private boolean shouldRetry(int statusCode, int attempt) {
+    private boolean shouldRetry(int statusCode, int attempt, RetryPolicy retryPolicy) {
         return attempt < retryPolicy.getMaxAttempts() && retryPolicy.shouldRetry(statusCode);
     }
 
-    private boolean shouldRetry(int attempt) {
+    private boolean shouldRetry(int attempt, RetryPolicy retryPolicy) {
         return attempt < retryPolicy.getMaxAttempts();
     }
 
-    private void sleepBeforeRetry(int attempt, Map<String, String> responseHeaders) throws AzureException {
+    private void sleepBeforeRetry(int attempt, Map<String, String> responseHeaders, RetryPolicy retryPolicy) throws AzureException {
         try {
             Duration delay = backoffStrategy.calculateDelay(attempt, retryPolicy, responseHeaders);
             Thread.sleep(delay.toMillis());
