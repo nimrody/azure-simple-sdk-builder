@@ -52,7 +52,9 @@ public class AzureRequest {
     }
 
     public AzureRequest queryParam(String name, String value) {
-        queryParameters.put(name, value);
+        if (value != null) {
+            queryParameters.put(name, value);
+        }
         return this;
     }
 
