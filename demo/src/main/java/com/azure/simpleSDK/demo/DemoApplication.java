@@ -16,6 +16,11 @@ import com.azure.simpleSDK.network.models.NetworkInterfacePropertiesFormat;
 import com.azure.simpleSDK.network.models.NetworkSecurityGroupPropertiesFormat;
 import com.azure.simpleSDK.compute.models.VirtualMachine;
 import com.azure.simpleSDK.compute.models.VirtualMachineListResult;
+import com.azure.simpleSDK.compute.models.VirtualMachineScaleSet;
+import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetListWithLinkResult;
+import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetVM;
+import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetVMListResult;
+import com.azure.simpleSDK.compute.models.OrchestrationMode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -193,9 +198,13 @@ public class DemoApplication {
     
     private static void testComputeResources() {
         System.out.println("\n=== COMPUTE RESOURCES ===");
-        
+
         VirtualMachineListResult vmList = testVirtualMachines();
         showVirtualMachineDetails(vmList);
+
+        // Test Virtual Machine Scale Sets
+        VirtualMachineScaleSetListWithLinkResult vmssList = testVirtualMachineScaleSets();
+        showVirtualMachineScaleSetDetails(vmssList);
     }
     
     private static VirtualMachineListResult testVirtualMachines() {
@@ -203,10 +212,10 @@ public class DemoApplication {
         try {
             AzureResponse<VirtualMachineListResult> response = computeClient.listByLocationVirtualMachines(subscriptionId, "eastus");
             VirtualMachineListResult result = response.getBody();
-            
+
             System.out.println("VM Response Status: " + response.getStatusCode());
             System.out.println("Number of virtual machines found: " + (result.value() != null ? result.value().size() : 0));
-            
+
             return result;
         } catch (Exception e) {
             System.out.println("VM API call succeeded but encountered data model issue:");
@@ -217,6 +226,22 @@ public class DemoApplication {
             }
             System.out.println("Error details: " + e.getMessage().substring(0, Math.min(200, e.getMessage().length())));
             return new VirtualMachineListResult(null, null);
+        }
+    }
+
+    private static VirtualMachineScaleSetListWithLinkResult testVirtualMachineScaleSets() {
+        System.out.println("\n--- Testing Virtual Machine Scale Sets (pagination test) ---");
+        try {
+            AzureResponse<VirtualMachineScaleSetListWithLinkResult> response = computeClient.listAllVirtualMachineScaleSets(subscriptionId);
+            VirtualMachineScaleSetListWithLinkResult result = response.getBody();
+
+            System.out.println("VMSS Response Status: " + response.getStatusCode());
+            System.out.println("Number of virtual machine scale sets found: " + (result.value() != null ? result.value().size() : 0));
+
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error fetching Virtual Machine Scale Sets: " + e.getMessage());
+            return new VirtualMachineScaleSetListWithLinkResult(null, null);
         }
     }
     
@@ -412,7 +437,7 @@ public class DemoApplication {
         if (vmList.value() != null && !vmList.value().isEmpty()) {
             System.out.println("\nVirtual Machines Summary:");
             System.out.println("=========================");
-            
+
             for (VirtualMachine vm : vmList.value()) {
                 System.out.println("VM Properties: " + (vm.properties() != null ? "Available" : "None"));
                 if (vm.properties() != null) {
@@ -433,9 +458,132 @@ public class DemoApplication {
             System.out.println("No Virtual Machines found in subscription " + subscriptionId);
         }
     }
+
+    private static void showVirtualMachineScaleSetDetails(VirtualMachineScaleSetListWithLinkResult vmssList) {
+        if (vmssList.value() != null && !vmssList.value().isEmpty()) {
+            System.out.println("\nVirtual Machine Scale Sets Detailed Summary:");
+            System.out.println("=============================================");
+
+            for (VirtualMachineScaleSet vmss : vmssList.value()) {
+                System.out.println("\n========================================");
+                System.out.println("Scale Set Name: " + vmss.name());
+                System.out.println("Resource Group: " + extractResourceGroupFromId(vmss.id()));
+                System.out.println("Location: " + vmss.location());
+
+                // Get orchestration mode (Uniform/Flexible)
+                if (vmss.properties() != null && vmss.properties().orchestrationMode() != null) {
+                    OrchestrationMode mode = vmss.properties().orchestrationMode();
+                    System.out.println("Orchestration Mode: " + mode.getValue());
+                } else {
+                    System.out.println("Orchestration Mode: Unknown");
+                }
+
+                if (vmss.properties() != null) {
+                    System.out.println("Provisioning State: " + vmss.properties().provisioningState());
+                }
+
+                // List VMs in this scale set
+                String resourceGroup = extractResourceGroupFromId(vmss.id());
+                listVMsInScaleSet(resourceGroup, vmss.name());
+
+                System.out.println("========================================");
+            }
+        } else {
+            System.out.println("No Virtual Machine Scale Sets found in subscription " + subscriptionId);
+        }
+    }
+
+    private static void listVMsInScaleSet(String resourceGroupName, String vmssName) {
+        System.out.println("\n  VMs in Scale Set:");
+        System.out.println("  -----------------");
+
+        try {
+            AzureResponse<VirtualMachineScaleSetVMListResult> response = computeClient.listVirtualMachineScaleSetVMs(
+            //    subscriptionId, resourceGroupName, vmssName, "properties/latestModelApplied+eq+true","instanceView", "instanceView");
+            subscriptionId, resourceGroupName, vmssName, null, null, null);
+            VirtualMachineScaleSetVMListResult vmList = response.getBody();
+
+            if (vmList.value() != null && !vmList.value().isEmpty()) {
+                System.out.println("  Total VMs: " + vmList.value().size());
+
+                for (VirtualMachineScaleSetVM vm : vmList.value()) {
+                    System.out.println("\n  VM Instance ID: " + vm.instanceId());
+                    System.out.println("  VM Name: " + vm.name());
+                    if (vm.properties() != null) {
+                        System.out.println("  Provisioning State: " + vm.properties().provisioningState());
+
+                        // Show network interfaces
+                        if (vm.properties().networkProfile() != null &&
+                            vm.properties().networkProfile().networkInterfaces() != null) {
+                            System.out.println("  Network Interfaces:");
+                            for (var nicRef : vm.properties().networkProfile().networkInterfaces()) {
+                                if (nicRef.id() != null) {
+                                    String nicName = extractResourceNameFromId(nicRef.id());
+                                    String nicResourceGroup = extractResourceGroupFromId(nicRef.id());
+                                    System.out.println("    - " + nicName);
+                                    if (nicRef.properties() != null && nicRef.properties().primary() != null) {
+                                        System.out.println("      Primary: " + nicRef.properties().primary());
+                                    }
+
+                                    // Fetch full NIC details to get IP addresses
+                                    showNICIPAddresses(nicResourceGroup, nicName);
+                                }
+                            }
+                        } else {
+                            System.out.println("  Network Interfaces: None");
+                        }
+                    }
+                }
+            } else {
+                System.out.println("  No VMs found in this scale set");
+            }
+        } catch (Exception e) {
+            System.out.println("  Error fetching VMs in scale set: " + e.getMessage());
+        }
+    }
     
+    private static void showNICIPAddresses(String resourceGroupName, String nicName) {
+        try {
+            AzureResponse<NetworkInterface> response = networkClient.getNetworkInterfaces(
+                subscriptionId, resourceGroupName, nicName, null);
+            NetworkInterface nic = response.getBody();
+
+            if (nic != null && nic.properties() != null && nic.properties().ipConfigurations() != null) {
+                for (var ipConfig : nic.properties().ipConfigurations()) {
+                    if (ipConfig.properties() != null) {
+                        String privateIP = ipConfig.properties().privateIPAddress();
+                        if (privateIP != null) {
+                            System.out.println("      Private IP: " + privateIP);
+                        }
+
+                        // Show public IP if available
+                        if (ipConfig.properties().publicIPAddress() != null && ipConfig.properties().publicIPAddress().id() != null) {
+                            String publicIPName = extractResourceNameFromId(ipConfig.properties().publicIPAddress().id());
+                            String publicIPResourceGroup = extractResourceGroupFromId(ipConfig.properties().publicIPAddress().id());
+
+                            // Fetch public IP details
+                            try {
+                                var publicIPResponse = networkClient.getPublicIPAddresses(
+                                    subscriptionId, publicIPResourceGroup, publicIPName, null);
+                                if (publicIPResponse.getBody() != null &&
+                                    publicIPResponse.getBody().properties() != null &&
+                                    publicIPResponse.getBody().properties().ipAddress() != null) {
+                                    System.out.println("      Public IP: " + publicIPResponse.getBody().properties().ipAddress());
+                                }
+                            } catch (Exception e) {
+                                // Silently skip if we can't fetch public IP details
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Silently skip if we can't fetch NIC details
+        }
+    }
+
     // Utility methods
-    
+
     private static void showResourceTags(java.util.Map<String, String> tags) {
         if (tags != null && !tags.isEmpty()) {
             System.out.println("Tags: " + tags.size());
