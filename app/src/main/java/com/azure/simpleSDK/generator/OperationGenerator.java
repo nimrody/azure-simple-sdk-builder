@@ -134,7 +134,7 @@ public class OperationGenerator {
         List<Operation> getOperations = operations.values().stream()
                 .filter(op -> "GET".equals(op.httpMethod()))
                 .sorted(Comparator.comparing(Operation::operationId))
-                .collect(Collectors.toList());
+                .toList();
 
         String className = this.clientClassName;
         StringBuilder classContent = new StringBuilder();
