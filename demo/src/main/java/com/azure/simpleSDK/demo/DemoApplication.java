@@ -519,14 +519,13 @@ public class DemoApplication {
                             for (var nicRef : vm.properties().networkProfile().networkInterfaces()) {
                                 if (nicRef.id() != null) {
                                     String nicName = extractResourceNameFromId(nicRef.id());
-                                    String nicResourceGroup = extractResourceGroupFromId(nicRef.id());
                                     System.out.println("    - " + nicName);
                                     if (nicRef.properties() != null && nicRef.properties().primary() != null) {
                                         System.out.println("      Primary: " + nicRef.properties().primary());
                                     }
 
-                                    // Fetch full NIC details to get IP addresses
-                                    showNICIPAddresses(nicResourceGroup, nicName);
+                                    // Fetch full NIC details using VMSS-specific API
+                                    showVMSSNICIPAddresses(resourceGroupName, vmssName, vm.instanceId(), nicName);
                                 }
                             }
                         } else {
@@ -542,10 +541,11 @@ public class DemoApplication {
         }
     }
     
-    private static void showNICIPAddresses(String resourceGroupName, String nicName) {
+    private static void showVMSSNICIPAddresses(String resourceGroupName, String vmssName, String instanceId, String nicName) {
         try {
-            AzureResponse<NetworkInterface> response = networkClient.getNetworkInterfaces(
-                subscriptionId, resourceGroupName, nicName, null);
+            // Use VMSS-specific API to get network interface
+            AzureResponse<NetworkInterface> response = networkClient.getVirtualMachineScaleSetNetworkInterfaceNetworkInterfaces(
+                subscriptionId, resourceGroupName, vmssName, instanceId, nicName, null);
             NetworkInterface nic = response.getBody();
 
             if (nic != null && nic.properties() != null && nic.properties().ipConfigurations() != null) {
@@ -557,14 +557,15 @@ public class DemoApplication {
                         }
 
                         // Show public IP if available
-                        if (ipConfig.properties().publicIPAddress() != null && ipConfig.properties().publicIPAddress().id() != null) {
+                        if (ipConfig.properties().publicIPAddress() != null) {
                             String publicIPName = extractResourceNameFromId(ipConfig.properties().publicIPAddress().id());
-                            String publicIPResourceGroup = extractResourceGroupFromId(ipConfig.properties().publicIPAddress().id());
+                            String ipConfigName = ipConfig.name();
 
-                            // Fetch public IP details
+                            // Fetch public IP details using VMSS-specific API
                             try {
-                                var publicIPResponse = networkClient.getPublicIPAddresses(
-                                    subscriptionId, publicIPResourceGroup, publicIPName, null);
+                                var publicIPResponse = networkClient.getVirtualMachineScaleSetPublicIPAddressPublicIPAddresses(
+                                    subscriptionId, resourceGroupName, vmssName, instanceId,
+                                    nicName, ipConfigName, publicIPName, null);
                                 if (publicIPResponse.getBody() != null &&
                                     publicIPResponse.getBody().properties() != null &&
                                     publicIPResponse.getBody().properties().ipAddress() != null) {
@@ -578,7 +579,7 @@ public class DemoApplication {
                 }
             }
         } catch (Exception e) {
-            // Silently skip if we can't fetch NIC details
+            System.out.println("      Error fetching NIC details: " + e.getMessage());
         }
     }
 
