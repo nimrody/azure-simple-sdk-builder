@@ -498,6 +498,33 @@ public class DemoApplication {
         System.out.println("  -----------------");
 
         try {
+            // Fetch all NICs for the scale set in a single API call
+            System.out.println("  Fetching all NICs for scale set...");
+            java.util.Map<String, java.util.List<NetworkInterface>> vmInstanceToNICs = new java.util.HashMap<>();
+
+            try {
+                AzureResponse<NetworkInterfaceListResult> nicResponse = networkClient.listVirtualMachineScaleSetNetworkInterfacesNetworkInterfaces(
+                    subscriptionId, resourceGroupName, vmssName);
+                NetworkInterfaceListResult nicList = nicResponse.getBody();
+
+                if (nicList.value() != null) {
+                    System.out.println("  Total NICs in scale set: " + nicList.value().size());
+
+                    // Build a map of VM instance ID to NICs
+                    for (NetworkInterface nic : nicList.value()) {
+                        // Extract instance ID from NIC resource ID
+                        // Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Compute/virtualMachineScaleSets/{vmss}/virtualMachines/{instanceId}/networkInterfaces/{nicName}
+                        String instanceId = extractInstanceIdFromNICId(nic.id());
+                        if (instanceId != null) {
+                            vmInstanceToNICs.computeIfAbsent(instanceId, k -> new java.util.ArrayList<>()).add(nic);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("  Warning: Could not fetch NICs in bulk: " + e.getMessage());
+            }
+
+            // Now list the VMs
             AzureResponse<VirtualMachineScaleSetVMListResult> response = computeClient.listVirtualMachineScaleSetVMs(
             //    subscriptionId, resourceGroupName, vmssName, "properties/latestModelApplied+eq+true","instanceView", "instanceView");
             subscriptionId, resourceGroupName, vmssName, null, null, null);
@@ -512,21 +539,21 @@ public class DemoApplication {
                     if (vm.properties() != null) {
                         System.out.println("  Provisioning State: " + vm.properties().provisioningState());
 
-                        // Show network interfaces
-                        if (vm.properties().networkProfile() != null &&
-                            vm.properties().networkProfile().networkInterfaces() != null) {
+                        // Show network interfaces from the pre-fetched map
+                        java.util.List<NetworkInterface> vmNICs = vmInstanceToNICs.get(vm.instanceId());
+                        if (vmNICs != null && !vmNICs.isEmpty()) {
                             System.out.println("  Network Interfaces:");
-                            for (var nicRef : vm.properties().networkProfile().networkInterfaces()) {
-                                if (nicRef.id() != null) {
-                                    String nicName = extractResourceNameFromId(nicRef.id());
-                                    System.out.println("    - " + nicName);
-                                    if (nicRef.properties() != null && nicRef.properties().primary() != null) {
-                                        System.out.println("      Primary: " + nicRef.properties().primary());
-                                    }
+                            for (NetworkInterface nic : vmNICs) {
+                                String nicName = extractResourceNameFromId(nic.id());
+                                System.out.println("    - " + nicName);
 
-                                    // Fetch full NIC details using VMSS-specific API
-                                    showVMSSNICIPAddresses(resourceGroupName, vmssName, vm.instanceId(), nicName);
+                                // Show primary flag
+                                if (nic.properties() != null && nic.properties().primary() != null) {
+                                    System.out.println("      Primary: " + nic.properties().primary());
                                 }
+
+                                // Show IP addresses directly from the NIC
+                                showIPAddressesFromNIC(nic, resourceGroupName, vmssName, vm.instanceId());
                             }
                         } else {
                             System.out.println("  Network Interfaces: None");
@@ -541,46 +568,51 @@ public class DemoApplication {
         }
     }
     
-    private static void showVMSSNICIPAddresses(String resourceGroupName, String vmssName, String instanceId, String nicName) {
-        try {
-            // Use VMSS-specific API to get network interface
-            AzureResponse<NetworkInterface> response = networkClient.getVirtualMachineScaleSetNetworkInterfaceNetworkInterfaces(
-                subscriptionId, resourceGroupName, vmssName, instanceId, nicName, null);
-            NetworkInterface nic = response.getBody();
+    private static void showIPAddressesFromNIC(NetworkInterface nic, String resourceGroupName, String vmssName, String instanceId) {
+        if (nic.properties() != null && nic.properties().ipConfigurations() != null) {
+            for (var ipConfig : nic.properties().ipConfigurations()) {
+                if (ipConfig.properties() != null) {
+                    String privateIP = ipConfig.properties().privateIPAddress();
+                    if (privateIP != null) {
+                        System.out.println("      Private IP: " + privateIP);
+                    }
 
-            if (nic != null && nic.properties() != null && nic.properties().ipConfigurations() != null) {
-                for (var ipConfig : nic.properties().ipConfigurations()) {
-                    if (ipConfig.properties() != null) {
-                        String privateIP = ipConfig.properties().privateIPAddress();
-                        if (privateIP != null) {
-                            System.out.println("      Private IP: " + privateIP);
-                        }
+                    // Show public IP if available
+                    if (ipConfig.properties().publicIPAddress() != null) {
+                        String publicIPName = extractResourceNameFromId(ipConfig.properties().publicIPAddress().id());
+                        String ipConfigName = ipConfig.name();
+                        String nicName = extractResourceNameFromId(nic.id());
 
-                        // Show public IP if available
-                        if (ipConfig.properties().publicIPAddress() != null) {
-                            String publicIPName = extractResourceNameFromId(ipConfig.properties().publicIPAddress().id());
-                            String ipConfigName = ipConfig.name();
-
-                            // Fetch public IP details using VMSS-specific API
-                            try {
-                                var publicIPResponse = networkClient.getVirtualMachineScaleSetPublicIPAddressPublicIPAddresses(
-                                    subscriptionId, resourceGroupName, vmssName, instanceId,
-                                    nicName, ipConfigName, publicIPName, null);
-                                if (publicIPResponse.getBody() != null &&
-                                    publicIPResponse.getBody().properties() != null &&
-                                    publicIPResponse.getBody().properties().ipAddress() != null) {
-                                    System.out.println("      Public IP: " + publicIPResponse.getBody().properties().ipAddress());
-                                }
-                            } catch (Exception e) {
-                                // Silently skip if we can't fetch public IP details
+                        // Fetch public IP details using VMSS-specific API
+                        try {
+                            var publicIPResponse = networkClient.getVirtualMachineScaleSetPublicIPAddressPublicIPAddresses(
+                                subscriptionId, resourceGroupName, vmssName, instanceId,
+                                nicName, ipConfigName, publicIPName, null);
+                            if (publicIPResponse.getBody() != null &&
+                                publicIPResponse.getBody().properties() != null &&
+                                publicIPResponse.getBody().properties().ipAddress() != null) {
+                                System.out.println("      Public IP: " + publicIPResponse.getBody().properties().ipAddress());
                             }
+                        } catch (Exception e) {
+                            // Silently skip if we can't fetch public IP details
                         }
                     }
                 }
             }
-        } catch (Exception e) {
-            System.out.println("      Error fetching NIC details: " + e.getMessage());
         }
+    }
+
+    private static String extractInstanceIdFromNICId(String nicId) {
+        if (nicId == null) return null;
+
+        // Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Compute/virtualMachineScaleSets/{vmss}/virtualMachines/{instanceId}/networkInterfaces/{nicName}
+        String[] parts = nicId.split("/");
+        for (int i = 0; i < parts.length - 1; i++) {
+            if ("virtualMachines".equals(parts[i]) && i + 1 < parts.length) {
+                return parts[i + 1];
+            }
+        }
+        return null;
     }
 
     // Utility methods
