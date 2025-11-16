@@ -9,3 +9,5 @@ sdk/src/main/java/com/azure/simpleSDK/compute/models/
 sdk/src/main/java/com/azure/simpleSDK/network/models/
 sdk/src/main/java/com/azure/simpleSDK/compute/client/
 sdk/src/main/java/com/azure/simpleSDK/network/client/
+sdk/src/main/java/com/azure/simpleSDK/resources/client/
+sdk/src/main/java/com/azure/simpleSDK/resources/models/

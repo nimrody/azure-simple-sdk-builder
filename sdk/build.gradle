@@ -2,6 +2,10 @@ plugins {
     id 'java-library'
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     api 'com.azure:azure-identity:1.11.1'
     api 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
@@ -29,24 +33,5 @@ task cleanGenerated(type: Delete) {
            "src/main/java/com/azure/simpleSDK/compute/client/",
            "src/main/java/com/azure/simpleSDK/network/client/"
 }
-
-task generateCode {
-    dependsOn ':app:run'
-    description 'Generates the Azure Simple SDK code using the app module'
-    
-    // Define inputs - the generator source files and Azure API specs
-    inputs.dir('../app/src/main/java')
-    inputs.dir('../azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01')
-    
-    // Define outputs - the generated SDK directories
-    outputs.dir('src/main/java/com/azure/simpleSDK/models')
-    outputs.dir('src/main/java/com/azure/simpleSDK/client')
-}
-
-// Make compilation depend on code generation
-compileJava.dependsOn generateCode
-
-// Also make the build task explicitly depend on code generation
-build.dependsOn generateCode
 
 clean.dependsOn cleanGenerated

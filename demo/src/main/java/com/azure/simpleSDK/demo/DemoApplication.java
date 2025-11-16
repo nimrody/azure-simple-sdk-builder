@@ -1,11 +1,14 @@
 package com.azure.simpleSDK.demo;
 
-import com.azure.simpleSDK.network.client.AzureNetworkClient;
 import com.azure.simpleSDK.compute.client.AzureComputeClient;
+import com.azure.simpleSDK.network.client.AzureNetworkClient;
 import com.azure.simpleSDK.http.AzureResponse;
 import com.azure.simpleSDK.http.auth.ServicePrincipalCredentials;
 import com.azure.simpleSDK.http.exceptions.AzureException;
 import com.azure.simpleSDK.http.exceptions.AzureServiceException;
+import com.azure.simpleSDK.resources.client.AzureResourcesClient;
+import com.azure.simpleSDK.resources.models.Subscription;
+import com.azure.simpleSDK.resources.models.SubscriptionListResult;
 import com.azure.simpleSDK.network.models.AzureFirewall;
 import com.azure.simpleSDK.network.models.AzureFirewallListResult;
 import com.azure.simpleSDK.network.models.VirtualNetwork;
@@ -36,7 +39,10 @@ public class DemoApplication {
     
     private static AzureNetworkClient networkClient;
     private static AzureComputeClient computeClient;
+    private static AzureResourcesClient resourcesClient;
     private static String subscriptionId;
+    private static ServicePrincipalCredentials credentials;
+    private static boolean strictMode;
     
     public static void main(String[] args) {
         try {
@@ -45,6 +51,8 @@ public class DemoApplication {
             System.out.println("Fetching Azure Resources for subscription: " + subscriptionId);
             System.out.println("Using separate Network and Compute SDK clients");
             System.out.println("==========================================");
+
+            listAvailableSubscriptions();
 
             // Test Network resources
             testNetworkResources();
@@ -77,17 +85,68 @@ public class DemoApplication {
         }
         
         // Create credentials
-        ServicePrincipalCredentials credentials = new ServicePrincipalCredentials(clientId, clientSecret, tenantId);
+        credentials = new ServicePrincipalCredentials(clientId, clientSecret, tenantId);
         
         // Check if strict mode is requested via system property
-        boolean strictMode = Boolean.parseBoolean(System.getProperty("strict", "false"));
+        strictMode = Boolean.parseBoolean(System.getProperty("strict", "false"));
         System.out.println("Running in " + (strictMode ? "STRICT" : "LENIENT") + " mode");
         System.out.println("(Use -Dstrict=true to enable strict mode for unknown property detection)");
         System.out.println();
         
-        // Create separate clients for Network and Compute services
+        // Create separate clients for Network, Compute, and Resources services
         networkClient = new AzureNetworkClient(credentials, strictMode);
         computeClient = new AzureComputeClient(credentials, strictMode);
+        resourcesClient = new AzureResourcesClient(credentials, strictMode);
+    }
+
+    private static void listAvailableSubscriptions() {
+        System.out.println("\n=== AVAILABLE SUBSCRIPTIONS ===");
+
+        try {
+            AzureResponse<SubscriptionListResult> response = resourcesClient.listSubscriptions();
+            SubscriptionListResult result = response.getBody();
+
+            System.out.println("Subscription API Status: " + response.getStatusCode());
+
+            java.util.List<Subscription> subscriptions = result != null ? result.value() : null;
+            if (subscriptions != null && !subscriptions.isEmpty()) {
+                System.out.println("Number of subscriptions returned: " + subscriptions.size());
+                for (Subscription subscription : subscriptions) {
+                    if (subscription == null) {
+                        continue;
+                    }
+                    StringBuilder details = new StringBuilder("  - ");
+                    details.append(subscription.displayName() != null ? subscription.displayName() : "Unknown");
+                    if (subscription.subscriptionId() != null) {
+                        details.append(" (").append(subscription.subscriptionId()).append(")");
+                    }
+                    if (subscription.state() != null) {
+                        details.append(" [").append(subscription.state()).append("]");
+                    }
+                    if (subscriptionId != null && subscription.subscriptionId() != null
+                            && subscription.subscriptionId().equalsIgnoreCase(subscriptionId)) {
+                        details.append(" <-- active demo subscription");
+                    }
+                    System.out.println(details);
+                }
+                if (result != null && result.nextLink() != null && !result.nextLink().isBlank()) {
+                    System.out.println("Additional subscriptions available via pagination. Next link: " + result.nextLink());
+                }
+            } else {
+                System.out.println("No subscriptions returned for the current credentials.");
+            }
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR (SUBSCRIPTIONS) ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("==========================================\n");
+        } catch (AzureException e) {
+            System.out.println("Error fetching subscription list: " + e.getMessage());
+        }
     }
     
     private static void testNetworkResources() {
@@ -811,4 +870,5 @@ public class DemoApplication {
         }
         return "Unknown";
     }
+
 }
