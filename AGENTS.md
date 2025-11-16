@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with
-code in this repository.
+This file provides guidance to agents when working with code in this
+repository.
 
 This is a Java command line tool to create a library to replace the broken
 Azure SDK. 

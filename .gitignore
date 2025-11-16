@@ -1,4 +1,5 @@
 azure-rest-api-specs/
+.idea/
 *.jar
 *.class
 build/
