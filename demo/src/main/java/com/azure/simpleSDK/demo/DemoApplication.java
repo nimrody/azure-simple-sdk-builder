@@ -4,6 +4,8 @@ import com.azure.simpleSDK.network.client.AzureNetworkClient;
 import com.azure.simpleSDK.compute.client.AzureComputeClient;
 import com.azure.simpleSDK.http.AzureResponse;
 import com.azure.simpleSDK.http.auth.ServicePrincipalCredentials;
+import com.azure.simpleSDK.http.exceptions.AzureException;
+import com.azure.simpleSDK.http.exceptions.AzureServiceException;
 import com.azure.simpleSDK.network.models.AzureFirewall;
 import com.azure.simpleSDK.network.models.AzureFirewallListResult;
 import com.azure.simpleSDK.network.models.VirtualNetwork;
@@ -27,6 +29,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Set;
+import java.util.HashSet;
 
 public class DemoApplication {
     
@@ -41,11 +45,11 @@ public class DemoApplication {
             System.out.println("Fetching Azure Resources for subscription: " + subscriptionId);
             System.out.println("Using separate Network and Compute SDK clients");
             System.out.println("==========================================");
-            
+
             // Test Network resources
             testNetworkResources();
-            
-            // Test Compute resources  
+
+            // Test Compute resources
             testComputeResources();
             
         } catch (Exception e) {
@@ -88,21 +92,81 @@ public class DemoApplication {
     
     private static void testNetworkResources() {
         System.out.println("\n=== NETWORK RESOURCES ===");
-        
+
         // Test all network resource types
         AzureFirewallListResult firewallList = testAzureFirewalls();
         VirtualNetworkListResult vnetList = testVirtualNetworks();
         NetworkInterfaceListResult nicList = testNetworkInterfaces();
         NetworkSecurityGroupListResult nsgList = testNetworkSecurityGroups();
-        
+
+        // Extract and print unique resource group names
+        printResourceGroups(firewallList, vnetList, nicList, nsgList);
+
         // Test individual NSG details
         testIndividualNSGDetails();
-        
+
         // Show detailed results
         showFirewallDetails(firewallList);
         showVirtualNetworkSummary(vnetList);
         showNetworkInterfaceDetails(nicList);
         showNetworkSecurityGroupSummary(nsgList);
+    }
+
+    private static void printResourceGroups(AzureFirewallListResult firewallList,
+                                           VirtualNetworkListResult vnetList,
+                                           NetworkInterfaceListResult nicList,
+                                           NetworkSecurityGroupListResult nsgList) {
+        Set<String> resourceGroups = new HashSet<>();
+
+        // Extract resource groups from all network resources
+        if (firewallList.value() != null) {
+            for (AzureFirewall firewall : firewallList.value()) {
+                String rg = extractResourceGroupFromId(firewall.id());
+                if (rg != null && !rg.equals("Unknown")) {
+                    resourceGroups.add(rg);
+                }
+            }
+        }
+
+        if (vnetList.value() != null) {
+            for (VirtualNetwork vnet : vnetList.value()) {
+                String rg = extractResourceGroupFromId(vnet.id());
+                if (rg != null && !rg.equals("Unknown")) {
+                    resourceGroups.add(rg);
+                }
+            }
+        }
+
+        if (nicList.value() != null) {
+            for (NetworkInterface nic : nicList.value()) {
+                String rg = extractResourceGroupFromId(nic.id());
+                if (rg != null && !rg.equals("Unknown")) {
+                    resourceGroups.add(rg);
+                }
+            }
+        }
+
+        if (nsgList.value() != null) {
+            for (NetworkSecurityGroup nsg : nsgList.value()) {
+                String rg = extractResourceGroupFromId(nsg.id());
+                if (rg != null && !rg.equals("Unknown")) {
+                    resourceGroups.add(rg);
+                }
+            }
+        }
+
+        // Print the resource groups
+        System.out.println("\n=== RESOURCE GROUPS (extracted from network resources) ===");
+        System.out.println("Total unique resource groups: " + resourceGroups.size());
+        if (!resourceGroups.isEmpty()) {
+            System.out.println("\nResource Group Names:");
+            java.util.List<String> sortedRgs = new java.util.ArrayList<>(resourceGroups);
+            java.util.Collections.sort(sortedRgs);
+            for (String rg : sortedRgs) {
+                System.out.println("  - " + rg);
+            }
+        }
+        System.out.println();
     }
     
     private static AzureFirewallListResult testAzureFirewalls() {
@@ -110,11 +174,21 @@ public class DemoApplication {
         try {
             AzureResponse<AzureFirewallListResult> response = networkClient.listAllAzureFirewalls(subscriptionId);
             AzureFirewallListResult result = response.getBody();
-            
+
             System.out.println("Firewall Response Status: " + response.getStatusCode());
             System.out.println("Number of firewalls found: " + (result.value() != null ? result.value().size() : 0));
-            
+
             return result;
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("===========================\n");
+            return new AzureFirewallListResult(null, null);
         } catch (Exception e) {
             System.out.println("Error fetching Azure Firewalls: " + e.getMessage());
             return new AzureFirewallListResult(null, null);
@@ -126,11 +200,21 @@ public class DemoApplication {
         try {
             AzureResponse<VirtualNetworkListResult> response = networkClient.listAllVirtualNetworks(subscriptionId);
             VirtualNetworkListResult result = response.getBody();
-            
+
             System.out.println("VNet Response Status: " + response.getStatusCode());
             System.out.println("Number of virtual networks found: " + (result.value() != null ? result.value().size() : 0));
-            
+
             return result;
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("===========================\n");
+            return new VirtualNetworkListResult(null, null);
         } catch (Exception e) {
             System.out.println("Error fetching Virtual Networks: " + e.getMessage());
             return new VirtualNetworkListResult(null, null);
@@ -142,11 +226,21 @@ public class DemoApplication {
         try {
             AzureResponse<NetworkInterfaceListResult> response = networkClient.listAllNetworkInterfaces(subscriptionId);
             NetworkInterfaceListResult result = response.getBody();
-            
+
             System.out.println("NIC Response Status: " + response.getStatusCode());
             System.out.println("Number of network interfaces found: " + (result.value() != null ? result.value().size() : 0));
-            
+
             return result;
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("===========================\n");
+            return new NetworkInterfaceListResult(null, null);
         } catch (Exception e) {
             System.out.println("Error fetching Network Interfaces: " + e.getMessage());
             return new NetworkInterfaceListResult(null, null);
@@ -158,11 +252,21 @@ public class DemoApplication {
         try {
             AzureResponse<NetworkSecurityGroupListResult> response = networkClient.listAllNetworkSecurityGroups(subscriptionId);
             NetworkSecurityGroupListResult result = response.getBody();
-            
+
             System.out.println("NSG Response Status: " + response.getStatusCode());
             System.out.println("Number of network security groups found: " + (result.value() != null ? result.value().size() : 0));
-            
+
             return result;
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("===========================\n");
+            return new NetworkSecurityGroupListResult(null, null);
         } catch (Exception e) {
             System.out.println("Error fetching Network Security Groups: " + e.getMessage());
             return new NetworkSecurityGroupListResult(null, null);
@@ -183,14 +287,23 @@ public class DemoApplication {
             AzureResponse<NetworkSecurityGroup> response = networkClient.getNetworkSecurityGroups(
                 subscriptionId, resourceGroup, nsgName, null);
             NetworkSecurityGroup nsg = response.getBody();
-            
+
             System.out.println("Response Status: " + response.getStatusCode());
             if (nsg != null) {
                 showNSGDetails(nsg);
             } else {
                 System.out.println("NSG details: null response body");
             }
-            
+
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("===========================\n");
         } catch (Exception e) {
             System.out.println("Error fetching NSG '" + nsgName + "': " + e.getMessage());
         }
@@ -217,6 +330,16 @@ public class DemoApplication {
             System.out.println("Number of virtual machines found: " + (result.value() != null ? result.value().size() : 0));
 
             return result;
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("===========================\n");
+            return new VirtualMachineListResult(null, null);
         } catch (Exception e) {
             System.out.println("VM API call succeeded but encountered data model issue:");
             System.out.println("This demonstrates that the API version fix worked - we got valid data from Azure Compute API");
@@ -239,6 +362,16 @@ public class DemoApplication {
             System.out.println("Number of virtual machine scale sets found: " + (result.value() != null ? result.value().size() : 0));
 
             return result;
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("===========================\n");
+            return new VirtualMachineScaleSetListWithLinkResult(null, null);
         } catch (Exception e) {
             System.out.println("Error fetching Virtual Machine Scale Sets: " + e.getMessage());
             return new VirtualMachineScaleSetListWithLinkResult(null, null);
@@ -520,6 +653,12 @@ public class DemoApplication {
                         }
                     }
                 }
+            } catch (AzureServiceException e) {
+                System.err.println("  === AZURE SERVICE ERROR ===");
+                System.err.println("  HTTP Status Code: " + e.getStatusCode());
+                System.err.println("  Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+                System.err.println("  Error Message: " + e.getMessage());
+                System.err.println("  ===========================");
             } catch (Exception e) {
                 System.out.println("  Warning: Could not fetch NICs in bulk: " + e.getMessage());
             }
@@ -563,6 +702,15 @@ public class DemoApplication {
             } else {
                 System.out.println("  No VMs found in this scale set");
             }
+        } catch (AzureServiceException e) {
+            System.err.println("  === AZURE SERVICE ERROR ===");
+            System.err.println("  HTTP Status Code: " + e.getStatusCode());
+            System.err.println("  Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("  Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("  Response Body: " + e.getResponseBody());
+            }
+            System.err.println("  ===========================");
         } catch (Exception e) {
             System.out.println("  Error fetching VMs in scale set: " + e.getMessage());
         }
