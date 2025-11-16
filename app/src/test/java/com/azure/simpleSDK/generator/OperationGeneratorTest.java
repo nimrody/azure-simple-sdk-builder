@@ -90,7 +90,9 @@ class OperationGeneratorTest {
                             path,
                             method.toUpperCase(),
                             operationNode,
-                            responseSchemas
+                            responseSchemas,
+                            userSpec,
+                            "user.json"
                         ));
                     }
                 });

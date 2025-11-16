@@ -121,7 +121,7 @@ public class SpecLoader {
                           // Extract operations
                           JsonNode pathsNode = rootNode.get("paths");
                           if (pathsNode != null && pathsNode.isObject()) {
-                              extractOperations(pathsNode, operations);
+                              extractOperations(rootNode, pathsNode, operations, relativePath);
                           }
                           
                           // Extract definitions
@@ -172,7 +172,7 @@ public class SpecLoader {
      * @param pathsNode The 'paths' section from an OpenAPI specification
      * @param operations Map to populate with extracted operations (keyed by operationId)
      */
-    private void extractOperations(JsonNode pathsNode, Map<String, Operation> operations) {
+    private void extractOperations(JsonNode rootNode, JsonNode pathsNode, Map<String, Operation> operations, String sourceFile) {
         pathsNode.fieldNames().forEachRemaining(apiPath -> {
             JsonNode pathNode = pathsNode.get(apiPath);
             if (pathNode.isObject()) {
@@ -188,7 +188,9 @@ public class SpecLoader {
                                 apiPath,
                                 httpMethod.toUpperCase(),
                                 operationNode,
-                                responseSchemas
+                                responseSchemas,
+                                rootNode,
+                                sourceFile
                             );
                             operations.put(operationId, operation);
                         }
@@ -305,6 +307,16 @@ public class SpecLoader {
             "com.azure.simpleSDK.resources.models",
             "com.azure.simpleSDK.resources.client",
             "AzureResourcesClient"
+        ));
+        
+        serviceSpecs.put("authorization", new ServiceSpec(
+            "Authorization",
+            "azure-rest-api-specs/specification/authorization/resource-manager/Microsoft.Authorization/stable/2022-04-01/",
+            "sdk/src/main/java/com/azure/simpleSDK/authorization/models",
+            "sdk/src/main/java/com/azure/simpleSDK/authorization/client",
+            "com.azure.simpleSDK.authorization.models",
+            "com.azure.simpleSDK.authorization.client",
+            "AzureAuthorizationClient"
         ));
         
         // Generate SDK for each service

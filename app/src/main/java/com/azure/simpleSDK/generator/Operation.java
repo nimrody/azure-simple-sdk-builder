@@ -30,12 +30,16 @@ import java.util.Map;
  * @param httpMethod HTTP verb (GET, POST, PUT, DELETE, PATCH)
  * @param operationSpec Complete OpenAPI operation definition containing parameters, responses, etc.
  * @param responseSchemas Map of HTTP status codes to response schema names for type resolution
+ * @param documentRoot Root JsonNode of the OpenAPI document containing this operation
+ * @param sourceFile Relative path of the source specification file (from azure-rest-api-specs/)
  */
 public record Operation(
     String operationId,
     String apiPath,
     String httpMethod,
     JsonNode operationSpec,
-    Map<String, String> responseSchemas
+    Map<String, String> responseSchemas,
+    JsonNode documentRoot,
+    String sourceFile
 ) {
 }

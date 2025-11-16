@@ -11,3 +11,5 @@ sdk/src/main/java/com/azure/simpleSDK/compute/client/
 sdk/src/main/java/com/azure/simpleSDK/network/client/
 sdk/src/main/java/com/azure/simpleSDK/resources/client/
 sdk/src/main/java/com/azure/simpleSDK/resources/models/
+sdk/src/main/java/com/azure/simpleSDK/authorization/models/
+sdk/src/main/java/com/azure/simpleSDK/authorization/client/

@@ -1,5 +1,11 @@
 package com.azure.simpleSDK.demo;
 
+import com.azure.simpleSDK.authorization.client.AzureAuthorizationClient;
+import com.azure.simpleSDK.authorization.models.AuthorizationRoleDefinitionsCallsPermission;
+import com.azure.simpleSDK.authorization.models.RoleAssignment;
+import com.azure.simpleSDK.authorization.models.RoleAssignmentListResult;
+import com.azure.simpleSDK.authorization.models.RoleAssignmentProperties;
+import com.azure.simpleSDK.authorization.models.RoleDefinition;
 import com.azure.simpleSDK.compute.client.AzureComputeClient;
 import com.azure.simpleSDK.network.client.AzureNetworkClient;
 import com.azure.simpleSDK.http.AzureResponse;
@@ -31,16 +37,23 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.HashSet;
 
 public class DemoApplication {
     
     private static AzureNetworkClient networkClient;
     private static AzureComputeClient computeClient;
     private static AzureResourcesClient resourcesClient;
+    private static AzureAuthorizationClient authorizationClient;
     private static String subscriptionId;
+    private static String tenantId;
+    private static String principalObjectId;
     private static ServicePrincipalCredentials credentials;
     private static boolean strictMode;
     
@@ -49,7 +62,7 @@ public class DemoApplication {
             initializeClients(args);
             
             System.out.println("Fetching Azure Resources for subscription: " + subscriptionId);
-            System.out.println("Using separate Network and Compute SDK clients");
+            System.out.println("Using separate Network, Compute, Resources, and Authorization SDK clients");
             System.out.println("==========================================");
 
             listAvailableSubscriptions();
@@ -59,6 +72,9 @@ public class DemoApplication {
 
             // Test Compute resources
             testComputeResources();
+
+            // Inspect the service principal's permissions
+            testAuthorizationPermissions();
             
         } catch (Exception e) {
             System.err.println("Error occurred while fetching Azure resources:");
@@ -70,10 +86,11 @@ public class DemoApplication {
     private static void initializeClients(String[] args) throws IOException {
         // Load credentials from properties file
         Properties props = loadCredentials();
-        String tenantId = props.getProperty("azure.tenant-id");
+        tenantId = props.getProperty("azure.tenant-id");
         String clientId = props.getProperty("azure.client-id");
         String clientSecret = props.getProperty("azure.client-secret");
         subscriptionId = props.getProperty("azure.subscription-id");
+        principalObjectId = props.getProperty("azure.principal-object-id");
         
         if (tenantId == null || clientId == null || clientSecret == null || subscriptionId == null) {
             System.err.println("Missing required properties. Please ensure azure.properties contains:");
@@ -97,6 +114,7 @@ public class DemoApplication {
         networkClient = new AzureNetworkClient(credentials, strictMode);
         computeClient = new AzureComputeClient(credentials, strictMode);
         resourcesClient = new AzureResourcesClient(credentials, strictMode);
+        authorizationClient = new AzureAuthorizationClient(credentials, strictMode);
     }
 
     private static void listAvailableSubscriptions() {
@@ -435,6 +453,145 @@ public class DemoApplication {
             System.out.println("Error fetching Virtual Machine Scale Sets: " + e.getMessage());
             return new VirtualMachineScaleSetListWithLinkResult(null, null);
         }
+    }
+    
+    private static void testAuthorizationPermissions() {
+        System.out.println("\n=== AUTHORIZATION & PERMISSIONS ===");
+        if (authorizationClient == null) {
+            System.out.println("Authorization client is not initialized.");
+            return;
+        }
+
+        if (principalObjectId == null || principalObjectId.isBlank()) {
+            System.out.println("Skipping permission lookup because azure.principal-object-id is not configured.");
+            System.out.println("Add your service principal object ID to azure.properties to inspect exact permissions.");
+            return;
+        }
+
+        try {
+            String scope = "subscriptions/" + subscriptionId;
+            String filter = "principalId eq '" + principalObjectId + "'";
+
+            AzureResponse<RoleAssignmentListResult> response =
+                authorizationClient.listForScopeRoleAssignments(scope, filter, tenantId, null);
+
+            RoleAssignmentListResult body = response.getBody();
+            List<RoleAssignment> assignments = body != null && body.value() != null
+                ? body.value()
+                : Collections.emptyList();
+
+            System.out.println("Role assignment API Status: " + response.getStatusCode());
+            if (assignments.isEmpty()) {
+                System.out.println("No role assignments found for principalId " + principalObjectId + " at scope /" + scope);
+                if (body != null && body.nextLink() != null) {
+                    System.out.println("Additional role assignments available via nextLink: " + body.nextLink());
+                }
+                return;
+            }
+
+            System.out.println("Found " + assignments.size() + " role assignments for principalId " + principalObjectId);
+            Map<String, RoleDefinition> definitionCache = new HashMap<>();
+
+            for (RoleAssignment assignment : assignments) {
+                if (assignment == null || assignment.properties() == null) {
+                    continue;
+                }
+                RoleAssignmentProperties props = assignment.properties();
+                RoleDefinition definition = resolveRoleDefinition(props.roleDefinitionId(), definitionCache);
+                String roleName = definition != null && definition.properties() != null
+                    ? definition.properties().roleName()
+                    : "Unknown role";
+
+                System.out.println("\nRole Assignment: " + assignment.name());
+                System.out.println("  Role: " + roleName);
+                System.out.println("  Scope: " + props.scope());
+                System.out.println("  Principal Type: " + props.principalType());
+                if (definition != null && definition.properties() != null) {
+                    printPermissionSummary(definition.properties().permissions());
+                } else {
+                    System.out.println("  Permissions: Unable to load role definition");
+                }
+            }
+        } catch (AzureServiceException e) {
+            System.err.println("\n=== AZURE SERVICE ERROR (AUTHORIZATION) ===");
+            System.err.println("HTTP Status Code: " + e.getStatusCode());
+            System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
+            System.err.println("Error Message: " + e.getMessage());
+            if (e.getResponseBody() != null && !e.getResponseBody().isEmpty()) {
+                System.err.println("Response Body: " + e.getResponseBody());
+            }
+            System.err.println("==========================================\n");
+        } catch (AzureException e) {
+            System.err.println("Error fetching role assignments: " + e.getMessage());
+        }
+    }
+
+    private static RoleDefinition resolveRoleDefinition(String roleDefinitionId, Map<String, RoleDefinition> cache) throws AzureException {
+        if (roleDefinitionId == null || roleDefinitionId.isBlank()) {
+            return null;
+        }
+        if (cache.containsKey(roleDefinitionId)) {
+            return cache.get(roleDefinitionId);
+        }
+
+        String normalized = roleDefinitionId.startsWith("/") ? roleDefinitionId.substring(1) : roleDefinitionId;
+        String providerSegment = "/providers/Microsoft.Authorization/roleDefinitions/";
+        int segmentIndex = normalized.indexOf(providerSegment);
+        if (segmentIndex == -1) {
+            return null;
+        }
+
+        String scope = normalized.substring(0, segmentIndex);
+        if (scope.isEmpty()) {
+            return null;
+        }
+
+        String roleName = normalized.substring(segmentIndex + providerSegment.length());
+        if (roleName.isEmpty()) {
+            return null;
+        }
+
+        AzureResponse<RoleDefinition> response = authorizationClient.getRoleDefinitions(scope, roleName);
+        RoleDefinition definition = response.getBody();
+        cache.put(roleDefinitionId, definition);
+        return definition;
+    }
+
+    private static void printPermissionSummary(List<AuthorizationRoleDefinitionsCallsPermission> permissions) {
+        if (permissions == null || permissions.isEmpty()) {
+            System.out.println("  Permissions: None declared by this role.");
+            return;
+        }
+
+        int index = 1;
+        for (AuthorizationRoleDefinitionsCallsPermission permission : permissions) {
+            if (permission == null) {
+                continue;
+            }
+            System.out.println("  Permission Set " + index + ":");
+            System.out.println("    Actions: " + formatActionList(permission.actions()));
+            if (permission.notActions() != null && !permission.notActions().isEmpty()) {
+                System.out.println("    Not Actions: " + formatActionList(permission.notActions()));
+            }
+            if (permission.dataActions() != null && !permission.dataActions().isEmpty()) {
+                System.out.println("    Data Actions: " + formatActionList(permission.dataActions()));
+            }
+            if (permission.notDataActions() != null && !permission.notDataActions().isEmpty()) {
+                System.out.println("    Not Data Actions: " + formatActionList(permission.notDataActions()));
+            }
+            index++;
+        }
+    }
+
+    private static String formatActionList(List<String> actions) {
+        if (actions == null || actions.isEmpty()) {
+            return "None";
+        }
+        final int limit = 5;
+        if (actions.size() <= limit) {
+            return String.join(", ", actions);
+        }
+        return String.join(", ", actions.subList(0, limit)) + " ... (+" + (actions.size() - limit) + " more)";
     }
     
     // Display methods - extracted common display logic

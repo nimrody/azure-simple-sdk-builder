@@ -305,7 +305,9 @@ class GeneratorIntegrationTest {
                                     path,
                                     method.toUpperCase(),
                                     operationNode,
-                                    responseSchemas
+                                    responseSchemas,
+                                    spec,
+                                    filename
                                 ));
                             }
                         });

@@ -307,7 +307,11 @@ public class JavaDefinitionGenerator {
             String filename = definitionKey.filename();
             // Extract just the base filename without path and extension for prefixing
             String baseName = Paths.get(filename).getFileName().toString().replaceAll("\\.json$", "");
-            return capitalizeFirstLetter(baseName) + capitalizeFirstLetter(sanitizedName);
+            String sanitizedBaseName = sanitizeJavaClassName(baseName);
+            if (sanitizedBaseName == null || sanitizedBaseName.isEmpty()) {
+                sanitizedBaseName = "Model";
+            }
+            return capitalizeFirstLetter(sanitizedBaseName) + capitalizeFirstLetter(sanitizedName);
         }
         
         return capitalizeFirstLetter(sanitizedName);
@@ -449,9 +453,14 @@ public class JavaDefinitionGenerator {
         if (duplicateDefinitionNames.contains(definitionName)) {
             // Use just the base filename for class name prefixing
             String filename = Paths.get(targetFilePath).getFileName().toString().replace(".json", "");
-            return capitalizeFirstLetter(filename) + capitalizeFirstLetter(definitionName);
+            String sanitizedFilename = sanitizeJavaClassName(filename);
+            if (sanitizedFilename == null || sanitizedFilename.isEmpty()) {
+                sanitizedFilename = "Model";
+            }
+            String sanitizedDefinition = sanitizeJavaClassName(definitionName);
+            return capitalizeFirstLetter(sanitizedFilename) + capitalizeFirstLetter(sanitizedDefinition);
         } else {
-            return capitalizeFirstLetter(definitionName);
+            return capitalizeFirstLetter(sanitizeJavaClassName(definitionName));
         }
     }
     

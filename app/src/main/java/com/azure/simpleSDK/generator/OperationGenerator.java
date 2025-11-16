@@ -1,7 +1,9 @@
 package com.azure.simpleSDK.generator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,6 +46,18 @@ public class OperationGenerator {
     private final String clientClassName;
     /** Azure API version to use in requests */
     private final String apiVersion;
+    /** JSON reader used for loading referenced parameter files */
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    /** Cache of external parameter files to avoid reloading the same spec repeatedly */
+    private final Map<String, JsonNode> externalParameterFileCache = new HashMap<>();
+    /** Java reserved keywords for parameter sanitization */
+    private static final Set<String> JAVA_KEYWORDS = Set.of(
+        "abstract","assert","boolean","break","byte","case","catch","char","class","const","continue",
+        "default","do","double","else","enum","extends","false","final","finally","float","for","goto",
+        "if","implements","import","instanceof","int","interface","long","native","new","null","package",
+        "private","protected","public","return","short","static","strictfp","super","switch","synchronized",
+        "this","throw","throws","transient","true","try","void","volatile","while","record","var","yield"
+    );
 
     /**
      * Creates an OperationGenerator with default package names and settings.
@@ -178,8 +192,9 @@ public class OperationGenerator {
     private void generateOperationMethod(StringBuilder classContent, Operation operation) {
         String methodName = convertOperationIdToMethodName(operation.operationId());
         String returnType = getReturnType(operation);
-        List<Parameter> pathParams = extractPathParameters(operation.apiPath(), operation.operationSpec());
-        List<Parameter> queryParams = extractQueryParameters(operation.operationSpec());
+        Set<String> usedParamNames = new LinkedHashSet<>();
+        List<Parameter> pathParams = extractPathParameters(operation, usedParamNames);
+        List<Parameter> queryParams = extractQueryParameters(operation, usedParamNames);
         
         // Extract description from operation spec
         String description = extractDescription(operation.operationSpec());
@@ -197,7 +212,7 @@ public class OperationGenerator {
         
         for (int i = 0; i < allParams.size(); i++) {
             Parameter param = allParams.get(i);
-            classContent.append(param.javaType).append(" ").append(param.name);
+            classContent.append(param.javaType).append(" ").append(param.javaName);
             if (i < allParams.size() - 1) {
                 classContent.append(", ");
             }
@@ -208,7 +223,7 @@ public class OperationGenerator {
         // Method body
         String urlPath = operation.apiPath();
         for (Parameter param : pathParams) {
-            urlPath = urlPath.replace("{" + param.name + "}", "\" + " + param.name + " + \"");
+            urlPath = urlPath.replace("{" + param.originalName + "}", "\" + " + param.javaName + " + \"");
         }
         urlPath = "\"" + urlPath + "\"";
         
@@ -218,9 +233,7 @@ public class OperationGenerator {
         
         // Add query parameters
         for (Parameter param : queryParams) {
-            if (!param.name.equals("api-version")) {
-                classContent.append("\n                .queryParam(\"").append(param.name).append("\", ").append(param.name).append(")");
-            }
+            classContent.append("\n                .queryParam(\"").append(param.originalName).append("\", ").append(param.javaName).append(")");
         }
         
         classContent.append(";\n");
@@ -352,54 +365,210 @@ public class OperationGenerator {
         return name.replaceAll("\\.", "").replaceAll("[^a-zA-Z0-9_]", "");
     }
 
-    private List<Parameter> extractPathParameters(String apiPath, JsonNode operationSpec) {
+    private List<Parameter> extractPathParameters(Operation operation, Set<String> usedNames) {
+        return extractParameters(operation, "path", usedNames);
+    }
+
+    private List<Parameter> extractQueryParameters(Operation operation, Set<String> usedNames) {
+        return extractParameters(operation, "query", usedNames);
+    }
+
+    private List<Parameter> extractParameters(Operation operation, String location, Set<String> usedNames) {
         List<Parameter> params = new ArrayList<>();
-        Pattern pathParamPattern = Pattern.compile("\\{([^}]+)\\}");
-        java.util.regex.Matcher matcher = pathParamPattern.matcher(apiPath);
+        JsonNode parametersNode = operation.operationSpec().get("parameters");
         
-        while (matcher.find()) {
-            String paramName = matcher.group(1);
-            params.add(new Parameter(paramName, "String", true));
+        if (parametersNode == null || !parametersNode.isArray()) {
+            return params;
+        }
+        
+        for (JsonNode rawParamNode : parametersNode) {
+            JsonNode paramNode = resolveParameterNode(operation, rawParamNode);
+            if (paramNode == null || paramNode.isMissingNode()) {
+                continue;
+            }
+            
+            JsonNode inNode = paramNode.get("in");
+            if (inNode == null || !location.equals(inNode.asText())) {
+                continue;
+            }
+            
+            JsonNode nameNode = paramNode.get("name");
+            if (nameNode == null) {
+                continue;
+            }
+            
+            String originalName = nameNode.asText();
+            if ("query".equals(location) && "api-version".equalsIgnoreCase(originalName)) {
+                continue; // API version handled separately
+            }
+            
+            String javaName = makeUniqueParameterName(sanitizeParameterName(originalName), usedNames);
+            boolean required = paramNode.has("required") && paramNode.get("required").asBoolean();
+            if ("path".equals(location)) {
+                required = true; // Path parameters are always required by specification
+            }
+            
+            String description = "Parameter " + originalName;
+            JsonNode descriptionNode = paramNode.get("description");
+            if (descriptionNode != null && descriptionNode.isTextual()) {
+                description = descriptionNode.asText();
+            }
+            
+            params.add(new Parameter(
+                originalName,
+                javaName,
+                "String",
+                required,
+                "query".equals(location) ? ParameterLocation.QUERY : ParameterLocation.PATH,
+                description
+            ));
         }
         
         return params;
     }
 
-    private List<Parameter> extractQueryParameters(JsonNode operationSpec) {
-        List<Parameter> params = new ArrayList<>();
-        JsonNode parametersNode = operationSpec.get("parameters");
-        
-        if (parametersNode != null && parametersNode.isArray()) {
-            for (JsonNode paramNode : parametersNode) {
-                JsonNode inNode = paramNode.get("in");
-                if (inNode != null && "query".equals(inNode.asText())) {
-                    JsonNode nameNode = paramNode.get("name");
-                    JsonNode requiredNode = paramNode.get("required");
-                    
-                    if (nameNode != null && !nameNode.asText().equals("api-version")) {
-                        String paramName = nameNode.asText();
-                        boolean required = requiredNode != null && requiredNode.asBoolean();
-                        params.add(new Parameter(paramName, "String", required));
-                    }
-                }
-            }
-        }
-        
-        return params;
+    private enum ParameterLocation {
+        PATH,
+        QUERY
     }
 
     private static class Parameter {
-        final String name;
+        final String originalName;
+        final String javaName;
         final String javaType;
         final boolean required;
+        final ParameterLocation location;
+        final String description;
 
-        Parameter(String name, String javaType, boolean required) {
-            this.name = name;
+        Parameter(String originalName, String javaName, String javaType, boolean required,
+                  ParameterLocation location, String description) {
+            this.originalName = originalName;
+            this.javaName = javaName;
             this.javaType = javaType;
             this.required = required;
+            this.location = location;
+            this.description = description;
         }
     }
-    
+
+    private JsonNode resolveParameterNode(Operation operation, JsonNode paramNode) {
+        if (paramNode == null) {
+            return null;
+        }
+        JsonNode refNode = paramNode.get("$ref");
+        if (refNode != null && refNode.isTextual()) {
+            return resolveParameterReference(operation, refNode.asText());
+        }
+        return paramNode;
+    }
+
+    private JsonNode resolveParameterReference(Operation operation, String reference) {
+        if (reference == null || reference.isEmpty()) {
+            return null;
+        }
+        if (reference.startsWith("#/")) {
+            JsonNode root = operation.documentRoot();
+            if (root == null) {
+                return null;
+            }
+            String pointer = reference.substring(1);
+            if (!pointer.startsWith("/")) {
+                pointer = "/" + pointer;
+            }
+            return root.at(pointer);
+        }
+
+        int hashIndex = reference.indexOf("#/");
+        String pointer = hashIndex >= 0 ? reference.substring(hashIndex + 1) : "";
+        String filePath = hashIndex >= 0 ? reference.substring(0, hashIndex) : reference;
+        JsonNode externalRoot = loadExternalSpecification(operation, filePath);
+        if (externalRoot == null) {
+            return null;
+        }
+        if (pointer.isEmpty()) {
+            return externalRoot;
+        }
+        if (!pointer.startsWith("/")) {
+            pointer = "/" + pointer;
+        }
+        return externalRoot.at(pointer);
+    }
+
+    private JsonNode loadExternalSpecification(Operation operation, String relativePath) {
+        if (relativePath == null || relativePath.isEmpty()) {
+            return null;
+        }
+        try {
+            Path specsRoot = Paths.get("azure-rest-api-specs");
+            Path currentFile = operation.sourceFile() != null
+                ? specsRoot.resolve(operation.sourceFile()).normalize()
+                : null;
+            Path baseDir = currentFile != null ? currentFile.getParent() : specsRoot;
+            Path resolvedPath = baseDir.resolve(relativePath).normalize();
+            String cacheKey = resolvedPath.toString();
+            if (externalParameterFileCache.containsKey(cacheKey)) {
+                return externalParameterFileCache.get(cacheKey);
+            }
+            if (!Files.exists(resolvedPath)) {
+                System.err.println("Warning: Referenced parameter file not found: " + resolvedPath);
+                externalParameterFileCache.put(cacheKey, null);
+                return null;
+            }
+            try (InputStream inputStream = Files.newInputStream(resolvedPath)) {
+                JsonNode parsed = objectMapper.readTree(inputStream);
+                externalParameterFileCache.put(cacheKey, parsed);
+                return parsed;
+            }
+        } catch (IOException e) {
+            System.err.println("Warning: Failed to load referenced parameter file '" + relativePath + "': " + e.getMessage());
+            return null;
+        }
+    }
+
+    private String sanitizeParameterName(String originalName) {
+        if (originalName == null || originalName.isEmpty()) {
+            return "param";
+        }
+        String sanitized = originalName.replaceAll("^\\$+", "");
+        if (sanitized.isEmpty()) {
+            sanitized = originalName;
+        }
+        sanitized = sanitized.replaceAll("[^a-zA-Z0-9_]", "_");
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < sanitized.length(); i++) {
+            char c = sanitized.charAt(i);
+            if (i == 0) {
+                if (Character.isJavaIdentifierStart(c)) {
+                    builder.append(c);
+                } else {
+                    builder.append('_');
+                    if (Character.isJavaIdentifierPart(c)) {
+                        builder.append(c);
+                    }
+                }
+            } else {
+                builder.append(Character.isJavaIdentifierPart(c) ? c : '_');
+            }
+        }
+        String candidate = builder.length() > 0 ? builder.toString() : "param";
+        if (JAVA_KEYWORDS.contains(candidate)) {
+            candidate = candidate + "Param";
+        }
+        return candidate;
+    }
+
+    private String makeUniqueParameterName(String desiredName, Set<String> usedNames) {
+        String baseName = (desiredName == null || desiredName.isBlank()) ? "param" : desiredName;
+        String candidate = baseName;
+        int counter = 2;
+        while (usedNames.contains(candidate)) {
+            candidate = baseName + counter;
+            counter++;
+        }
+        usedNames.add(candidate);
+        return candidate;
+    }
+
     private String extractDescription(JsonNode operationSpec) {
         JsonNode descriptionNode = operationSpec.get("description");
         if (descriptionNode != null && descriptionNode.isTextual()) {
@@ -427,30 +596,13 @@ public class OperationGenerator {
         allParams.addAll(queryParams);
         
         for (Parameter param : allParams) {
-            String paramDescription = extractParameterDescription(operation.operationSpec(), param.name);
-            classContent.append("     * @param ").append(param.name).append(" ").append(escapeJavadoc(paramDescription)).append("\n");
+            classContent.append("     * @param ").append(param.javaName).append(" ").append(escapeJavadoc(param.description)).append("\n");
         }
         
         // Return value
         classContent.append("     * @return AzureResponse containing the operation result\n");
         classContent.append("     * @throws AzureException if the request fails\n");
         classContent.append("     */\n");
-    }
-    
-    private String extractParameterDescription(JsonNode operationSpec, String parameterName) {
-        JsonNode parametersNode = operationSpec.get("parameters");
-        if (parametersNode != null && parametersNode.isArray()) {
-            for (JsonNode paramNode : parametersNode) {
-                JsonNode nameNode = paramNode.get("name");
-                if (nameNode != null && nameNode.asText().equals(parameterName)) {
-                    JsonNode descNode = paramNode.get("description");
-                    if (descNode != null && descNode.isTextual()) {
-                        return descNode.asText();
-                    }
-                }
-            }
-        }
-        return "Parameter " + parameterName;
     }
     
     private String escapeJavadoc(String text) {
