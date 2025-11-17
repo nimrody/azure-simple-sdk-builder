@@ -32,11 +32,18 @@ import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetListWithLinkResu
 import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetVM;
 import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetVMListResult;
 import com.azure.simpleSDK.compute.models.OrchestrationMode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,12 +54,17 @@ import java.util.Set;
 
 public class DemoApplication {
     
+    private static final Duration GRAPH_REQUEST_TIMEOUT = Duration.ofSeconds(30);
+    private static final String GRAPH_SCOPE = "https://graph.microsoft.com/.default";
+    private static final String GRAPH_SP_ENDPOINT = "https://graph.microsoft.com/v1.0/servicePrincipals";
+    
     private static AzureNetworkClient networkClient;
     private static AzureComputeClient computeClient;
     private static AzureResourcesClient resourcesClient;
     private static AzureAuthorizationClient authorizationClient;
     private static String subscriptionId;
     private static String tenantId;
+    private static String clientId;
     private static String principalObjectId;
     private static ServicePrincipalCredentials credentials;
     private static boolean strictMode;
@@ -65,6 +77,7 @@ public class DemoApplication {
             System.out.println("Using separate Network, Compute, Resources, and Authorization SDK clients");
             System.out.println("==========================================");
 
+            showServicePrincipalSummary();
             listAvailableSubscriptions();
 
             // Test Network resources
@@ -87,10 +100,21 @@ public class DemoApplication {
         // Load credentials from properties file
         Properties props = loadCredentials();
         tenantId = props.getProperty("azure.tenant-id");
-        String clientId = props.getProperty("azure.client-id");
+        clientId = props.getProperty("azure.client-id");
         String clientSecret = props.getProperty("azure.client-secret");
         subscriptionId = props.getProperty("azure.subscription-id");
         principalObjectId = props.getProperty("azure.principal-object-id");
+        if (principalObjectId == null || principalObjectId.isBlank()) {
+            principalObjectId = resolvePrincipalObjectId(clientId, clientSecret);
+            if (principalObjectId == null || principalObjectId.isBlank()) {
+                System.out.println("Unable to automatically determine service principal object ID. "
+                    + "Add azure.principal-object-id to azure.properties for complete authorization results.");
+            } else {
+                System.out.println("Resolved service principal object ID via Microsoft Graph: " + principalObjectId);
+            }
+        } else {
+            System.out.println("Using service principal object ID from configuration: " + principalObjectId);
+        }
         
         if (tenantId == null || clientId == null || clientSecret == null || subscriptionId == null) {
             System.err.println("Missing required properties. Please ensure azure.properties contains:");
@@ -115,6 +139,64 @@ public class DemoApplication {
         computeClient = new AzureComputeClient(credentials, strictMode);
         resourcesClient = new AzureResourcesClient(credentials, strictMode);
         authorizationClient = new AzureAuthorizationClient(credentials, strictMode);
+    }
+
+    private static String resolvePrincipalObjectId(String clientId, String clientSecret) {
+        System.out.println("\nAttempting to resolve the service principal object ID via Microsoft Graph...");
+        try {
+            ServicePrincipalCredentials graphCredentials =
+                new ServicePrincipalCredentials(clientId, clientSecret, tenantId, GRAPH_SCOPE);
+            String accessToken = graphCredentials.getAccessToken();
+
+            String filter = URLEncoder.encode("appId eq '" + clientId + "'", StandardCharsets.UTF_8);
+            String url = GRAPH_SP_ENDPOINT + "?$filter=" + filter;
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(GRAPH_REQUEST_TIMEOUT)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+            HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(GRAPH_REQUEST_TIMEOUT)
+                .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                System.out.println("Microsoft Graph request failed with status " + response.statusCode());
+                System.out.println("Response body: " + response.body());
+                return null;
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            GraphServicePrincipalResponse principalResponse =
+                mapper.readValue(response.body(), GraphServicePrincipalResponse.class);
+
+            if (principalResponse.value() == null || principalResponse.value().isEmpty()) {
+                System.out.println("Microsoft Graph did not return any service principals for appId " + clientId);
+                return null;
+            }
+
+            GraphServicePrincipal principal = principalResponse.value().get(0);
+            System.out.println("Microsoft Graph display name: " + principal.displayName());
+            return principal.id();
+        } catch (Exception e) {
+            System.out.println("Failed to query Microsoft Graph for service principal details: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private static void showServicePrincipalSummary() {
+        System.out.println("\n=== SERVICE PRINCIPAL INFORMATION ===");
+        System.out.println("Tenant ID: " + (tenantId != null ? tenantId : "Unknown"));
+        System.out.println("Client ID: " + (clientId != null ? clientId : "Unknown"));
+        if (principalObjectId != null && !principalObjectId.isBlank()) {
+            System.out.println("Resolved Object ID: " + principalObjectId);
+        } else {
+            System.out.println("Resolved Object ID: Not available (Graph lookup failed or permissions missing)");
+        }
     }
 
     private static void listAvailableSubscriptions() {
@@ -1028,4 +1110,17 @@ public class DemoApplication {
         return "Unknown";
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record GraphServicePrincipalResponse(
+        List<GraphServicePrincipal> value
+    ) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record GraphServicePrincipal(
+        String id,
+        String appId,
+        String displayName
+    ) {
+    }
 }
