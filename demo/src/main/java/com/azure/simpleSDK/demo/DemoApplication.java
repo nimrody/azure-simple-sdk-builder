@@ -7,43 +7,36 @@ import com.azure.simpleSDK.authorization.models.RoleAssignmentListResult;
 import com.azure.simpleSDK.authorization.models.RoleAssignmentProperties;
 import com.azure.simpleSDK.authorization.models.RoleDefinition;
 import com.azure.simpleSDK.compute.client.AzureComputeClient;
-import com.azure.simpleSDK.network.client.AzureNetworkClient;
-import com.azure.simpleSDK.http.AzureResponse;
-import com.azure.simpleSDK.http.auth.ServicePrincipalCredentials;
-import com.azure.simpleSDK.http.exceptions.AzureException;
-import com.azure.simpleSDK.http.exceptions.AzureServiceException;
-import com.azure.simpleSDK.resources.client.AzureResourcesClient;
-import com.azure.simpleSDK.resources.models.Subscription;
-import com.azure.simpleSDK.resources.models.SubscriptionListResult;
-import com.azure.simpleSDK.network.models.AzureFirewall;
-import com.azure.simpleSDK.network.models.AzureFirewallListResult;
-import com.azure.simpleSDK.network.models.VirtualNetwork;
-import com.azure.simpleSDK.network.models.VirtualNetworkListResult;
-import com.azure.simpleSDK.network.models.NetworkInterface;
-import com.azure.simpleSDK.network.models.NetworkInterfaceListResult;
-import com.azure.simpleSDK.network.models.NetworkSecurityGroup;
-import com.azure.simpleSDK.network.models.NetworkSecurityGroupListResult;
-import com.azure.simpleSDK.network.models.NetworkInterfacePropertiesFormat;
-import com.azure.simpleSDK.network.models.NetworkSecurityGroupPropertiesFormat;
+import com.azure.simpleSDK.compute.models.OrchestrationMode;
 import com.azure.simpleSDK.compute.models.VirtualMachine;
 import com.azure.simpleSDK.compute.models.VirtualMachineListResult;
 import com.azure.simpleSDK.compute.models.VirtualMachineScaleSet;
 import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetListWithLinkResult;
 import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetVM;
 import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetVMListResult;
-import com.azure.simpleSDK.compute.models.OrchestrationMode;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.azure.simpleSDK.graph.client.MicrosoftGraphClient;
+import com.azure.simpleSDK.graph.models.GraphAppRoleAssignment;
+import com.azure.simpleSDK.graph.models.GraphServicePrincipal;
+import com.azure.simpleSDK.http.AzureResponse;
+import com.azure.simpleSDK.http.auth.ServicePrincipalCredentials;
+import com.azure.simpleSDK.http.exceptions.AzureException;
+import com.azure.simpleSDK.http.exceptions.AzureServiceException;
+import com.azure.simpleSDK.network.client.AzureNetworkClient;
+import com.azure.simpleSDK.network.models.AzureFirewall;
+import com.azure.simpleSDK.network.models.AzureFirewallListResult;
+import com.azure.simpleSDK.network.models.NetworkInterface;
+import com.azure.simpleSDK.network.models.NetworkInterfaceListResult;
+import com.azure.simpleSDK.network.models.NetworkInterfacePropertiesFormat;
+import com.azure.simpleSDK.network.models.NetworkSecurityGroup;
+import com.azure.simpleSDK.network.models.NetworkSecurityGroupListResult;
+import com.azure.simpleSDK.network.models.NetworkSecurityGroupPropertiesFormat;
+import com.azure.simpleSDK.network.models.VirtualNetwork;
+import com.azure.simpleSDK.network.models.VirtualNetworkListResult;
+import com.azure.simpleSDK.resources.client.AzureResourcesClient;
+import com.azure.simpleSDK.resources.models.Subscription;
+import com.azure.simpleSDK.resources.models.SubscriptionListResult;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,14 +47,11 @@ import java.util.Set;
 
 public class DemoApplication {
     
-    private static final Duration GRAPH_REQUEST_TIMEOUT = Duration.ofSeconds(30);
-    private static final String GRAPH_SCOPE = "https://graph.microsoft.com/.default";
-    private static final String GRAPH_SP_ENDPOINT = "https://graph.microsoft.com/v1.0/servicePrincipals";
-    
     private static AzureNetworkClient networkClient;
     private static AzureComputeClient computeClient;
     private static AzureResourcesClient resourcesClient;
     private static AzureAuthorizationClient authorizationClient;
+    private static MicrosoftGraphClient graphClient;
     private static String subscriptionId;
     private static String tenantId;
     private static String clientId;
@@ -104,8 +94,20 @@ public class DemoApplication {
         String clientSecret = props.getProperty("azure.client-secret");
         subscriptionId = props.getProperty("azure.subscription-id");
         principalObjectId = props.getProperty("azure.principal-object-id");
+
+        if (tenantId == null || clientId == null || clientSecret == null || subscriptionId == null) {
+            System.err.println("Missing required properties. Please ensure azure.properties contains:");
+            System.err.println("azure.tenant-id=<your-tenant-id>");
+            System.err.println("azure.client-id=<your-client-id>");
+            System.err.println("azure.client-secret=<your-client-secret>");
+            System.err.println("azure.subscription-id=<your-subscription-id>");
+            System.exit(1);
+        }
+
+        graphClient = new MicrosoftGraphClient(clientId, clientSecret, tenantId);
+
         if (principalObjectId == null || principalObjectId.isBlank()) {
-            principalObjectId = resolvePrincipalObjectId(clientId, clientSecret);
+            principalObjectId = resolvePrincipalObjectId(clientId);
             if (principalObjectId == null || principalObjectId.isBlank()) {
                 System.out.println("Unable to automatically determine service principal object ID. "
                     + "Add azure.principal-object-id to azure.properties for complete authorization results.");
@@ -114,15 +116,6 @@ public class DemoApplication {
             }
         } else {
             System.out.println("Using service principal object ID from configuration: " + principalObjectId);
-        }
-        
-        if (tenantId == null || clientId == null || clientSecret == null || subscriptionId == null) {
-            System.err.println("Missing required properties. Please ensure azure.properties contains:");
-            System.err.println("azure.tenant-id=<your-tenant-id>");
-            System.err.println("azure.client-id=<your-client-id>");
-            System.err.println("azure.client-secret=<your-client-secret>");
-            System.err.println("azure.subscription-id=<your-subscription-id>");
-            System.exit(1);
         }
         
         // Create credentials
@@ -141,48 +134,17 @@ public class DemoApplication {
         authorizationClient = new AzureAuthorizationClient(credentials, strictMode);
     }
 
-    private static String resolvePrincipalObjectId(String clientId, String clientSecret) {
+    private static String resolvePrincipalObjectId(String clientId) {
         System.out.println("\nAttempting to resolve the service principal object ID via Microsoft Graph...");
+        if (graphClient == null) {
+            System.out.println("Microsoft Graph client is not available; cannot resolve object ID.");
+            return null;
+        }
         try {
-            ServicePrincipalCredentials graphCredentials =
-                new ServicePrincipalCredentials(clientId, clientSecret, tenantId, GRAPH_SCOPE);
-            String accessToken = graphCredentials.getAccessToken();
-
-            String filter = URLEncoder.encode("appId eq '" + clientId + "'", StandardCharsets.UTF_8);
-            String url = GRAPH_SP_ENDPOINT + "?$filter=" + filter;
-
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(GRAPH_REQUEST_TIMEOUT)
-                .header("Authorization", "Bearer " + accessToken)
-                .header("Accept", "application/json")
-                .GET()
-                .build();
-
-            HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(GRAPH_REQUEST_TIMEOUT)
-                .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                System.out.println("Microsoft Graph request failed with status " + response.statusCode());
-                System.out.println("Response body: " + response.body());
-                return null;
-            }
-
-            ObjectMapper mapper = new ObjectMapper();
-            GraphServicePrincipalResponse principalResponse =
-                mapper.readValue(response.body(), GraphServicePrincipalResponse.class);
-
-            if (principalResponse.value() == null || principalResponse.value().isEmpty()) {
-                System.out.println("Microsoft Graph did not return any service principals for appId " + clientId);
-                return null;
-            }
-
-            GraphServicePrincipal principal = principalResponse.value().get(0);
+            GraphServicePrincipal principal = graphClient.resolveServicePrincipalByAppId(clientId);
             System.out.println("Microsoft Graph display name: " + principal.displayName());
             return principal.id();
-        } catch (Exception e) {
+        } catch (AzureException e) {
             System.out.println("Failed to query Microsoft Graph for service principal details: " + e.getMessage());
             return null;
         }
@@ -594,6 +556,8 @@ public class DemoApplication {
                     System.out.println("  Permissions: Unable to load role definition");
                 }
             }
+
+            listGraphAppRoleAssignments();
         } catch (AzureServiceException e) {
             System.err.println("\n=== AZURE SERVICE ERROR (AUTHORIZATION) ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
@@ -605,6 +569,39 @@ public class DemoApplication {
             System.err.println("==========================================\n");
         } catch (AzureException e) {
             System.err.println("Error fetching role assignments: " + e.getMessage());
+        }
+    }
+
+    private static void listGraphAppRoleAssignments() {
+        if (graphClient == null) {
+            System.out.println("\nMicrosoft Graph client is not initialized; skipping Graph permission lookup.");
+            return;
+        }
+
+        if (principalObjectId == null || principalObjectId.isBlank()) {
+            System.out.println("\nCannot query Microsoft Graph permissions without a service principal object ID.");
+            return;
+        }
+
+        try {
+            List<GraphAppRoleAssignment> assignments = graphClient.listAvailablePermissions(principalObjectId);
+            if (assignments.isEmpty()) {
+                System.out.println("\nMicrosoft Graph reports no application permissions for this service principal.");
+                return;
+            }
+
+            System.out.println("\n--- Microsoft Graph Application Permissions ---");
+            for (GraphAppRoleAssignment assignment : assignments) {
+                if (assignment == null) {
+                    continue;
+                }
+                System.out.println("Resource: " + assignment.resourceDisplayName());
+                System.out.println("  Resource ID: " + assignment.resourceId());
+                System.out.println("  App Role ID: " + assignment.appRoleId());
+                System.out.println("  Principal Display Name: " + assignment.principalDisplayName());
+            }
+        } catch (AzureException e) {
+            System.out.println("Failed to fetch Microsoft Graph permissions: " + e.getMessage());
         }
     }
 
@@ -1110,17 +1107,4 @@ public class DemoApplication {
         return "Unknown";
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record GraphServicePrincipalResponse(
-        List<GraphServicePrincipal> value
-    ) {
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record GraphServicePrincipal(
-        String id,
-        String appId,
-        String displayName
-    ) {
-    }
 }
