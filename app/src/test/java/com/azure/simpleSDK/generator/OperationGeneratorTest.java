@@ -217,6 +217,18 @@ class OperationGeneratorTest {
     }
     
     @Test
+    @DisplayName("Should order path parameters to match URL placeholders")
+    void testPathParameterOrderMatchesUrl() throws IOException {
+        Path clientFile = tempDir.resolve("AzureSimpleSDKClient.java");
+        
+        generator.generateAzureClient(tempDir.toString());
+        String generatedContent = Files.readString(clientFile);
+        
+        assertThat(generatedContent)
+            .contains("AzureResponse<User> getTenantScopedUsers(String tenantId, String userId, String subscriptionId) throws AzureException");
+    }
+    
+    @Test
     @DisplayName("Should convert operation IDs to proper Java method names")
     void testOperationIdToMethodNameConversion() throws IOException {
         Path clientFile = tempDir.resolve("AzureSimpleSDKClient.java");
@@ -315,7 +327,7 @@ class OperationGeneratorTest {
             .filter(line -> !line.contains("AzureSimpleSDKClient(")) // Exclude constructor
             .count();
         
-        assertThat(methodCount).isEqualTo(3); // Three GET operations from test data
+        assertThat(methodCount).isEqualTo(4); // Four GET operations from test data
     }
     
     private String extractMethodContent(String content, String methodName) {

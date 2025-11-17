@@ -171,6 +171,43 @@
           }
         }
       }
+    },
+    "/tenants/{tenantId}/users/{userId}/subscriptions/{subscriptionId}": {
+      "get": {
+        "operationId": "TenantScopedUsers_Get",
+        "description": "Gets a user scoped to a specific tenant and subscription. Parameters intentionally reordered to test generator behavior.",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "The ID of the user."
+          },
+          {
+            "name": "subscriptionId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Subscription identifier."
+          },
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Tenant identifier."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
     }
   }
 }

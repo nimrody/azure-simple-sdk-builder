@@ -517,7 +517,7 @@ public class DemoApplication {
             String filter = "principalId eq '" + principalObjectId + "'";
 
             AzureResponse<RoleAssignmentListResult> response =
-                authorizationClient.listForScopeRoleAssignments(scope, filter, tenantId, null);
+                authorizationClient.listForScopeRoleAssignments(scope, filter, null, null);
 
             RoleAssignmentListResult body = response.getBody();
             List<RoleAssignment> assignments = body != null && body.value() != null

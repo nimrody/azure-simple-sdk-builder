@@ -6,7 +6,9 @@ import com.azure.simpleSDK.http.exceptions.AzureException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -147,11 +149,21 @@ public class AzureRequest {
             if (!first) {
                 urlBuilder.append("&");
             }
-            urlBuilder.append(param.getKey()).append("=").append(param.getValue());
+            urlBuilder.append(param.getKey())
+                .append("=")
+                .append(encodeQueryValue(param.getValue()));
             first = false;
         }
         
         return urlBuilder.toString();
+    }
+
+    private String encodeQueryValue(String value) {
+        if (value == null) {
+            return "";
+        }
+        String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8);
+        return encoded.replace("+", "%20");
     }
 
     private void addAuthenticationHeader() throws AzureAuthenticationException {

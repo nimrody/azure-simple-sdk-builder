@@ -58,6 +58,8 @@ public class OperationGenerator {
         "private","protected","public","return","short","static","strictfp","super","switch","synchronized",
         "this","throw","throws","transient","true","try","void","volatile","while","record","var","yield"
     );
+    /** Pattern used to detect path parameters like {subscriptionId} */
+    private static final Pattern PATH_PARAMETER_PATTERN = Pattern.compile("\\{([^}]+)\\}");
 
     /**
      * Creates an OperationGenerator with default package names and settings.
@@ -193,7 +195,8 @@ public class OperationGenerator {
         String methodName = convertOperationIdToMethodName(operation.operationId());
         String returnType = getReturnType(operation);
         Set<String> usedParamNames = new LinkedHashSet<>();
-        List<Parameter> pathParams = extractPathParameters(operation, usedParamNames);
+        List<Parameter> rawPathParams = extractPathParameters(operation, usedParamNames);
+        List<Parameter> pathParams = orderPathParametersByPath(operation.apiPath(), rawPathParams);
         List<Parameter> queryParams = extractQueryParameters(operation, usedParamNames);
         
         // Extract description from operation spec
@@ -371,6 +374,34 @@ public class OperationGenerator {
 
     private List<Parameter> extractQueryParameters(Operation operation, Set<String> usedNames) {
         return extractParameters(operation, "query", usedNames);
+    }
+
+    private List<Parameter> orderPathParametersByPath(String apiPath, List<Parameter> pathParams) {
+        if (apiPath == null || apiPath.isBlank() || pathParams == null || pathParams.size() <= 1) {
+            return pathParams;
+        }
+        List<Parameter> ordered = new ArrayList<>();
+        Set<Parameter> added = new HashSet<>();
+        java.util.regex.Matcher matcher = PATH_PARAMETER_PATTERN.matcher(apiPath);
+        while (matcher.find()) {
+            String placeholder = matcher.group(1);
+            for (Parameter param : pathParams) {
+                if (!added.contains(param) && placeholder.equals(param.originalName)) {
+                    ordered.add(param);
+                    added.add(param);
+                    break;
+                }
+            }
+        }
+        if (added.size() == pathParams.size()) {
+            return ordered;
+        }
+        for (Parameter param : pathParams) {
+            if (!added.contains(param)) {
+                ordered.add(param);
+            }
+        }
+        return ordered;
     }
 
     private List<Parameter> extractParameters(Operation operation, String location, Set<String> usedNames) {
