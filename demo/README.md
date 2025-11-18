@@ -40,6 +40,10 @@ From the project root directory:
 # Run in strict mode (fails on unknown properties with detailed logging)
 ./gradlew :demo:run -Dstrict=true
 
+# Record or play back HTTP traffic without changing code
+./gradlew :demo:run --args="--mode record --recordings-dir recordings/demo"
+./gradlew :demo:run --args="--mode play --recordings-dir recordings/demo"
+
 # Or build and run manually
 ./gradlew :demo:build
 cd demo
@@ -73,6 +77,23 @@ java -Dstrict=true -jar build/libs/demo.jar  # strict mode
   - Target class and reference chain
   - Raw JSON response excerpt
 - Useful for SDK development and model validation
+
+### HTTP Recording Modes (`--mode`)
+- `--mode live` (default) – execute real Azure requests.
+- `--mode record` – issue live requests and write the responses under `--recordings-dir <path>`.
+- `--mode play` – read the previously recorded responses and avoid all network calls. Combine with `-Dstrict=true` for deterministic regression tests.
+
+Example:
+
+```bash
+./gradlew :demo:run --args="--mode record --recordings-dir recordings/demo/firewalls"
+./gradlew :demo:run --args="--mode play --recordings-dir recordings/demo/firewalls" -Dstrict=true
+```
+
+**Recommended regression loop**
+1. Run the demo in record mode with real credentials to collect fixtures for every call that matters to your tests.
+2. Commit the `recordings/` directory (after sanitizing secrets) alongside `azure.properties` configured for the canned subscription.
+3. In CI execute the demo in `--mode play` so failures signal SDK regressions instead of Azure availability issues.
 
 ## Sample Output
 

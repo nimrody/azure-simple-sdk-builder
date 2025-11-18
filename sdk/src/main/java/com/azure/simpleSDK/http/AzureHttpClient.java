@@ -4,6 +4,7 @@ import com.azure.simpleSDK.http.auth.AzureCredentials;
 import com.azure.simpleSDK.http.exceptions.*;
 import com.azure.simpleSDK.http.retry.ExponentialBackoffStrategy;
 import com.azure.simpleSDK.http.retry.RetryPolicy;
+import com.azure.simpleSDK.http.recording.HttpInteractionRecorder;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,18 +18,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 
 public class AzureHttpClient {
     private static final String AZURE_MANAGEMENT_BASE_URL = "https://management.azure.com";
+    private static volatile HttpInteractionRecorder globalRecorder;
     
     private final HttpClient httpClient;
     private final AzureCredentials credentials;
@@ -36,23 +36,45 @@ public class AzureHttpClient {
     private final RetryPolicy retryPolicy;
     private final ExponentialBackoffStrategy backoffStrategy;
     private final boolean failOnUnknownProperties;
+    private final HttpInteractionRecorder recorder;
+
+    public static void setGlobalRecorder(HttpInteractionRecorder recorder) {
+        globalRecorder = recorder;
+    }
 
     public AzureHttpClient(AzureCredentials credentials) {
-        this(credentials, RetryPolicy.DEFAULT, false);
+        this(credentials, RetryPolicy.DEFAULT, false, null);
     }
 
     public AzureHttpClient(AzureCredentials credentials, RetryPolicy retryPolicy) {
-        this(credentials, retryPolicy, false);
+        this(credentials, retryPolicy, false, null);
     }
 
     public AzureHttpClient(AzureCredentials credentials, boolean failOnUnknownProperties) {
-        this(credentials, RetryPolicy.DEFAULT, failOnUnknownProperties);
+        this(credentials, RetryPolicy.DEFAULT, failOnUnknownProperties, null);
+    }
+
+    public AzureHttpClient(AzureCredentials credentials, HttpInteractionRecorder recorder) {
+        this(credentials, RetryPolicy.DEFAULT, false, recorder);
+    }
+
+    public AzureHttpClient(AzureCredentials credentials, RetryPolicy retryPolicy, HttpInteractionRecorder recorder) {
+        this(credentials, retryPolicy, false, recorder);
+    }
+
+    public AzureHttpClient(AzureCredentials credentials, boolean failOnUnknownProperties, HttpInteractionRecorder recorder) {
+        this(credentials, RetryPolicy.DEFAULT, failOnUnknownProperties, recorder);
     }
 
     public AzureHttpClient(AzureCredentials credentials, RetryPolicy retryPolicy, boolean failOnUnknownProperties) {
+        this(credentials, retryPolicy, failOnUnknownProperties, null);
+    }
+
+    public AzureHttpClient(AzureCredentials credentials, RetryPolicy retryPolicy, boolean failOnUnknownProperties, HttpInteractionRecorder recorder) {
         this.credentials = credentials;
         this.retryPolicy = retryPolicy;
         this.failOnUnknownProperties = failOnUnknownProperties;
+        this.recorder = recorder != null ? recorder : globalRecorder;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, failOnUnknownProperties);
         this.backoffStrategy = new ExponentialBackoffStrategy();
@@ -82,25 +104,25 @@ public class AzureHttpClient {
         
         for (int attempt = 1; attempt <= retryPolicy.getMaxAttempts(); attempt++) {
             try {
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                Map<String, String> responseHeaders = extractHeaders(response);
+                HttpCallResult result = sendHttpRequest(request, azureRequest.getSerializedBody());
+                Map<String, String> responseHeaders = result.headers();
                 
-                if (response.statusCode() >= 400) {
-                    if (shouldRetry(response.statusCode(), attempt)) {
+                if (result.statusCode() >= 400) {
+                    if (shouldRetry(result.statusCode(), attempt)) {
                         sleepBeforeRetry(attempt, responseHeaders);
                         continue;
                     }
                     
-                    throw createServiceException(response, responseHeaders);
+                    throw createServiceException(result.statusCode(), responseHeaders, result.body());
                 }
                 
                 T responseBody = null;
-                if (responseType != Void.class && response.body() != null && !response.body().isEmpty()) {
+                if (responseType != Void.class && result.body() != null && !result.body().isEmpty()) {
                     try {
-                        responseBody = objectMapper.readValue(response.body(), responseType);
+                        responseBody = objectMapper.readValue(result.body(), responseType);
                     } catch (UnrecognizedPropertyException e) {
                         if (failOnUnknownProperties) {
-                            logUnknownPropertiesDetails(request.uri().toString(), response.body(), e);
+                            logUnknownPropertiesDetails(request.uri().toString(), result.body(), e);
                             throw new AzureException("Unknown properties found in Azure API response", e);
                         } else {
                             // This shouldn't happen since we set FAIL_ON_UNKNOWN_PROPERTIES to false for non-strict mode
@@ -111,10 +133,10 @@ public class AzureHttpClient {
                 
                 // Handle pagination for list results
                 if (responseBody != null && isPaginatedListResult(responseType)) {
-                    return handlePaginationInline(responseBody, responseType, response.statusCode(), responseHeaders, response.body());
+                    return handlePaginationInline(responseBody, responseType, result.statusCode(), responseHeaders, result.body());
                 }
                 
-                return new AzureResponse<>(response.statusCode(), responseHeaders, responseBody, response.body());
+                return new AzureResponse<>(result.statusCode(), responseHeaders, responseBody, result.body());
                 
             } catch (HttpTimeoutException e) {
                 lastException = e;
@@ -163,14 +185,26 @@ public class AzureHttpClient {
         }
     }
 
-    private Map<String, String> extractHeaders(HttpResponse<String> response) {
-        Map<String, String> headers = new HashMap<>();
-        response.headers().map().forEach((name, values) -> {
-            if (!values.isEmpty()) {
-                headers.put(name, values.get(0));
-            }
-        });
-        return headers;
+    private HttpCallResult sendHttpRequest(HttpRequest request, String serializedBody) throws IOException, InterruptedException, AzureException {
+        if (recorder != null && recorder.isPlayback()) {
+            return recorder.playback(request, serializedBody);
+        }
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpCallResult result = HttpCallResult.fromHttpResponse(response);
+
+        if (recorder != null && recorder.isRecording()) {
+            recorder.record(request, serializedBody, result);
+        }
+
+        return result;
+    }
+
+    private HttpCallResult fetchNextPage(String nextLink) throws IOException, InterruptedException, AzureException {
+        AzureRequest nextRequest = new AzureRequest("GET", buildFullUrl(nextLink), credentials, objectMapper);
+        nextRequest.timeout(Duration.ofSeconds(30));
+        HttpRequest request = nextRequest.build();
+        return sendHttpRequest(request, nextRequest.getSerializedBody());
     }
 
     private boolean shouldRetry(int statusCode, int attempt) {
@@ -191,10 +225,9 @@ public class AzureHttpClient {
         }
     }
 
-    private AzureException createServiceException(HttpResponse<String> response, Map<String, String> headers) {
-        String responseBody = response.body();
+    private AzureException createServiceException(int statusCode, Map<String, String> headers, String responseBody) {
         String errorCode = null;
-        String errorMessage = "HTTP " + response.statusCode();
+        String errorMessage = "HTTP " + statusCode;
         
         try {
             if (responseBody != null && !responseBody.isEmpty()) {
@@ -207,14 +240,14 @@ public class AzureHttpClient {
         } catch (Exception e) {
         }
         
-        switch (response.statusCode()) {
+        switch (statusCode) {
             case 401:
             case 403:
                 return new AzureAuthenticationException(errorMessage);
             case 404:
                 return new AzureResourceNotFoundException(errorMessage, headers, errorCode, responseBody);
             default:
-                return new AzureServiceException(errorMessage, response.statusCode(), headers, errorCode, responseBody);
+                return new AzureServiceException(errorMessage, statusCode, headers, errorCode, responseBody);
         }
     }
 
@@ -319,25 +352,15 @@ public class AzureHttpClient {
             
             while (currentNextLink != null && !currentNextLink.trim().isEmpty() && pageCount < maxPages) {
                 try {
-                    HttpResponse<String> nextResponse = httpClient.send(
-                        HttpRequest.newBuilder()
-                            .uri(URI.create(currentNextLink))
-                            .timeout(Duration.ofSeconds(30))
-                            .header("Authorization", "Bearer " + credentials.getAccessToken())
-                            .header("Accept", "application/json")
-                            .header("User-Agent", "azure-simple-sdk/1.0.0")
-                            .GET()
-                            .build(),
-                        HttpResponse.BodyHandlers.ofString()
-                    );
+                    HttpCallResult nextResult = fetchNextPage(currentNextLink);
                     
-                    if (nextResponse.statusCode() >= 400) {
-                        System.err.println("Warning: Failed to fetch page " + (pageCount + 1) + " of paginated results: HTTP " + nextResponse.statusCode());
+                    if (nextResult.statusCode() >= 400) {
+                        System.err.println("Warning: Failed to fetch page " + (pageCount + 1) + " of paginated results: HTTP " + nextResult.statusCode());
                         break;
                     }
                     
-                    if (nextResponse.body() != null && !nextResponse.body().isEmpty()) {
-                        T nextPageData = objectMapper.readValue(nextResponse.body(), responseType);
+                    if (nextResult.body() != null && !nextResult.body().isEmpty()) {
+                        T nextPageData = objectMapper.readValue(nextResult.body(), responseType);
                         allPages.add(nextPageData);
                         
                         // Get the next link for the following page

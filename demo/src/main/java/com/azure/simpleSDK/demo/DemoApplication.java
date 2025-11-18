@@ -17,10 +17,13 @@ import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetVMListResult;
 import com.azure.simpleSDK.graph.client.MicrosoftGraphClient;
 import com.azure.simpleSDK.graph.models.GraphAppRoleAssignment;
 import com.azure.simpleSDK.graph.models.GraphServicePrincipal;
+import com.azure.simpleSDK.http.AzureHttpClient;
 import com.azure.simpleSDK.http.AzureResponse;
+import com.azure.simpleSDK.http.auth.AzureCredentials;
 import com.azure.simpleSDK.http.auth.ServicePrincipalCredentials;
 import com.azure.simpleSDK.http.exceptions.AzureException;
 import com.azure.simpleSDK.http.exceptions.AzureServiceException;
+import com.azure.simpleSDK.http.recording.HttpInteractionRecorder;
 import com.azure.simpleSDK.network.client.AzureNetworkClient;
 import com.azure.simpleSDK.network.models.AzureFirewall;
 import com.azure.simpleSDK.network.models.AzureFirewallListResult;
@@ -37,6 +40,8 @@ import com.azure.simpleSDK.resources.models.Subscription;
 import com.azure.simpleSDK.resources.models.SubscriptionListResult;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,9 +49,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Locale;
 
 public class DemoApplication {
     
+    private static final String DEFAULT_RECORDING_DIR = "recordings/demo";
     private static AzureNetworkClient networkClient;
     private static AzureComputeClient computeClient;
     private static AzureResourcesClient resourcesClient;
@@ -56,8 +63,11 @@ public class DemoApplication {
     private static String tenantId;
     private static String clientId;
     private static String principalObjectId;
-    private static ServicePrincipalCredentials credentials;
+    private static AzureCredentials credentials;
     private static boolean strictMode;
+    private static HttpInteractionRecorder.Mode recorderMode = HttpInteractionRecorder.Mode.LIVE;
+    private static Path recordingsDirectory = Paths.get(DEFAULT_RECORDING_DIR).toAbsolutePath();
+    private static HttpInteractionRecorder httpRecorder;
     
     public static void main(String[] args) {
         try {
@@ -86,7 +96,9 @@ public class DemoApplication {
         }
     }
     
-    private static void initializeClients(String[] args) throws IOException {
+    private static void initializeClients(String[] args) throws IOException, AzureException {
+        parseCommandLine(args);
+        
         // Load credentials from properties file
         Properties props = loadCredentials();
         tenantId = props.getProperty("azure.tenant-id");
@@ -95,16 +107,37 @@ public class DemoApplication {
         subscriptionId = props.getProperty("azure.subscription-id");
         principalObjectId = props.getProperty("azure.principal-object-id");
 
-        if (tenantId == null || clientId == null || clientSecret == null || subscriptionId == null) {
+        boolean playbackMode = recorderMode == HttpInteractionRecorder.Mode.PLAYBACK;
+
+        if (subscriptionId == null || subscriptionId.isBlank()) {
+            System.err.println("Missing azure.subscription-id in azure.properties.");
+            System.exit(1);
+        }
+
+        if (!playbackMode && (tenantId == null || clientId == null || clientSecret == null)) {
             System.err.println("Missing required properties. Please ensure azure.properties contains:");
             System.err.println("azure.tenant-id=<your-tenant-id>");
             System.err.println("azure.client-id=<your-client-id>");
             System.err.println("azure.client-secret=<your-client-secret>");
-            System.err.println("azure.subscription-id=<your-subscription-id>");
             System.exit(1);
+        } else if (playbackMode) {
+            if (clientId == null || clientId.isBlank()) {
+                clientId = "playback-client";
+            }
+            if (tenantId == null || tenantId.isBlank()) {
+                tenantId = "playback-tenant";
+            }
+            if (clientSecret == null || clientSecret.isBlank()) {
+                System.out.println("Playback mode: azure.client-secret is not required and will be ignored.");
+            }
         }
 
-        graphClient = new MicrosoftGraphClient(clientId, clientSecret, tenantId);
+        if (!playbackMode) {
+            graphClient = new MicrosoftGraphClient(clientId, clientSecret, tenantId);
+        } else {
+            graphClient = null;
+            System.out.println("Playback mode: Microsoft Graph lookups are disabled.");
+        }
 
         if (principalObjectId == null || principalObjectId.isBlank()) {
             principalObjectId = resolvePrincipalObjectId(clientId);
@@ -119,7 +152,13 @@ public class DemoApplication {
         }
         
         // Create credentials
-        credentials = new ServicePrincipalCredentials(clientId, clientSecret, tenantId);
+        if (!playbackMode) {
+            credentials = new ServicePrincipalCredentials(clientId, clientSecret, tenantId);
+        } else {
+            credentials = new PlaybackCredentials();
+        }
+
+        configureHttpRecorder();
         
         // Check if strict mode is requested via system property
         strictMode = Boolean.parseBoolean(System.getProperty("strict", "false"));
@@ -132,6 +171,109 @@ public class DemoApplication {
         computeClient = new AzureComputeClient(credentials, strictMode);
         resourcesClient = new AzureResourcesClient(credentials, strictMode);
         authorizationClient = new AzureAuthorizationClient(credentials, strictMode);
+    }
+
+    private static void parseCommandLine(String[] args) {
+        if (args == null) {
+            return;
+        }
+
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
+            if (arg == null) {
+                continue;
+            }
+
+            if ("--help".equalsIgnoreCase(arg) || "-h".equalsIgnoreCase(arg)) {
+                printUsageAndExit();
+            } else if (arg.startsWith("--mode")) {
+                String value;
+                if (arg.contains("=")) {
+                    value = arg.substring(arg.indexOf('=') + 1);
+                } else {
+                    if (i + 1 >= args.length) {
+                        System.err.println("Missing value for --mode option");
+                        printUsageAndExit();
+                        return;
+                    }
+                    value = args[++i];
+                }
+                applyRecorderMode(value);
+            } else if (arg.startsWith("--recordings-dir")) {
+                String dirValue;
+                if (arg.contains("=")) {
+                    dirValue = arg.substring(arg.indexOf('=') + 1);
+                } else {
+                    if (i + 1 >= args.length) {
+                        System.err.println("Missing value for --recordings-dir option");
+                        printUsageAndExit();
+                        return;
+                    }
+                    dirValue = args[++i];
+                }
+
+                try {
+                    recordingsDirectory = Paths.get(dirValue).toAbsolutePath();
+                } catch (Exception e) {
+                    System.err.println("Invalid recordings directory: " + dirValue);
+                    printUsageAndExit();
+                    return;
+                }
+            }
+        }
+    }
+
+    private static void applyRecorderMode(String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+
+        String normalized = value.toLowerCase(Locale.ROOT);
+        switch (normalized) {
+            case "live":
+                recorderMode = HttpInteractionRecorder.Mode.LIVE;
+                break;
+            case "record":
+                recorderMode = HttpInteractionRecorder.Mode.RECORD;
+                break;
+            case "play":
+            case "playback":
+                recorderMode = HttpInteractionRecorder.Mode.PLAYBACK;
+                break;
+            default:
+                System.err.println("Unknown mode: " + value + ". Supported values: live, record, play");
+                printUsageAndExit();
+        }
+    }
+
+    private static void configureHttpRecorder() throws AzureException {
+        if (recorderMode == HttpInteractionRecorder.Mode.LIVE) {
+            httpRecorder = null;
+            AzureHttpClient.setGlobalRecorder(null);
+            System.out.println("HTTP Mode: LIVE (issuing real Azure requests)");
+            return;
+        }
+
+        httpRecorder = new HttpInteractionRecorder(recorderMode, recordingsDirectory);
+        AzureHttpClient.setGlobalRecorder(httpRecorder);
+
+        if (recorderMode == HttpInteractionRecorder.Mode.RECORD) {
+            System.out.println("HTTP Mode: RECORD (capturing responses in " + recordingsDirectory + ")");
+        } else {
+            System.out.println("HTTP Mode: PLAYBACK (reading responses from " + recordingsDirectory + ")");
+        }
+    }
+
+    private static void printUsageAndExit() {
+        System.out.println("Usage: ./gradlew :demo:run --args=\"[options]\"");
+        System.out.println("Options:");
+        System.out.println("  --mode <live|record|play>       Selects how HTTP calls are handled (default: live)");
+        System.out.println("  --recordings-dir <path>         Directory to read/write recorded HTTP payloads");
+        System.out.println("Examples:");
+        System.out.println("  ./gradlew :demo:run --args=\"--mode record --recordings-dir recordings/demo/network\"");
+        System.out.println("  ./gradlew :demo:run --args=\"--mode play --recordings-dir recordings/demo/network\"");
+        System.out.println("Strict mode still uses -Dstrict=true for model validation.");
+        System.exit(0);
     }
 
     private static String resolvePrincipalObjectId(String clientId) {
@@ -1107,4 +1249,22 @@ public class DemoApplication {
         return "Unknown";
     }
 
+    private static class PlaybackCredentials implements AzureCredentials {
+        private final String token = "playback-token";
+
+        @Override
+        public String getAccessToken() {
+            return token;
+        }
+
+        @Override
+        public boolean isExpired() {
+            return false;
+        }
+
+        @Override
+        public void refresh() {
+            // No-op for playback mode
+        }
+    }
 }

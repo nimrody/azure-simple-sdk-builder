@@ -23,6 +23,7 @@ public class AzureRequest {
     private Duration timeout;
     private final AzureCredentials credentials;
     private final ObjectMapper objectMapper;
+    private String serializedBody;
 
     public AzureRequest(String method, String url, AzureCredentials credentials, ObjectMapper objectMapper) {
         this.method = method;
@@ -98,12 +99,14 @@ public class AzureRequest {
             HttpRequest.BodyPublisher bodyPublisher;
             if (body != null) {
                 if (body instanceof String) {
-                    bodyPublisher = HttpRequest.BodyPublishers.ofString((String) body);
+                    serializedBody = (String) body;
+                    bodyPublisher = HttpRequest.BodyPublishers.ofString(serializedBody);
                 } else {
-                    String jsonBody = objectMapper.writeValueAsString(body);
-                    bodyPublisher = HttpRequest.BodyPublishers.ofString(jsonBody);
+                    serializedBody = objectMapper.writeValueAsString(body);
+                    bodyPublisher = HttpRequest.BodyPublishers.ofString(serializedBody);
                 }
             } else {
+                serializedBody = null;
                 bodyPublisher = HttpRequest.BodyPublishers.noBody();
             }
 
@@ -191,5 +194,9 @@ public class AzureRequest {
 
     public Duration getTimeout() {
         return timeout;
+    }
+
+    public String getSerializedBody() {
+        return serializedBody;
     }
 }

@@ -130,9 +130,11 @@ class AzureHttpClientPaginationTest {
 
         when(secondPageResponse.statusCode()).thenReturn(200);
         when(secondPageResponse.body()).thenReturn(secondPageJson);
+        when(secondPageResponse.headers()).thenReturn(java.net.http.HttpHeaders.of(Map.of(), (a, b) -> true));
 
         when(thirdPageResponse.statusCode()).thenReturn(200);
         when(thirdPageResponse.body()).thenReturn(thirdPageJson);
+        when(thirdPageResponse.headers()).thenReturn(java.net.http.HttpHeaders.of(Map.of(), (a, b) -> true));
 
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
             .thenReturn(httpResponse)  // First call
@@ -183,6 +185,7 @@ class AzureHttpClientPaginationTest {
 
         // Second page returns error
         when(secondPageResponse.statusCode()).thenReturn(500);
+        when(secondPageResponse.headers()).thenReturn(java.net.http.HttpHeaders.of(Map.of(), (a, b) -> true));
 
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
             .thenReturn(httpResponse)       // First call succeeds
