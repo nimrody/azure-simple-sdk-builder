@@ -41,7 +41,7 @@ From the project root directory:
 ./gradlew :demo:run -Dstrict=true
 
 # Record or play back HTTP traffic without changing code
-./gradlew :demo:run --args="--mode record --recordings-dir recordings/demo"
+./gradlew :demo:run --args="--mode record --recordings-dir recordings/demo --expected-dir recordings/demo-expected"
 ./gradlew :demo:run --args="--mode play --recordings-dir recordings/demo"
 
 # Or build and run manually
@@ -80,20 +80,21 @@ java -Dstrict=true -jar build/libs/demo.jar  # strict mode
 
 ### HTTP Recording Modes (`--mode`)
 - `--mode live` (default) – execute real Azure requests.
-- `--mode record` – issue live requests and write the responses under `--recordings-dir <path>`.
+- `--mode record` – issue live requests, write the HTTP payloads under `--recordings-dir <path>`, and serialize every SDK response to JSON under `--expected-dir <path>`.
 - `--mode play` – read the previously recorded responses and avoid all network calls. Combine with `-Dstrict=true` for deterministic regression tests.
+- `--expected-dir <path>` – where to write the serialized SDK responses while recording (required if you plan to run regression comparisons later).
 
 Example:
 
 ```bash
-./gradlew :demo:run --args="--mode record --recordings-dir recordings/demo/firewalls"
+./gradlew :demo:run --args="--mode record --recordings-dir recordings/demo/firewalls --expected-dir recordings/demo/firewalls-expected"
 ./gradlew :demo:run --args="--mode play --recordings-dir recordings/demo/firewalls" -Dstrict=true
 ```
 
 **Recommended regression loop**
-1. Run the demo in record mode with real credentials to collect fixtures for every call that matters to your tests.
-2. Commit the `recordings/` directory (after sanitizing secrets) alongside `azure.properties` configured for the canned subscription.
-3. In CI execute the demo in `--mode play` so failures signal SDK regressions instead of Azure availability issues.
+1. Run the demo in record mode with real credentials to collect fixtures for every call that matters to your tests. Provide both `--recordings-dir` and `--expected-dir`.
+2. Commit both directories (after sanitizing secrets) alongside `azure.properties` configured for the canned subscription.
+3. In CI execute the demo in `--mode play` so failures signal SDK regressions instead of Azure availability issues. The serialized outputs can also be consumed by integration tests to detect behavioral changes instantly.
 
 ## Sample Output
 

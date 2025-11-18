@@ -1,0 +1,173 @@
+{
+  "statusCode" : 200,
+  "body" : {
+    "value" : [ {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/0/networkInterfaces/vnet-1-us-east-nic01",
+      "name" : "vnet-1-us-east-nic01",
+      "type" : null,
+      "location" : "eastus",
+      "tags" : null,
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/0"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/basicNsgvnet-1-us-east-nic01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/0/networkInterfaces/vnet-1-us-east-nic01/ipConfigurations/vnet-1-us-east-nic01-defaultIpConfiguration",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.8.8",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/0/networkInterfaces/vnet-1-us-east-nic01/ipConfigurations/vnet-1-us-east-nic01-defaultIpConfiguration/publicIPAddresses/publicIp-vnet-1-us-east-nic01",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "vnet-1-us-east-nic01-defaultIpConfiguration",
+          "type" : null
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "60-45-BD-EB-61-DB",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "e52fa5c6-af11-47b7-b4b3-3aa675715806",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/1/networkInterfaces/vnet-1-us-east-nic01",
+      "name" : "vnet-1-us-east-nic01",
+      "type" : null,
+      "location" : "eastus",
+      "tags" : null,
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/1"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/basicNsgvnet-1-us-east-nic01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/1/networkInterfaces/vnet-1-us-east-nic01/ipConfigurations/vnet-1-us-east-nic01-defaultIpConfiguration",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.8.9",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/1/networkInterfaces/vnet-1-us-east-nic01/ipConfigurations/vnet-1-us-east-nic01-defaultIpConfiguration/publicIPAddresses/publicIp-vnet-1-us-east-nic01",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "vnet-1-us-east-nic01-defaultIpConfiguration",
+          "type" : null
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "7C-1E-52-1C-2A-04",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "c246a871-3a3f-4f9b-ae10-1eee3b9986ff",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    } ],
+    "nextLink" : null
+  }
+}

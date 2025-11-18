@@ -1,0 +1,7 @@
+{
+  "errorType" : "AzureResourceNotFoundException",
+  "statusCode" : 404,
+  "message" : "Resource group 'nsg-neu-rg' could not be found.",
+  "errorCode" : "ResourceGroupNotFound",
+  "responseBody" : "{\"error\":{\"code\":\"ResourceGroupNotFound\",\"message\":\"Resource group 'nsg-neu-rg' could not be found.\"}}"
+}

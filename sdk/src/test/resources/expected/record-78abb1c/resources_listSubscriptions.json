@@ -1,0 +1,95 @@
+{
+  "statusCode" : 200,
+  "body" : {
+    "value" : [ {
+      "id" : "/subscriptions/c084d11d-0b54-4627-91cd-777c1d3a69f9",
+      "subscriptionId" : "c084d11d-0b54-4627-91cd-777c1d3a69f9",
+      "displayName" : "te-azr-cii-staging",
+      "tenantId" : "5ae1af62-9505-4097-a69a-c1553ef7840e",
+      "state" : "Enabled",
+      "subscriptionPolicies" : {
+        "locationPlacementId" : "Public_2014-09-01",
+        "quotaId" : "EnterpriseAgreement_2014-09-01",
+        "spendingLimit" : "Off"
+      },
+      "authorizationSource" : "RoleBased",
+      "managedByTenants" : [ ],
+      "tags" : {
+        "account_type" : "offer",
+        "cloud_registration_id" : "128135",
+        "environment" : "nonprod",
+        "last_revalidated_at" : "2025-08-13",
+        "last_revalidated_by" : "anelisee",
+        "owner_group" : "cii-aws-access",
+        "cloudx-azure-usercompliance" : "terminated"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429",
+      "subscriptionId" : "40516be1-2840-44df-9333-c39247d77429",
+      "displayName" : "team-cloudmon-sandbox-azure",
+      "tenantId" : "5ae1af62-9505-4097-a69a-c1553ef7840e",
+      "state" : "Enabled",
+      "subscriptionPolicies" : {
+        "locationPlacementId" : "Public_2014-09-01",
+        "quotaId" : "EnterpriseAgreement_2014-09-01",
+        "spendingLimit" : "Off"
+      },
+      "authorizationSource" : "RoleBased",
+      "managedByTenants" : [ ],
+      "tags" : {
+        "account_type" : "offer",
+        "cloud_registration_id" : "128135",
+        "environment" : "nonprod",
+        "last_revalidated_at" : "2025-07-08",
+        "last_revalidated_by" : "gcolman",
+        "owner_group" : "thousandeyes-azure-tenant",
+        "cloudx-azure-usercompliance" : "terminated"
+      }
+    }, {
+      "id" : "/subscriptions/3145d332-e1c9-4670-a672-86e17d4f627e",
+      "subscriptionId" : "3145d332-e1c9-4670-a672-86e17d4f627e",
+      "displayName" : "team-cloudmon-sandbox3-azure",
+      "tenantId" : "5ae1af62-9505-4097-a69a-c1553ef7840e",
+      "state" : "Enabled",
+      "subscriptionPolicies" : {
+        "locationPlacementId" : "Public_2014-09-01",
+        "quotaId" : "EnterpriseAgreement_2014-09-01",
+        "spendingLimit" : "Off"
+      },
+      "authorizationSource" : "RoleBased",
+      "managedByTenants" : [ ],
+      "tags" : {
+        "account_type" : "offer",
+        "cloud_registration_id" : "128135",
+        "environment" : "nonprod",
+        "last_revalidated_at" : "2025-07-08",
+        "last_revalidated_by" : "gcolman",
+        "owner_group" : "thousandeyes-azure-tenant",
+        "cloudx-azure-usercompliance" : "terminated"
+      }
+    }, {
+      "id" : "/subscriptions/6d7ab240-fc1f-4caf-b121-8f39a62ca086",
+      "subscriptionId" : "6d7ab240-fc1f-4caf-b121-8f39a62ca086",
+      "displayName" : "te-azr-cii-sandbox",
+      "tenantId" : "5ae1af62-9505-4097-a69a-c1553ef7840e",
+      "state" : "Enabled",
+      "subscriptionPolicies" : {
+        "locationPlacementId" : "Public_2014-09-01",
+        "quotaId" : "EnterpriseAgreement_2014-09-01",
+        "spendingLimit" : "Off"
+      },
+      "authorizationSource" : "RoleBased",
+      "managedByTenants" : [ ],
+      "tags" : {
+        "account_type" : "offer",
+        "cloud_registration_id" : "128135",
+        "environment" : "nonprod",
+        "last_revalidated_at" : "2025-08-13",
+        "last_revalidated_by" : "anelisee",
+        "owner_group" : "cii-aws-access",
+        "cloudx-azure-usercompliance" : "terminated"
+      }
+    } ],
+    "nextLink" : null
+  }
+}

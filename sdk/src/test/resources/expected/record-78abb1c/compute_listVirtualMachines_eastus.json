@@ -1,0 +1,1247 @@
+{
+  "statusCode" : 200,
+  "body" : {
+    "value" : [ {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/te-agent-01",
+      "name" : "te-agent-01",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "test"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : null,
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : null,
+            "publisher" : "canonical",
+            "offer" : "0001-com-ubuntu-server-focal",
+            "sku" : "20_04-lts-gen2",
+            "version" : "latest",
+            "exactVersion" : "20.04.202402290",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "te-agent-01_disk1_67b3bbcdac8442cf887e0160a24d4caf",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "ReadWrite",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : 30,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/disks/te-agent-01_disk1_67b3bbcdac8442cf887e0160a24d4caf",
+              "storageAccountType" : "Premium_LRS",
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Delete"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : "SCSI",
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : {
+          "ultraSSDEnabled" : null,
+          "hibernationEnabled" : false
+        },
+        "osProfile" : {
+          "computerName" : "te-agent-01",
+          "adminUsername" : "azureuser",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : true,
+            "ssh" : {
+              "publicKeys" : [ {
+                "path" : "/home/azureuser/.ssh/authorized_keys",
+                "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsaw/pXwA18P+/Gn21OBHNPSvB2/6WVkplMoIK7t9SVRrKnub/ebNmkDWuzUaUVWrhX9Z+Dxil3wX2XdGKy680x3brRwgtE164NCUORJ50wxKblHSdQtcz0M+4eKAH+CFnlOrWcWGKZ9NNFH97YYWR+qlI3jyb3p7SMqUbAvqrYPFXYA/dRlbvHOLjrYIeT/c5W2sCAlWRoUHIM++XK0SbFB8SI+DWFFVpqykOvBVPLvRw9mU53cW6ekXRakjOwPxJx0GARJAQ4rKWEqV3fY5caRrydBAlcHgRJWusNvB7tZWCB5K2DVcxCrB3BD9798ookf1JpEGW9e1Vl2Q7PHBKsGvebWWF42ljxirMZzjgmjYoNbyYYcqdiXM2YOncaoLezLeGOxSVsWhT0ZMEy3Qof8et6PbVBgVcOfg0pQpWmYiuuSD1WPS69rHEH7D1XmxHlFS0n69ziVTd5eWyy9j4DoiVEHb5OTEXhqn4iE7fIzuEq2pIvnOZCsWZJH//lkU= generated-by-azure"
+              } ]
+            },
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "AutomaticByPlatform",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : {
+                "rebootSetting" : "Never",
+                "bypassPlatformSafetyChecksOnUserSchedule" : false
+              }
+            },
+            "enableVMAgentPlatformUpdates" : false
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : true
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-01878_z1",
+            "properties" : {
+              "primary" : null,
+              "deleteOption" : "Delete"
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : {
+          "uefiSettings" : {
+            "secureBootEnabled" : true,
+            "vTpmEnabled" : true
+          },
+          "encryptionAtHost" : null,
+          "securityType" : "TrustedLaunch",
+          "encryptionIdentity" : null,
+          "proxyAgentSettings" : null
+        },
+        "diagnosticsProfile" : {
+          "bootDiagnostics" : {
+            "enabled" : true,
+            "storageUri" : null
+          }
+        },
+        "availabilitySet" : null,
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "0fd9dae2-3fc9-4cff-ba8f-5dd8c8dfcee7",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2024-03-11T15:15:29.5317719+00:00"
+      },
+      "plan" : null,
+      "resources" : null,
+      "identity" : null,
+      "zones" : [ "1" ],
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/te-agent-02",
+      "name" : "te-agent-02",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "test"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : null,
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : null,
+            "publisher" : "canonical",
+            "offer" : "0001-com-ubuntu-server-jammy",
+            "sku" : "22_04-lts-gen2",
+            "version" : "latest",
+            "exactVersion" : "22.04.202504040",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "te-agent-02_OsDisk_1_6aee9f5fed064d6fa73c3ff4316017dc",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "ReadWrite",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : 30,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/disks/te-agent-02_OsDisk_1_6aee9f5fed064d6fa73c3ff4316017dc",
+              "storageAccountType" : "Premium_LRS",
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Delete"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : "SCSI",
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : {
+          "ultraSSDEnabled" : null,
+          "hibernationEnabled" : false
+        },
+        "osProfile" : {
+          "computerName" : "te-agent-02",
+          "adminUsername" : "azureuser",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : true,
+            "ssh" : {
+              "publicKeys" : [ {
+                "path" : "/home/azureuser/.ssh/authorized_keys",
+                "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsaw/pXwA18P+/Gn21OBHNPSvB2/6WVkplMoIK7t9SVRrKnub/ebNmkDWuzUaUVWrhX9Z+Dxil3wX2XdGKy680x3brRwgtE164NCUORJ50wxKblHSdQtcz0M+4eKAH+CFnlOrWcWGKZ9NNFH97YYWR+qlI3jyb3p7SMqUbAvqrYPFXYA/dRlbvHOLjrYIeT/c5W2sCAlWRoUHIM++XK0SbFB8SI+DWFFVpqykOvBVPLvRw9mU53cW6ekXRakjOwPxJx0GARJAQ4rKWEqV3fY5caRrydBAlcHgRJWusNvB7tZWCB5K2DVcxCrB3BD9798ookf1JpEGW9e1Vl2Q7PHBKsGvebWWF42ljxirMZzjgmjYoNbyYYcqdiXM2YOncaoLezLeGOxSVsWhT0ZMEy3Qof8et6PbVBgVcOfg0pQpWmYiuuSD1WPS69rHEH7D1XmxHlFS0n69ziVTd5eWyy9j4DoiVEHb5OTEXhqn4iE7fIzuEq2pIvnOZCsWZJH//lkU= generated-by-azure"
+              } ]
+            },
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "AutomaticByPlatform",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : {
+                "rebootSetting" : "Never",
+                "bypassPlatformSafetyChecksOnUserSchedule" : null
+              }
+            },
+            "enableVMAgentPlatformUpdates" : null
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : true
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-02973_z1",
+            "properties" : {
+              "primary" : null,
+              "deleteOption" : "Detach"
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : {
+          "uefiSettings" : {
+            "secureBootEnabled" : true,
+            "vTpmEnabled" : true
+          },
+          "encryptionAtHost" : null,
+          "securityType" : "TrustedLaunch",
+          "encryptionIdentity" : null,
+          "proxyAgentSettings" : null
+        },
+        "diagnosticsProfile" : {
+          "bootDiagnostics" : {
+            "enabled" : true,
+            "storageUri" : null
+          }
+        },
+        "availabilitySet" : null,
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "07eac5ea-8062-43c3-bb77-64c6c7101181",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2025-04-06T10:09:40.309647+00:00"
+      },
+      "plan" : null,
+      "resources" : null,
+      "identity" : null,
+      "zones" : [ "1" ],
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-01",
+      "name" : "ubuntu-azure-01",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "test"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : null,
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : null,
+            "publisher" : "canonical",
+            "offer" : "0001-com-ubuntu-server-jammy",
+            "sku" : "22_04-lts-gen2",
+            "version" : "latest",
+            "exactVersion" : "22.04.202403010",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "ubuntu-azure-01_OsDisk_1_70be22052fcd414c9fd3cb59a16ffb63",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "ReadWrite",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : 30,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/disks/ubuntu-azure-01_OsDisk_1_70be22052fcd414c9fd3cb59a16ffb63",
+              "storageAccountType" : "Premium_LRS",
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Delete"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : "SCSI",
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : {
+          "ultraSSDEnabled" : null,
+          "hibernationEnabled" : false
+        },
+        "osProfile" : {
+          "computerName" : "ubuntu-azure-01",
+          "adminUsername" : "azureuser",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : true,
+            "ssh" : {
+              "publicKeys" : [ {
+                "path" : "/home/azureuser/.ssh/authorized_keys",
+                "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDn2Ny4PG+t3lIgkHyBZ+9tHuqBGNuh3tQFqij6Gf/SoVG30Q321eeksGtsREu8nJI47jegeSeQzuRp+/zKcc7qNlnCbYTo8ABhp2pqz9hTnPPuY/MEONv7gXs2vFZUm46sZmEYuGmaJHV/eFGB64PlHv7yNuCAou6nQMTMlkmx3MKsXlLVzaeLsUg9hXil2zs45wH5mrankKI4/mCJudXcsvvU3P+aa8UOSkVMjAtYMB3sLoiH43Y8HzZgCbTdL+NPqU/dby07t3c3K9ChlKRFIBWxzKO+OtQwrlxLYF2D2a4bEWhnRwVMDZQ01F4ByKRLTYBDbUfkxj39uhuaA7o5My2nd08fGJLPK2CHZQklh9C2Kms25s40y6CcyXgWFhT6W03QixIm9MbsvsE6otBiNz/oJdtjwKrsRLqukOkaPy7ovdU06x9Q7+ZSLoHse5vKFhXCf9MvbLO2iUGbmLtwFp/lsziq8sfiUyfHD1kE9R4AuByHo8fqjx/ogh8lMMU= generated-by-azure"
+              } ]
+            },
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "AutomaticByPlatform",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : {
+                "rebootSetting" : "Never",
+                "bypassPlatformSafetyChecksOnUserSchedule" : false
+              }
+            },
+            "enableVMAgentPlatformUpdates" : false
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : true
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-01227_z1",
+            "properties" : {
+              "primary" : null,
+              "deleteOption" : "Delete"
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : {
+          "uefiSettings" : {
+            "secureBootEnabled" : true,
+            "vTpmEnabled" : true
+          },
+          "encryptionAtHost" : null,
+          "securityType" : "TrustedLaunch",
+          "encryptionIdentity" : null,
+          "proxyAgentSettings" : null
+        },
+        "diagnosticsProfile" : {
+          "bootDiagnostics" : {
+            "enabled" : true,
+            "storageUri" : null
+          }
+        },
+        "availabilitySet" : null,
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "9d11414a-c10c-41ff-a582-2bb1a6cb8182",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2024-03-02T19:44:00.4092601+00:00"
+      },
+      "plan" : null,
+      "resources" : [ {
+        "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-01/extensions/AzureNetworkWatcherExtension",
+        "name" : null,
+        "type" : null,
+        "systemData" : null,
+        "tags" : null,
+        "location" : null,
+        "properties" : null
+      }, {
+        "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-01/extensions/enablevmAccess",
+        "name" : null,
+        "type" : null,
+        "systemData" : null,
+        "tags" : null,
+        "location" : null,
+        "properties" : null
+      } ],
+      "identity" : {
+        "principalId" : "6818e765-7efa-479b-9cd8-374d5600b245",
+        "tenantId" : "5ae1af62-9505-4097-a69a-c1553ef7840e",
+        "type" : "SystemAssigned",
+        "userAssignedIdentities" : null
+      },
+      "zones" : [ "1" ],
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-02",
+      "name" : "ubuntu-azure-02",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "test"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : null,
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/galleries/my_image_gallery/images/ubuntu_image_01",
+            "publisher" : null,
+            "offer" : null,
+            "sku" : null,
+            "version" : null,
+            "exactVersion" : "0.0.1",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "ubuntu-azure-02_OsDisk_1_01ea2f9e577d490c8a5e62f63f7e6ec2",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "None",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : 30,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/disks/ubuntu-azure-02_OsDisk_1_01ea2f9e577d490c8a5e62f63f7e6ec2",
+              "storageAccountType" : "Premium_LRS",
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Detach"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : "SCSI",
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : {
+          "ultraSSDEnabled" : null,
+          "hibernationEnabled" : false
+        },
+        "osProfile" : {
+          "computerName" : "ubuntu-azure-02",
+          "adminUsername" : "azureuser",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : true,
+            "ssh" : {
+              "publicKeys" : [ {
+                "path" : "/home/azureuser/.ssh/authorized_keys",
+                "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDn2Ny4PG+t3lIgkHyBZ+9tHuqBGNuh3tQFqij6Gf/SoVG30Q321eeksGtsREu8nJI47jegeSeQzuRp+/zKcc7qNlnCbYTo8ABhp2pqz9hTnPPuY/MEONv7gXs2vFZUm46sZmEYuGmaJHV/eFGB64PlHv7yNuCAou6nQMTMlkmx3MKsXlLVzaeLsUg9hXil2zs45wH5mrankKI4/mCJudXcsvvU3P+aa8UOSkVMjAtYMB3sLoiH43Y8HzZgCbTdL+NPqU/dby07t3c3K9ChlKRFIBWxzKO+OtQwrlxLYF2D2a4bEWhnRwVMDZQ01F4ByKRLTYBDbUfkxj39uhuaA7o5My2nd08fGJLPK2CHZQklh9C2Kms25s40y6CcyXgWFhT6W03QixIm9MbsvsE6otBiNz/oJdtjwKrsRLqukOkaPy7ovdU06x9Q7+ZSLoHse5vKFhXCf9MvbLO2iUGbmLtwFp/lsziq8sfiUyfHD1kE9R4AuByHo8fqjx/ogh8lMMU= generated-by-azure"
+              } ]
+            },
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "ImageDefault",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : null
+            },
+            "enableVMAgentPlatformUpdates" : false
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : true
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-02844_z2",
+            "properties" : {
+              "primary" : null,
+              "deleteOption" : "Detach"
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : {
+          "uefiSettings" : {
+            "secureBootEnabled" : true,
+            "vTpmEnabled" : true
+          },
+          "encryptionAtHost" : null,
+          "securityType" : "TrustedLaunch",
+          "encryptionIdentity" : null,
+          "proxyAgentSettings" : null
+        },
+        "diagnosticsProfile" : {
+          "bootDiagnostics" : {
+            "enabled" : true,
+            "storageUri" : null
+          }
+        },
+        "availabilitySet" : null,
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "30e5b794-7db5-4b38-b0bb-7cbd4b22577a",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2024-03-04T12:58:34.9724693+00:00"
+      },
+      "plan" : null,
+      "resources" : [ {
+        "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-02/extensions/enablevmAccess",
+        "name" : null,
+        "type" : null,
+        "systemData" : null,
+        "tags" : null,
+        "location" : null,
+        "properties" : null
+      } ],
+      "identity" : null,
+      "zones" : [ "2" ],
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-03",
+      "name" : "ubuntu-azure-03",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "test"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : null,
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/galleries/my_image_gallery/images/ubuntu_image_web_load_test",
+            "publisher" : null,
+            "offer" : null,
+            "sku" : null,
+            "version" : null,
+            "exactVersion" : "0.0.1",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "ubuntu-azure-03_OsDisk_1_5c4412b5c9aa4bb39ad80b9359dcb2ab",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "ReadWrite",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : 30,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/disks/ubuntu-azure-03_OsDisk_1_5c4412b5c9aa4bb39ad80b9359dcb2ab",
+              "storageAccountType" : "Premium_LRS",
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Detach"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : "SCSI",
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : {
+          "ultraSSDEnabled" : null,
+          "hibernationEnabled" : false
+        },
+        "osProfile" : {
+          "computerName" : "ubuntu-azure-03",
+          "adminUsername" : "azureuser",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : true,
+            "ssh" : {
+              "publicKeys" : [ {
+                "path" : "/home/azureuser/.ssh/authorized_keys",
+                "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsaw/pXwA18P+/Gn21OBHNPSvB2/6WVkplMoIK7t9SVRrKnub/ebNmkDWuzUaUVWrhX9Z+Dxil3wX2XdGKy680x3brRwgtE164NCUORJ50wxKblHSdQtcz0M+4eKAH+CFnlOrWcWGKZ9NNFH97YYWR+qlI3jyb3p7SMqUbAvqrYPFXYA/dRlbvHOLjrYIeT/c5W2sCAlWRoUHIM++XK0SbFB8SI+DWFFVpqykOvBVPLvRw9mU53cW6ekXRakjOwPxJx0GARJAQ4rKWEqV3fY5caRrydBAlcHgRJWusNvB7tZWCB5K2DVcxCrB3BD9798ookf1JpEGW9e1Vl2Q7PHBKsGvebWWF42ljxirMZzjgmjYoNbyYYcqdiXM2YOncaoLezLeGOxSVsWhT0ZMEy3Qof8et6PbVBgVcOfg0pQpWmYiuuSD1WPS69rHEH7D1XmxHlFS0n69ziVTd5eWyy9j4DoiVEHb5OTEXhqn4iE7fIzuEq2pIvnOZCsWZJH//lkU= generated-by-azure"
+              } ]
+            },
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "ImageDefault",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : null
+            },
+            "enableVMAgentPlatformUpdates" : false
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : true
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-03468_z2",
+            "properties" : {
+              "primary" : null,
+              "deleteOption" : "Detach"
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : {
+          "uefiSettings" : {
+            "secureBootEnabled" : true,
+            "vTpmEnabled" : true
+          },
+          "encryptionAtHost" : null,
+          "securityType" : "TrustedLaunch",
+          "encryptionIdentity" : null,
+          "proxyAgentSettings" : null
+        },
+        "diagnosticsProfile" : {
+          "bootDiagnostics" : {
+            "enabled" : true,
+            "storageUri" : null
+          }
+        },
+        "availabilitySet" : null,
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "a1d5acb5-4c04-484a-92bb-8e9464be1d74",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2024-04-03T21:35:36.8566825+00:00"
+      },
+      "plan" : null,
+      "resources" : [ {
+        "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-03/extensions/enablevmAccess",
+        "name" : null,
+        "type" : null,
+        "systemData" : null,
+        "tags" : null,
+        "location" : null,
+        "properties" : null
+      } ],
+      "identity" : null,
+      "zones" : [ "2" ],
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-04",
+      "name" : "ubuntu-azure-04",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "test"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : null,
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/galleries/my_image_gallery/images/ubuntu_image_web_load_test",
+            "publisher" : null,
+            "offer" : null,
+            "sku" : null,
+            "version" : null,
+            "exactVersion" : "0.0.1",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "ubuntu-azure-04_OsDisk_1_f4ca7bef496e4fbea86eab6c6d260981",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "ReadWrite",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : 30,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/disks/ubuntu-azure-04_OsDisk_1_f4ca7bef496e4fbea86eab6c6d260981",
+              "storageAccountType" : "Premium_LRS",
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Detach"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : "SCSI",
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : {
+          "ultraSSDEnabled" : null,
+          "hibernationEnabled" : false
+        },
+        "osProfile" : {
+          "computerName" : "ubuntu-azure-04",
+          "adminUsername" : "azureuser",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : true,
+            "ssh" : {
+              "publicKeys" : [ {
+                "path" : "/home/azureuser/.ssh/authorized_keys",
+                "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsaw/pXwA18P+/Gn21OBHNPSvB2/6WVkplMoIK7t9SVRrKnub/ebNmkDWuzUaUVWrhX9Z+Dxil3wX2XdGKy680x3brRwgtE164NCUORJ50wxKblHSdQtcz0M+4eKAH+CFnlOrWcWGKZ9NNFH97YYWR+qlI3jyb3p7SMqUbAvqrYPFXYA/dRlbvHOLjrYIeT/c5W2sCAlWRoUHIM++XK0SbFB8SI+DWFFVpqykOvBVPLvRw9mU53cW6ekXRakjOwPxJx0GARJAQ4rKWEqV3fY5caRrydBAlcHgRJWusNvB7tZWCB5K2DVcxCrB3BD9798ookf1JpEGW9e1Vl2Q7PHBKsGvebWWF42ljxirMZzjgmjYoNbyYYcqdiXM2YOncaoLezLeGOxSVsWhT0ZMEy3Qof8et6PbVBgVcOfg0pQpWmYiuuSD1WPS69rHEH7D1XmxHlFS0n69ziVTd5eWyy9j4DoiVEHb5OTEXhqn4iE7fIzuEq2pIvnOZCsWZJH//lkU= generated-by-azure"
+              } ]
+            },
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "ImageDefault",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : null
+            },
+            "enableVMAgentPlatformUpdates" : false
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : true
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-04725_z1",
+            "properties" : {
+              "primary" : null,
+              "deleteOption" : "Delete"
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : {
+          "uefiSettings" : {
+            "secureBootEnabled" : true,
+            "vTpmEnabled" : true
+          },
+          "encryptionAtHost" : null,
+          "securityType" : "TrustedLaunch",
+          "encryptionIdentity" : null,
+          "proxyAgentSettings" : null
+        },
+        "diagnosticsProfile" : {
+          "bootDiagnostics" : {
+            "enabled" : true,
+            "storageUri" : null
+          }
+        },
+        "availabilitySet" : null,
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "97724305-13aa-41cf-b53e-37c0be8869e2",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2024-04-03T22:54:41.9015744+00:00"
+      },
+      "plan" : null,
+      "resources" : null,
+      "identity" : null,
+      "zones" : [ "1" ],
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/virtualMachines/panfirewall2",
+      "name" : "panfirewall2",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "DeploymentTag" : "panNGFWhk5hi5pteiwau"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : "Standard_D8_v3",
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : null,
+            "publisher" : "paloaltonetworks",
+            "offer" : "vmseries-flex",
+            "sku" : "byol",
+            "version" : "11.2.5",
+            "exactVersion" : "11.2.5",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "panfirewall2_OsDisk_1_f0685b142fbd42c888d43773d8a2fb78",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "ReadWrite",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : null,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Compute/disks/panfirewall2_OsDisk_1_f0685b142fbd42c888d43773d8a2fb78",
+              "storageAccountType" : null,
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Detach"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : null,
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : null,
+        "osProfile" : {
+          "computerName" : "panfirewall2",
+          "adminUsername" : "localadmin",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : false,
+            "ssh" : null,
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "ImageDefault",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : null
+            },
+            "enableVMAgentPlatformUpdates" : null
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : null
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth0",
+            "properties" : {
+              "primary" : true,
+              "deleteOption" : null
+            }
+          }, {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth1",
+            "properties" : {
+              "primary" : false,
+              "deleteOption" : null
+            }
+          }, {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth2",
+            "properties" : {
+              "primary" : false,
+              "deleteOption" : null
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : null,
+        "diagnosticsProfile" : null,
+        "availabilitySet" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/availabilitySets/NEWAVAILABILITYSETHK5HI5PTEIWAU"
+        },
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "b7f60696-70ee-41a2-ab9f-40b0d7d04aa5",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2025-07-20T13:50:43.9487855+00:00"
+      },
+      "plan" : {
+        "name" : "byol",
+        "publisher" : "paloaltonetworks",
+        "product" : "vmseries-flex",
+        "promotionCode" : null
+      },
+      "resources" : null,
+      "identity" : null,
+      "zones" : null,
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-pan-01",
+      "name" : "ubuntu-azure-pan-01",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "security-inspection"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : null,
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : null,
+            "publisher" : "canonical",
+            "offer" : "ubuntu-24_04-lts",
+            "sku" : "server",
+            "version" : "latest",
+            "exactVersion" : "24.04.202507080",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "ubuntu-azure-pan-01_OsDisk_1_ca250fdd511d4edfac7c3517a942104d",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "ReadWrite",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : null,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Compute/disks/ubuntu-azure-pan-01_OsDisk_1_ca250fdd511d4edfac7c3517a942104d",
+              "storageAccountType" : null,
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Delete"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : "SCSI",
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : {
+          "ultraSSDEnabled" : null,
+          "hibernationEnabled" : false
+        },
+        "osProfile" : {
+          "computerName" : "ubuntu-azure-pan-01",
+          "adminUsername" : "azureuser",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : true,
+            "ssh" : {
+              "publicKeys" : [ {
+                "path" : "/home/azureuser/.ssh/authorized_keys",
+                "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsaw/pXwA18P+/Gn21OBHNPSvB2/6WVkplMoIK7t9SVRrKnub/ebNmkDWuzUaUVWrhX9Z+Dxil3wX2XdGKy680x3brRwgtE164NCUORJ50wxKblHSdQtcz0M+4eKAH+CFnlOrWcWGKZ9NNFH97YYWR+qlI3jyb3p7SMqUbAvqrYPFXYA/dRlbvHOLjrYIeT/c5W2sCAlWRoUHIM++XK0SbFB8SI+DWFFVpqykOvBVPLvRw9mU53cW6ekXRakjOwPxJx0GARJAQ4rKWEqV3fY5caRrydBAlcHgRJWusNvB7tZWCB5K2DVcxCrB3BD9798ookf1JpEGW9e1Vl2Q7PHBKsGvebWWF42ljxirMZzjgmjYoNbyYYcqdiXM2YOncaoLezLeGOxSVsWhT0ZMEy3Qof8et6PbVBgVcOfg0pQpWmYiuuSD1WPS69rHEH7D1XmxHlFS0n69ziVTd5eWyy9j4DoiVEHb5OTEXhqn4iE7fIzuEq2pIvnOZCsWZJH//lkU= generated-by-azure"
+              } ]
+            },
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "ImageDefault",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : null
+            },
+            "enableVMAgentPlatformUpdates" : null
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : true
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-pan-01240_z1",
+            "properties" : {
+              "primary" : null,
+              "deleteOption" : "Delete"
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : {
+          "uefiSettings" : {
+            "secureBootEnabled" : true,
+            "vTpmEnabled" : true
+          },
+          "encryptionAtHost" : null,
+          "securityType" : "TrustedLaunch",
+          "encryptionIdentity" : null,
+          "proxyAgentSettings" : null
+        },
+        "diagnosticsProfile" : {
+          "bootDiagnostics" : {
+            "enabled" : true,
+            "storageUri" : null
+          }
+        },
+        "availabilitySet" : null,
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "150d1557-a91d-484f-91f3-c9167066fdad",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2025-07-20T14:42:18.6371031+00:00"
+      },
+      "plan" : null,
+      "resources" : null,
+      "identity" : null,
+      "zones" : [ "1" ],
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-pan-02",
+      "name" : "ubuntu-azure-pan-02",
+      "type" : "Microsoft.Compute/virtualMachines",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "security-inspection"
+      },
+      "location" : "eastus",
+      "properties" : {
+        "hardwareProfile" : {
+          "vmSize" : null,
+          "vmSizeProperties" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "storageProfile" : {
+          "imageReference" : {
+            "id" : null,
+            "publisher" : "canonical",
+            "offer" : "ubuntu-24_04-lts",
+            "sku" : "server",
+            "version" : "latest",
+            "exactVersion" : "24.04.202507080",
+            "sharedGalleryImageId" : null,
+            "communityGalleryImageId" : null
+          },
+          "osDisk" : {
+            "osType" : "Linux",
+            "encryptionSettings" : null,
+            "name" : "ubuntu-azure-pan-02_OsDisk_1_0c04128b687f4d26a5fc4c8c16f6991e",
+            "vhd" : null,
+            "image" : null,
+            "caching" : "ReadWrite",
+            "writeAcceleratorEnabled" : null,
+            "diffDiskSettings" : null,
+            "createOption" : "FromImage",
+            "diskSizeGB" : null,
+            "managedDisk" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Compute/disks/ubuntu-azure-pan-02_OsDisk_1_0c04128b687f4d26a5fc4c8c16f6991e",
+              "storageAccountType" : null,
+              "diskEncryptionSet" : null,
+              "securityProfile" : null
+            },
+            "deleteOption" : "Delete"
+          },
+          "dataDisks" : [ ],
+          "diskControllerType" : "SCSI",
+          "alignRegionalDisksToVMZone" : null
+        },
+        "additionalCapabilities" : {
+          "ultraSSDEnabled" : null,
+          "hibernationEnabled" : false
+        },
+        "osProfile" : {
+          "computerName" : "ubuntu-azure-pan-02",
+          "adminUsername" : "azureuser",
+          "adminPassword" : null,
+          "customData" : null,
+          "windowsConfiguration" : null,
+          "linuxConfiguration" : {
+            "disablePasswordAuthentication" : true,
+            "ssh" : {
+              "publicKeys" : [ {
+                "path" : "/home/azureuser/.ssh/authorized_keys",
+                "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsaw/pXwA18P+/Gn21OBHNPSvB2/6WVkplMoIK7t9SVRrKnub/ebNmkDWuzUaUVWrhX9Z+Dxil3wX2XdGKy680x3brRwgtE164NCUORJ50wxKblHSdQtcz0M+4eKAH+CFnlOrWcWGKZ9NNFH97YYWR+qlI3jyb3p7SMqUbAvqrYPFXYA/dRlbvHOLjrYIeT/c5W2sCAlWRoUHIM++XK0SbFB8SI+DWFFVpqykOvBVPLvRw9mU53cW6ekXRakjOwPxJx0GARJAQ4rKWEqV3fY5caRrydBAlcHgRJWusNvB7tZWCB5K2DVcxCrB3BD9798ookf1JpEGW9e1Vl2Q7PHBKsGvebWWF42ljxirMZzjgmjYoNbyYYcqdiXM2YOncaoLezLeGOxSVsWhT0ZMEy3Qof8et6PbVBgVcOfg0pQpWmYiuuSD1WPS69rHEH7D1XmxHlFS0n69ziVTd5eWyy9j4DoiVEHb5OTEXhqn4iE7fIzuEq2pIvnOZCsWZJH//lkU= generated-by-azure"
+              } ]
+            },
+            "provisionVMAgent" : true,
+            "patchSettings" : {
+              "patchMode" : "ImageDefault",
+              "assessmentMode" : "ImageDefault",
+              "automaticByPlatformSettings" : null
+            },
+            "enableVMAgentPlatformUpdates" : null
+          },
+          "secrets" : [ ],
+          "allowExtensionOperations" : true,
+          "requireGuestProvisionSignal" : true
+        },
+        "networkProfile" : {
+          "networkInterfaces" : [ {
+            "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-pan-02239_z1",
+            "properties" : {
+              "primary" : null,
+              "deleteOption" : "Delete"
+            }
+          } ],
+          "networkApiVersion" : null,
+          "networkInterfaceConfigurations" : null
+        },
+        "securityProfile" : {
+          "uefiSettings" : {
+            "secureBootEnabled" : true,
+            "vTpmEnabled" : true
+          },
+          "encryptionAtHost" : null,
+          "securityType" : "TrustedLaunch",
+          "encryptionIdentity" : null,
+          "proxyAgentSettings" : null
+        },
+        "diagnosticsProfile" : {
+          "bootDiagnostics" : {
+            "enabled" : true,
+            "storageUri" : null
+          }
+        },
+        "availabilitySet" : null,
+        "virtualMachineScaleSet" : null,
+        "proximityPlacementGroup" : null,
+        "priority" : null,
+        "evictionPolicy" : null,
+        "billingProfile" : null,
+        "host" : null,
+        "hostGroup" : null,
+        "provisioningState" : "Succeeded",
+        "instanceView" : null,
+        "licenseType" : null,
+        "vmId" : "7f3b91f9-bb81-4d1e-be95-34ca2f122883",
+        "extensionsTimeBudget" : null,
+        "platformFaultDomain" : null,
+        "scheduledEventsProfile" : null,
+        "userData" : null,
+        "capacityReservation" : null,
+        "applicationProfile" : null,
+        "timeCreated" : "2025-07-21T07:37:19.6339357+00:00"
+      },
+      "plan" : null,
+      "resources" : null,
+      "identity" : null,
+      "zones" : [ "1" ],
+      "extendedLocation" : null,
+      "managedBy" : null,
+      "placement" : null
+    } ],
+    "nextLink" : null
+  }
+}

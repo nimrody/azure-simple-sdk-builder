@@ -1,0 +1,1677 @@
+{
+  "statusCode" : 200,
+  "body" : {
+    "value" : [ {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-08564",
+      "name" : "ubuntu-azure-08564",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "westus",
+      "tags" : {
+        "environment" : "test-us-west"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-west-resource-group-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-08"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-08564/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.72.4",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-west/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "jkptldzrwogubpkx0owo1jpmyg.dx.internal.cloudapp.net"
+        },
+        "macAddress" : "60-45-BD-04-6E-65",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : true,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "cd8cdd9d-9bf1-4ef7-89e0-a23f0dfaf81e",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/private-endpoint-1-us-east.nic.09f668d3-a538-47cd-a8af-98fe88a957b0",
+      "name" : "private-endpoint-1-us-east.nic.09f668d3-a538-47cd-a8af-98fe88a957b0",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "test"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : null,
+        "networkSecurityGroup" : null,
+        "privateEndpoint" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/privateEndpoints/private-endpoint-1-us-east",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "extendedLocation" : null,
+          "properties" : null
+        },
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/private-endpoint-1-us-east.nic.09f668d3-a538-47cd-a8af-98fe88a957b0/ipConfigurations/privateEndpointIpConfig.9aac140e-867c-4f8c-aeef-3e39bc54ec2a",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.8.6",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : {
+              "groupId" : "blob",
+              "requiredMemberName" : "blob",
+              "fqdns" : [ "c39247d77429eastus.blob.core.windows.net" ]
+            }
+          },
+          "name" : "privateEndpointIpConfig.9aac140e-867c-4f8c-aeef-3e39bc54ec2a",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "",
+        "primary" : null,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : false,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "9ea6abf3-5c67-4a8f-a36a-c619a9529d72",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-01878_z1",
+      "name" : "te-agent-01878_z1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "test"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachines/te-agent-01"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-01878_z1/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.8.7",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "60-45-BD-D8-30-F6",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "3158618f-3fd3-4a39-afa9-92d59c34fce2",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-02973_z1",
+      "name" : "te-agent-02973_z1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "test"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachines/te-agent-02"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-02973_z1/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.8.14",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "00-0D-3A-8B-AF-53",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "8592bf7e-018c-4611-81ae-a1cae2b964a4",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-01227_z1",
+      "name" : "ubuntu-azure-01227_z1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "test"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-01"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-01227_z1/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : [ {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/applicationGateways/AGW-01/backendAddressPools/AGW-01-backendpool01",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            } ],
+            "loadBalancerBackendAddressPools" : [ {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/loadBalancers/LB-01/backendAddressPools/LB-01-backendpool01",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            }, {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/loadBalancers/LB-01-Internal/backendAddressPools/LB-01-Internal-BE",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            } ],
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.8.4",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : [ {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/applicationSecurityGroups/ASG-01",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "properties" : null
+            } ],
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        }, {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-01227_z1/ipConfigurations/ipconfig2",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "fd00:ac:1d:8::4",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv6",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : null,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : [ {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/applicationSecurityGroups/ASG-01",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "properties" : null
+            } ],
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig2",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "7C-1E-52-0C-2C-26",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : false,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "bf1cb70d-1d03-4e43-a5d2-9b5b7aee023c",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-02844_z2",
+      "name" : "ubuntu-azure-02844_z2",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "test"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-02"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-02844_z2/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : [ {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/applicationGateways/AGW-01/backendAddressPools/AGW-01-backendpool01",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            } ],
+            "loadBalancerBackendAddressPools" : [ {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/loadBalancers/LB-01/backendAddressPools/LB-01-backendpool01",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            }, {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/loadBalancers/LB-01-Internal/backendAddressPools/LB-01-Internal-BE",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            } ],
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.8.5",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : [ {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/applicationSecurityGroups/ASG-01",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "properties" : null
+            } ],
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "60-45-BD-F0-5E-DC",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : false,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "89328857-f543-4791-8e66-6a1f3d8b6eca",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-03468_z2",
+      "name" : "ubuntu-azure-03468_z2",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "test"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-03"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-02",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-03468_z2/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.1.4",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/public-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/publicIPAddresses/public-subnet-1",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "60-45-BD-D7-62-D9",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "42a7520b-068e-4a7b-8f84-3683cb654896",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-03938_z2",
+      "name" : "ubuntu-azure-03938_z2",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "test"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : null,
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-03938_z2/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.8.10",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/publicIPAddresses/ubuntu-azure-03-ip",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : null
+        },
+        "macAddress" : "00-0D-3A-1E-59-52",
+        "primary" : null,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "52f18ea3-ee0a-4016-be12-3d52ed54a680",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-04725_z1",
+      "name" : "ubuntu-azure-04725_z1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "test"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-04"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-04725_z1/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "172.29.1.5",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/public-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/publicIPAddresses/pip-vnet-1-us-east-eastus-public-subnet-1",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "lnskqww3qr2uhgwrxyfxoowlxg.bx.internal.cloudapp.net"
+        },
+        "macAddress" : "60-45-BD-EB-E8-64",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "7515f81a-f1b8-4378-99db-8fc3fb1c7aa8",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth0",
+      "name" : "panfirewall2-fw2mgmtpublicip-eth0",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "DeploymentTag" : "panNGFWhk5hi5pteiwau"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/virtualMachines/panfirewall2"
+        },
+        "networkSecurityGroup" : null,
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth0/ipConfigurations/ipconfig-mgmt",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.103.0.68",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/virtualNetworks/fw2VNET/subnets/PAN-Mgmt",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/publicIPAddresses/fw2mgmtpublicip",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig-mgmt",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : null
+        },
+        "macAddress" : "7C-1E-52-58-6C-AA",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : false,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "de3a4997-c290-49e4-b40f-1d6f6e04ab59",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth1",
+      "name" : "panfirewall2-fw2mgmtpublicip-eth1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "DeploymentTag" : "panNGFWhk5hi5pteiwau"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/virtualMachines/panfirewall2"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkSecurityGroups/DefaultNSG",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth1/ipConfigurations/ipconfig-public",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.103.0.84",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/virtualNetworks/fw2VNET/subnets/PAN-Public",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/publicIPAddresses/pip-fw2vnet-eastus-pan-public",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig-public",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : null
+        },
+        "macAddress" : "7C-1E-52-58-66-C6",
+        "primary" : false,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : true,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "bd2365df-2fc6-4c38-ac9f-fb5dab174253",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth2",
+      "name" : "panfirewall2-fw2mgmtpublicip-eth2",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "DeploymentTag" : "panNGFWhk5hi5pteiwau"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/virtualMachines/panfirewall2"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkSecurityGroups/Allow-Access",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/panfirewall2-fw2mgmtpublicip-eth2/ipConfigurations/ipconfig-private",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.103.0.100",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/virtualNetworks/fw2VNET/subnets/PAN-Private",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig-private",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : null
+        },
+        "macAddress" : "7C-1E-52-58-62-7C",
+        "primary" : false,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : true,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "4313975e-8864-41ae-908d-6ab4c165b8ac",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-pan-01240_z1",
+      "name" : "ubuntu-azure-pan-01240_z1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "security-inspection"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-pan-01"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkSecurityGroups/DefaultNSG",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-pan-01240_z1/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.103.0.101",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/virtualNetworks/fw2VNET/subnets/PAN-Private",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : null
+        },
+        "macAddress" : "7C-1E-52-1C-2B-30",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "5d99c36d-02c1-43af-8854-13710f639dac",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-pan-02239_z1",
+      "name" : "ubuntu-azure-pan-02239_z1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "eastus",
+      "tags" : {
+        "environment" : "security-inspection"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-PAN/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-pan-02"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkSecurityGroups/Allow-Access",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-pan-02239_z1/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.103.0.102",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-PAN/providers/Microsoft.Network/virtualNetworks/fw2VNET/subnets/PAN-Private",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : null
+        },
+        "macAddress" : "7C-1E-52-02-17-46",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "d51092b2-6868-40de-ab63-42210efcf5af",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/private-endpoint-1-west-eu.nic.19ceb6d7-b924-4583-bef4-306e1ecfc8c6",
+      "name" : "private-endpoint-1-west-eu.nic.19ceb6d7-b924-4583-bef4-306e1ecfc8c6",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "westeurope",
+      "tags" : {
+        "environment" : "test-eu-west"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : null,
+        "networkSecurityGroup" : null,
+        "privateEndpoint" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/privateEndpoints/private-endpoint-1-west-eu",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "extendedLocation" : null,
+          "properties" : null
+        },
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/private-endpoint-1-west-eu.nic.19ceb6d7-b924-4583-bef4-306e1ecfc8c6/ipConfigurations/privateEndpointIpConfig.87965e65-1222-45ad-b937-462ae9b19ced",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.10.8.6",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : {
+              "groupId" : "blob",
+              "requiredMemberName" : "blob",
+              "fqdns" : [ "c39247d77429westeu.blob.core.windows.net" ]
+            }
+          },
+          "name" : "privateEndpointIpConfig.87965e65-1222-45ad-b937-462ae9b19ced",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "gunrkw31nooutaprxbqzawqs3f.ax.internal.cloudapp.net"
+        },
+        "macAddress" : "",
+        "primary" : null,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : false,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "c3225b3c-0279-4dcb-98cd-316dca6ccfba",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-01877_z1",
+      "name" : "te-agent-01877_z1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "westeurope",
+      "tags" : {
+        "environment" : "test-eu-west"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachines/te-agent-01"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-01877_z1/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.10.8.7",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "gunrkw31nooutaprxbqzawqs3f.ax.internal.cloudapp.net"
+        },
+        "macAddress" : "00-22-48-82-CB-93",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "3870663d-d199-41c1-824e-86118e910f9a",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-02784_z1",
+      "name" : "te-agent-02784_z1",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "westeurope",
+      "tags" : {
+        "environment" : "test-eu-west"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachines/te-agent-02"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/te-agent-02784_z1/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.10.8.9",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "gunrkw31nooutaprxbqzawqs3f.ax.internal.cloudapp.net"
+        },
+        "macAddress" : "7C-1E-52-5E-9A-94",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "d710632f-b05b-40ea-bf7d-4b1eb4669965",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-05874_z2",
+      "name" : "ubuntu-azure-05874_z2",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "westeurope",
+      "tags" : {
+        "environment" : "test-eu-west"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-05"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-05874_z2/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.10.1.4",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/public-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/publicIPAddresses/ubuntu-azure-05-ip",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "gunrkw31nooutaprxbqzawqs3f.ax.internal.cloudapp.net"
+        },
+        "macAddress" : "60-45-BD-A0-86-EC",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : false,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "18d63bdc-6e65-4327-96af-7cb377495d36",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-06931_z2",
+      "name" : "ubuntu-azure-06931_z2",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "westeurope",
+      "tags" : {
+        "environment" : "test-eu-west"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-06"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-06931_z2/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.10.1.5",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/public-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/publicIPAddresses/ubuntu-azure-06-ip",
+              "name" : null,
+              "type" : null,
+              "location" : null,
+              "tags" : null,
+              "extendedLocation" : null,
+              "sku" : null,
+              "properties" : null,
+              "zones" : null
+            },
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "gunrkw31nooutaprxbqzawqs3f.ax.internal.cloudapp.net"
+        },
+        "macAddress" : "60-45-BD-96-CF-70",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : false,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "fd4f58b0-7ce5-453a-80df-6b30258bffcb",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-07195",
+      "name" : "ubuntu-azure-07195",
+      "type" : "Microsoft.Network/networkInterfaces",
+      "location" : "westeurope",
+      "tags" : {
+        "environment" : "test-eu-west"
+      },
+      "extendedLocation" : null,
+      "properties" : {
+        "virtualMachine" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachines/ubuntu-azure-07"
+        },
+        "networkSecurityGroup" : {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01",
+          "name" : null,
+          "type" : null,
+          "location" : null,
+          "tags" : null,
+          "properties" : null
+        },
+        "privateEndpoint" : null,
+        "ipConfigurations" : [ {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-07195/ipConfigurations/ipconfig1",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "10.10.8.8",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv4",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : true,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig1",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        }, {
+          "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkInterfaces/ubuntu-azure-07195/ipConfigurations/ipconfig2",
+          "properties" : {
+            "gatewayLoadBalancer" : null,
+            "virtualNetworkTaps" : null,
+            "applicationGatewayBackendAddressPools" : null,
+            "loadBalancerBackendAddressPools" : null,
+            "loadBalancerInboundNatRules" : null,
+            "privateIPAddress" : "fd00:a:a:8::4",
+            "privateIPAddressPrefixLength" : null,
+            "privateIPAllocationMethod" : "Dynamic",
+            "privateIPAddressVersion" : "IPv6",
+            "subnet" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/private-subnet-1",
+              "properties" : null,
+              "name" : null,
+              "type" : null
+            },
+            "primary" : null,
+            "publicIPAddress" : null,
+            "applicationSecurityGroups" : null,
+            "provisioningState" : "Succeeded",
+            "privateLinkConnectionProperties" : null
+          },
+          "name" : "ipconfig2",
+          "type" : "Microsoft.Network/networkInterfaces/ipConfigurations"
+        } ],
+        "tapConfigurations" : [ ],
+        "dnsSettings" : {
+          "dnsServers" : [ ],
+          "appliedDnsServers" : [ ],
+          "internalDnsNameLabel" : null,
+          "internalFqdn" : null,
+          "internalDomainNameSuffix" : "gunrkw31nooutaprxbqzawqs3f.ax.internal.cloudapp.net"
+        },
+        "macAddress" : "00-22-48-7E-DA-42",
+        "primary" : true,
+        "vnetEncryptionSupported" : false,
+        "defaultOutboundConnectivityEnabled" : false,
+        "enableAcceleratedNetworking" : true,
+        "disableTcpStateTracking" : false,
+        "enableIPForwarding" : false,
+        "hostedWorkloads" : [ ],
+        "dscpConfiguration" : null,
+        "resourceGuid" : "a8965168-c506-4f46-8d99-8eb38f0ccec0",
+        "provisioningState" : "Succeeded",
+        "workloadType" : null,
+        "nicType" : "Standard",
+        "privateLinkService" : null,
+        "migrationPhase" : null,
+        "auxiliaryMode" : "None",
+        "auxiliarySku" : "None"
+      }
+    } ],
+    "nextLink" : null
+  }
+}

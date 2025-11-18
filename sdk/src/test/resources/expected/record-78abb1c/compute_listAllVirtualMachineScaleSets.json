@@ -1,0 +1,409 @@
+{
+  "statusCode" : 200,
+  "body" : {
+    "value" : [ {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/US-EAST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east",
+      "name" : "vm-ss-1-us-east",
+      "type" : "Microsoft.Compute/virtualMachineScaleSets",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "test"
+      },
+      "location" : "eastus",
+      "sku" : {
+        "name" : "Standard_B2ts_v2",
+        "tier" : "Standard",
+        "capacity" : 2
+      },
+      "plan" : null,
+      "properties" : {
+        "upgradePolicy" : {
+          "mode" : "Manual",
+          "rollingUpgradePolicy" : null,
+          "automaticOSUpgradePolicy" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "automaticRepairsPolicy" : null,
+        "virtualMachineProfile" : {
+          "osProfile" : {
+            "computerNamePrefix" : "vm-ss-1-u",
+            "adminUsername" : "azureuser",
+            "adminPassword" : null,
+            "customData" : null,
+            "windowsConfiguration" : null,
+            "linuxConfiguration" : {
+              "disablePasswordAuthentication" : true,
+              "ssh" : {
+                "publicKeys" : [ {
+                  "path" : "/home/azureuser/.ssh/authorized_keys",
+                  "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsaw/pXwA18P+/Gn21OBHNPSvB2/6WVkplMoIK7t9SVRrKnub/ebNmkDWuzUaUVWrhX9Z+Dxil3wX2XdGKy680x3brRwgtE164NCUORJ50wxKblHSdQtcz0M+4eKAH+CFnlOrWcWGKZ9NNFH97YYWR+qlI3jyb3p7SMqUbAvqrYPFXYA/dRlbvHOLjrYIeT/c5W2sCAlWRoUHIM++XK0SbFB8SI+DWFFVpqykOvBVPLvRw9mU53cW6ekXRakjOwPxJx0GARJAQ4rKWEqV3fY5caRrydBAlcHgRJWusNvB7tZWCB5K2DVcxCrB3BD9798ookf1JpEGW9e1Vl2Q7PHBKsGvebWWF42ljxirMZzjgmjYoNbyYYcqdiXM2YOncaoLezLeGOxSVsWhT0ZMEy3Qof8et6PbVBgVcOfg0pQpWmYiuuSD1WPS69rHEH7D1XmxHlFS0n69ziVTd5eWyy9j4DoiVEHb5OTEXhqn4iE7fIzuEq2pIvnOZCsWZJH//lkU= generated-by-azure"
+                } ]
+              },
+              "provisionVMAgent" : true,
+              "patchSettings" : null,
+              "enableVMAgentPlatformUpdates" : false
+            },
+            "secrets" : [ ],
+            "allowExtensionOperations" : true,
+            "requireGuestProvisionSignal" : true
+          },
+          "storageProfile" : {
+            "imageReference" : {
+              "id" : null,
+              "publisher" : "canonical",
+              "offer" : "0001-com-ubuntu-server-jammy",
+              "sku" : "22_04-lts-gen2",
+              "version" : "latest",
+              "exactVersion" : null,
+              "sharedGalleryImageId" : null,
+              "communityGalleryImageId" : null
+            },
+            "osDisk" : {
+              "name" : null,
+              "caching" : "ReadWrite",
+              "writeAcceleratorEnabled" : null,
+              "createOption" : "FromImage",
+              "diffDiskSettings" : null,
+              "diskSizeGB" : 30,
+              "osType" : "Linux",
+              "image" : null,
+              "vhdContainers" : null,
+              "managedDisk" : {
+                "storageAccountType" : "Premium_LRS",
+                "diskEncryptionSet" : null,
+                "securityProfile" : null
+              },
+              "deleteOption" : null
+            },
+            "dataDisks" : null,
+            "diskControllerType" : "SCSI"
+          },
+          "networkProfile" : {
+            "healthProbe" : null,
+            "networkInterfaceConfigurations" : [ {
+              "name" : "vnet-1-us-east-nic01",
+              "properties" : {
+                "primary" : true,
+                "enableAcceleratedNetworking" : true,
+                "disableTcpStateTracking" : false,
+                "enableFpga" : null,
+                "networkSecurityGroup" : {
+                  "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/basicNsgvnet-1-us-east-nic01"
+                },
+                "dnsSettings" : {
+                  "dnsServers" : [ ]
+                },
+                "ipConfigurations" : [ {
+                  "name" : "vnet-1-us-east-nic01-defaultIpConfiguration",
+                  "properties" : {
+                    "subnet" : {
+                      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-us-east/subnets/private-subnet-1"
+                    },
+                    "primary" : true,
+                    "publicIPAddressConfiguration" : {
+                      "name" : "publicIp-vnet-1-us-east-nic01",
+                      "properties" : {
+                        "idleTimeoutInMinutes" : 15,
+                        "dnsSettings" : null,
+                        "ipTags" : [ ],
+                        "publicIPPrefix" : null,
+                        "publicIPAddressVersion" : "IPv4",
+                        "deleteOption" : null
+                      },
+                      "sku" : null
+                    },
+                    "privateIPAddressVersion" : "IPv4",
+                    "applicationGatewayBackendAddressPools" : null,
+                    "applicationSecurityGroups" : null,
+                    "loadBalancerBackendAddressPools" : null,
+                    "loadBalancerInboundNatPools" : null
+                  }
+                } ],
+                "enableIPForwarding" : false,
+                "deleteOption" : null,
+                "auxiliaryMode" : null,
+                "auxiliarySku" : null
+              }
+            } ],
+            "networkApiVersion" : null
+          },
+          "securityProfile" : null,
+          "diagnosticsProfile" : {
+            "bootDiagnostics" : {
+              "enabled" : true,
+              "storageUri" : null
+            }
+          },
+          "extensionProfile" : {
+            "extensions" : [ ],
+            "extensionsTimeBudget" : null
+          },
+          "licenseType" : null,
+          "priority" : null,
+          "evictionPolicy" : null,
+          "billingProfile" : null,
+          "scheduledEventsProfile" : null,
+          "userData" : null,
+          "capacityReservation" : null,
+          "applicationProfile" : null,
+          "hardwareProfile" : null,
+          "serviceArtifactReference" : null,
+          "securityPostureReference" : null,
+          "timeCreated" : "2025-03-03T17:59:44.2809246+00:00"
+        },
+        "provisioningState" : "Succeeded",
+        "overprovision" : false,
+        "doNotRunExtensionsOnOverprovisionedVMs" : false,
+        "uniqueId" : "b1d62837-a3c9-4dcc-8b74-d29105d3e81d",
+        "singlePlacementGroup" : false,
+        "zoneBalance" : false,
+        "platformFaultDomainCount" : 1,
+        "proximityPlacementGroup" : null,
+        "hostGroup" : null,
+        "additionalCapabilities" : null,
+        "scaleInPolicy" : {
+          "rules" : [ "Default" ],
+          "forceDeletion" : false,
+          "prioritizeUnhealthyVMs" : null
+        },
+        "orchestrationMode" : "Uniform",
+        "spotRestorePolicy" : null,
+        "priorityMixPolicy" : null,
+        "timeCreated" : "2024-03-31T16:05:43.3709048+00:00",
+        "constrainedMaximumCapacity" : null,
+        "resiliencyPolicy" : null,
+        "zonalPlatformFaultDomainAlignMode" : null,
+        "skuProfile" : null
+      },
+      "identity" : null,
+      "zones" : [ "1", "2", "3" ],
+      "extendedLocation" : null
+    }, {
+      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/EU-WEST-RESOURCE-GROUP-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-eu-west",
+      "name" : "vm-ss-1-eu-west",
+      "type" : "Microsoft.Compute/virtualMachineScaleSets",
+      "systemData" : null,
+      "tags" : {
+        "environment" : "test-eu-west"
+      },
+      "location" : "westeurope",
+      "sku" : {
+        "name" : "Standard_B2ts_v2",
+        "tier" : "Standard",
+        "capacity" : 2
+      },
+      "plan" : null,
+      "properties" : {
+        "upgradePolicy" : {
+          "mode" : "Manual",
+          "rollingUpgradePolicy" : null,
+          "automaticOSUpgradePolicy" : null
+        },
+        "scheduledEventsPolicy" : null,
+        "automaticRepairsPolicy" : {
+          "enabled" : false,
+          "gracePeriod" : "PT10M",
+          "repairAction" : null
+        },
+        "virtualMachineProfile" : {
+          "osProfile" : {
+            "computerNamePrefix" : "vm-ss-1-e",
+            "adminUsername" : "azureuser",
+            "adminPassword" : null,
+            "customData" : null,
+            "windowsConfiguration" : null,
+            "linuxConfiguration" : {
+              "disablePasswordAuthentication" : true,
+              "ssh" : {
+                "publicKeys" : [ {
+                  "path" : "/home/azureuser/.ssh/authorized_keys",
+                  "keyData" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDsaw/pXwA18P+/Gn21OBHNPSvB2/6WVkplMoIK7t9SVRrKnub/ebNmkDWuzUaUVWrhX9Z+Dxil3wX2XdGKy680x3brRwgtE164NCUORJ50wxKblHSdQtcz0M+4eKAH+CFnlOrWcWGKZ9NNFH97YYWR+qlI3jyb3p7SMqUbAvqrYPFXYA/dRlbvHOLjrYIeT/c5W2sCAlWRoUHIM++XK0SbFB8SI+DWFFVpqykOvBVPLvRw9mU53cW6ekXRakjOwPxJx0GARJAQ4rKWEqV3fY5caRrydBAlcHgRJWusNvB7tZWCB5K2DVcxCrB3BD9798ookf1JpEGW9e1Vl2Q7PHBKsGvebWWF42ljxirMZzjgmjYoNbyYYcqdiXM2YOncaoLezLeGOxSVsWhT0ZMEy3Qof8et6PbVBgVcOfg0pQpWmYiuuSD1WPS69rHEH7D1XmxHlFS0n69ziVTd5eWyy9j4DoiVEHb5OTEXhqn4iE7fIzuEq2pIvnOZCsWZJH//lkU= generated-by-azure"
+                } ]
+              },
+              "provisionVMAgent" : true,
+              "patchSettings" : null,
+              "enableVMAgentPlatformUpdates" : false
+            },
+            "secrets" : [ ],
+            "allowExtensionOperations" : true,
+            "requireGuestProvisionSignal" : true
+          },
+          "storageProfile" : {
+            "imageReference" : {
+              "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/galleries/my_image_gallery/images/ubuntu_image_01",
+              "publisher" : null,
+              "offer" : null,
+              "sku" : null,
+              "version" : null,
+              "exactVersion" : null,
+              "sharedGalleryImageId" : null,
+              "communityGalleryImageId" : null
+            },
+            "osDisk" : {
+              "name" : null,
+              "caching" : "ReadWrite",
+              "writeAcceleratorEnabled" : null,
+              "createOption" : "FromImage",
+              "diffDiskSettings" : null,
+              "diskSizeGB" : 30,
+              "osType" : "Linux",
+              "image" : null,
+              "vhdContainers" : null,
+              "managedDisk" : {
+                "storageAccountType" : "Premium_LRS",
+                "diskEncryptionSet" : null,
+                "securityProfile" : null
+              },
+              "deleteOption" : null
+            },
+            "dataDisks" : null,
+            "diskControllerType" : "SCSI"
+          },
+          "networkProfile" : {
+            "healthProbe" : null,
+            "networkInterfaceConfigurations" : [ {
+              "name" : "vnet-1-eu-west-nic01",
+              "properties" : {
+                "primary" : true,
+                "enableAcceleratedNetworking" : true,
+                "disableTcpStateTracking" : false,
+                "enableFpga" : null,
+                "networkSecurityGroup" : {
+                  "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01"
+                },
+                "dnsSettings" : {
+                  "dnsServers" : [ ]
+                },
+                "ipConfigurations" : [ {
+                  "name" : "vnet-1-eu-west-nic01-defaultIpConfiguration",
+                  "properties" : {
+                    "subnet" : {
+                      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/private-subnet-1"
+                    },
+                    "primary" : true,
+                    "publicIPAddressConfiguration" : null,
+                    "privateIPAddressVersion" : "IPv4",
+                    "applicationGatewayBackendAddressPools" : [ {
+                      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/applicationGateways/AGW-01/backendAddressPools/AGW-01-backendpool01"
+                    } ],
+                    "applicationSecurityGroups" : [ {
+                      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/applicationSecurityGroups/ASG-01"
+                    } ],
+                    "loadBalancerBackendAddressPools" : [ {
+                      "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/loadBalancers/LB-01/backendAddressPools/LB-01-backendpool01"
+                    } ],
+                    "loadBalancerInboundNatPools" : null
+                  }
+                } ],
+                "enableIPForwarding" : false,
+                "deleteOption" : null,
+                "auxiliaryMode" : null,
+                "auxiliarySku" : null
+              }
+            } ],
+            "networkApiVersion" : null
+          },
+          "securityProfile" : {
+            "uefiSettings" : {
+              "secureBootEnabled" : true,
+              "vTpmEnabled" : true
+            },
+            "encryptionAtHost" : null,
+            "securityType" : "TrustedLaunch",
+            "encryptionIdentity" : null,
+            "proxyAgentSettings" : null
+          },
+          "diagnosticsProfile" : {
+            "bootDiagnostics" : {
+              "enabled" : true,
+              "storageUri" : null
+            }
+          },
+          "extensionProfile" : {
+            "extensions" : [ {
+              "id" : null,
+              "properties" : {
+                "forceUpdateTag" : null,
+                "publisher" : "Microsoft.ManagedServices",
+                "type" : "ApplicationHealthLinux",
+                "typeHandlerVersion" : "1.0",
+                "autoUpgradeMinorVersion" : false,
+                "enableAutomaticUpgrade" : null,
+                "settings" : {
+                  "protocol" : "http",
+                  "port" : 80,
+                  "requestPath" : "/"
+                },
+                "protectedSettings" : null,
+                "provisioningState" : null,
+                "provisionAfterExtensions" : null,
+                "suppressFailures" : null,
+                "protectedSettingsFromKeyVault" : null
+              },
+              "type" : null,
+              "name" : "HealthExtension"
+            }, {
+              "id" : null,
+              "properties" : {
+                "forceUpdateTag" : null,
+                "publisher" : "Microsoft.OSTCExtensions",
+                "type" : "VMAccessForLinux",
+                "typeHandlerVersion" : "1.5",
+                "autoUpgradeMinorVersion" : true,
+                "enableAutomaticUpgrade" : null,
+                "settings" : null,
+                "protectedSettings" : null,
+                "provisioningState" : null,
+                "provisionAfterExtensions" : null,
+                "suppressFailures" : null,
+                "protectedSettingsFromKeyVault" : null
+              },
+              "type" : null,
+              "name" : "enablevmAccess"
+            } ],
+            "extensionsTimeBudget" : null
+          },
+          "licenseType" : null,
+          "priority" : null,
+          "evictionPolicy" : null,
+          "billingProfile" : null,
+          "scheduledEventsProfile" : null,
+          "userData" : null,
+          "capacityReservation" : null,
+          "applicationProfile" : null,
+          "hardwareProfile" : null,
+          "serviceArtifactReference" : null,
+          "securityPostureReference" : null,
+          "timeCreated" : "2024-10-01T08:42:43.6691233+00:00"
+        },
+        "provisioningState" : "Succeeded",
+        "overprovision" : false,
+        "doNotRunExtensionsOnOverprovisionedVMs" : false,
+        "uniqueId" : "2c0db34e-b550-4a2a-ba72-4a9cd4026918",
+        "singlePlacementGroup" : false,
+        "zoneBalance" : false,
+        "platformFaultDomainCount" : 1,
+        "proximityPlacementGroup" : null,
+        "hostGroup" : null,
+        "additionalCapabilities" : null,
+        "scaleInPolicy" : {
+          "rules" : [ "Default" ],
+          "forceDeletion" : false,
+          "prioritizeUnhealthyVMs" : null
+        },
+        "orchestrationMode" : "Uniform",
+        "spotRestorePolicy" : null,
+        "priorityMixPolicy" : null,
+        "timeCreated" : "2024-03-07T10:05:42.2624516+00:00",
+        "constrainedMaximumCapacity" : null,
+        "resiliencyPolicy" : null,
+        "zonalPlatformFaultDomainAlignMode" : null,
+        "skuProfile" : null
+      },
+      "identity" : null,
+      "zones" : [ "1", "2", "3" ],
+      "extendedLocation" : null
+    } ],
+    "nextLink" : null
+  }
+}

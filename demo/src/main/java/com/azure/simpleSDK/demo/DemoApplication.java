@@ -38,10 +38,13 @@ import com.azure.simpleSDK.network.models.VirtualNetworkListResult;
 import com.azure.simpleSDK.resources.client.AzureResourcesClient;
 import com.azure.simpleSDK.resources.models.Subscription;
 import com.azure.simpleSDK.resources.models.SubscriptionListResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +57,7 @@ import java.util.Locale;
 public class DemoApplication {
     
     private static final String DEFAULT_RECORDING_DIR = "recordings/demo";
+    private static final String DEFAULT_EXPECTED_OUTPUT_DIR = "recordings/expected";
     private static AzureNetworkClient networkClient;
     private static AzureComputeClient computeClient;
     private static AzureResourcesClient resourcesClient;
@@ -67,7 +71,10 @@ public class DemoApplication {
     private static boolean strictMode;
     private static HttpInteractionRecorder.Mode recorderMode = HttpInteractionRecorder.Mode.LIVE;
     private static Path recordingsDirectory = Paths.get(DEFAULT_RECORDING_DIR).toAbsolutePath();
+    private static Path expectedOutputDirectory = Paths.get(DEFAULT_EXPECTED_OUTPUT_DIR).toAbsolutePath();
     private static HttpInteractionRecorder httpRecorder;
+    private static final ObjectMapper EXPECTATION_MAPPER = new ObjectMapper()
+        .enable(SerializationFeature.INDENT_OUTPUT);
     
     public static void main(String[] args) {
         try {
@@ -219,6 +226,25 @@ public class DemoApplication {
                     printUsageAndExit();
                     return;
                 }
+            } else if (arg.startsWith("--expected-dir")) {
+                String expectedValue;
+                if (arg.contains("=")) {
+                    expectedValue = arg.substring(arg.indexOf('=') + 1);
+                } else {
+                    if (i + 1 >= args.length) {
+                        System.err.println("Missing value for --expected-dir option");
+                        printUsageAndExit();
+                        return;
+                    }
+                    expectedValue = args[++i];
+                }
+                try {
+                    expectedOutputDirectory = Paths.get(expectedValue).toAbsolutePath();
+                } catch (Exception e) {
+                    System.err.println("Invalid expected output directory: " + expectedValue);
+                    printUsageAndExit();
+                    return;
+                }
             }
         }
     }
@@ -254,11 +280,19 @@ public class DemoApplication {
             return;
         }
 
+        try {
+            Files.createDirectories(recordingsDirectory);
+            Files.createDirectories(expectedOutputDirectory);
+        } catch (IOException e) {
+            throw new AzureException("Failed to prepare recording directories", e);
+        }
+
         httpRecorder = new HttpInteractionRecorder(recorderMode, recordingsDirectory);
         AzureHttpClient.setGlobalRecorder(httpRecorder);
 
         if (recorderMode == HttpInteractionRecorder.Mode.RECORD) {
-            System.out.println("HTTP Mode: RECORD (capturing responses in " + recordingsDirectory + ")");
+            System.out.println("HTTP Mode: RECORD (capturing requests in " + recordingsDirectory + ")");
+            System.out.println("Expected SDK outputs will be written to " + expectedOutputDirectory);
         } else {
             System.out.println("HTTP Mode: PLAYBACK (reading responses from " + recordingsDirectory + ")");
         }
@@ -269,8 +303,9 @@ public class DemoApplication {
         System.out.println("Options:");
         System.out.println("  --mode <live|record|play>       Selects how HTTP calls are handled (default: live)");
         System.out.println("  --recordings-dir <path>         Directory to read/write recorded HTTP payloads");
+        System.out.println("  --expected-dir <path>           Directory to store serialized SDK responses in record mode");
         System.out.println("Examples:");
-        System.out.println("  ./gradlew :demo:run --args=\"--mode record --recordings-dir recordings/demo/network\"");
+        System.out.println("  ./gradlew :demo:run --args=\"--mode record --recordings-dir recordings/demo/network --expected-dir recordings/demo/network-expected\"");
         System.out.println("  ./gradlew :demo:run --args=\"--mode play --recordings-dir recordings/demo/network\"");
         System.out.println("Strict mode still uses -Dstrict=true for model validation.");
         System.exit(0);
@@ -308,6 +343,7 @@ public class DemoApplication {
 
         try {
             AzureResponse<SubscriptionListResult> response = resourcesClient.listSubscriptions();
+            recordExpectedResponse("resources_listSubscriptions", response);
             SubscriptionListResult result = response.getBody();
 
             System.out.println("Subscription API Status: " + response.getStatusCode());
@@ -340,6 +376,7 @@ public class DemoApplication {
                 System.out.println("No subscriptions returned for the current credentials.");
             }
         } catch (AzureServiceException e) {
+            recordExpectedError("resources_listSubscriptions", e);
             System.err.println("\n=== AZURE SERVICE ERROR (SUBSCRIPTIONS) ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -436,6 +473,7 @@ public class DemoApplication {
         System.out.println("\n--- Testing Azure Firewalls (pagination test) ---");
         try {
             AzureResponse<AzureFirewallListResult> response = networkClient.listAllAzureFirewalls(subscriptionId);
+            recordExpectedResponse("network_listAllAzureFirewalls", response);
             AzureFirewallListResult result = response.getBody();
 
             System.out.println("Firewall Response Status: " + response.getStatusCode());
@@ -443,6 +481,7 @@ public class DemoApplication {
 
             return result;
         } catch (AzureServiceException e) {
+            recordExpectedError("network_listAllAzureFirewalls", e);
             System.err.println("\n=== AZURE SERVICE ERROR ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -462,6 +501,7 @@ public class DemoApplication {
         System.out.println("\n--- Testing Virtual Networks (pagination test) ---");
         try {
             AzureResponse<VirtualNetworkListResult> response = networkClient.listAllVirtualNetworks(subscriptionId);
+            recordExpectedResponse("network_listAllVirtualNetworks", response);
             VirtualNetworkListResult result = response.getBody();
 
             System.out.println("VNet Response Status: " + response.getStatusCode());
@@ -469,6 +509,7 @@ public class DemoApplication {
 
             return result;
         } catch (AzureServiceException e) {
+            recordExpectedError("network_listAllVirtualNetworks", e);
             System.err.println("\n=== AZURE SERVICE ERROR ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -488,6 +529,7 @@ public class DemoApplication {
         System.out.println("\n--- Testing Network Interfaces (pagination test) ---");
         try {
             AzureResponse<NetworkInterfaceListResult> response = networkClient.listAllNetworkInterfaces(subscriptionId);
+            recordExpectedResponse("network_listAllNetworkInterfaces", response);
             NetworkInterfaceListResult result = response.getBody();
 
             System.out.println("NIC Response Status: " + response.getStatusCode());
@@ -495,6 +537,7 @@ public class DemoApplication {
 
             return result;
         } catch (AzureServiceException e) {
+            recordExpectedError("network_listAllNetworkInterfaces", e);
             System.err.println("\n=== AZURE SERVICE ERROR ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -514,6 +557,7 @@ public class DemoApplication {
         System.out.println("\n--- Testing Network Security Groups (pagination test) ---");
         try {
             AzureResponse<NetworkSecurityGroupListResult> response = networkClient.listAllNetworkSecurityGroups(subscriptionId);
+            recordExpectedResponse("network_listAllNetworkSecurityGroups", response);
             NetworkSecurityGroupListResult result = response.getBody();
 
             System.out.println("NSG Response Status: " + response.getStatusCode());
@@ -521,6 +565,7 @@ public class DemoApplication {
 
             return result;
         } catch (AzureServiceException e) {
+            recordExpectedError("network_listAllNetworkSecurityGroups", e);
             System.err.println("\n=== AZURE SERVICE ERROR ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -549,6 +594,7 @@ public class DemoApplication {
             System.out.println("\nFetching details for NSG: " + nsgName);
             AzureResponse<NetworkSecurityGroup> response = networkClient.getNetworkSecurityGroups(
                 subscriptionId, resourceGroup, nsgName, null);
+            recordExpectedResponse("network_getNetworkSecurityGroup_" + sanitizeName(resourceGroup) + "_" + sanitizeName(nsgName), response);
             NetworkSecurityGroup nsg = response.getBody();
 
             System.out.println("Response Status: " + response.getStatusCode());
@@ -559,6 +605,7 @@ public class DemoApplication {
             }
 
         } catch (AzureServiceException e) {
+            recordExpectedError("network_getNetworkSecurityGroup_" + sanitizeName(resourceGroup) + "_" + sanitizeName(nsgName), e);
             System.err.println("\n=== AZURE SERVICE ERROR ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -587,6 +634,7 @@ public class DemoApplication {
         System.out.println("\n--- Testing Virtual Machines (pagination test) ---");
         try {
             AzureResponse<VirtualMachineListResult> response = computeClient.listByLocationVirtualMachines(subscriptionId, "eastus");
+            recordExpectedResponse("compute_listVirtualMachines_eastus", response);
             VirtualMachineListResult result = response.getBody();
 
             System.out.println("VM Response Status: " + response.getStatusCode());
@@ -594,6 +642,7 @@ public class DemoApplication {
 
             return result;
         } catch (AzureServiceException e) {
+            recordExpectedError("compute_listVirtualMachines_eastus", e);
             System.err.println("\n=== AZURE SERVICE ERROR ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -619,6 +668,7 @@ public class DemoApplication {
         System.out.println("\n--- Testing Virtual Machine Scale Sets (pagination test) ---");
         try {
             AzureResponse<VirtualMachineScaleSetListWithLinkResult> response = computeClient.listAllVirtualMachineScaleSets(subscriptionId);
+            recordExpectedResponse("compute_listAllVirtualMachineScaleSets", response);
             VirtualMachineScaleSetListWithLinkResult result = response.getBody();
 
             System.out.println("VMSS Response Status: " + response.getStatusCode());
@@ -626,6 +676,7 @@ public class DemoApplication {
 
             return result;
         } catch (AzureServiceException e) {
+            recordExpectedError("compute_listAllVirtualMachineScaleSets", e);
             System.err.println("\n=== AZURE SERVICE ERROR ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -654,12 +705,13 @@ public class DemoApplication {
             return;
         }
 
+        String scope = "subscriptions/" + subscriptionId;
         try {
-            String scope = "subscriptions/" + subscriptionId;
             String filter = "principalId eq '" + principalObjectId + "'";
 
             AzureResponse<RoleAssignmentListResult> response =
                 authorizationClient.listForScopeRoleAssignments(scope, filter, null, null);
+            recordExpectedResponse("authorization_listRoleAssignments_" + sanitizeName(scope), response);
 
             RoleAssignmentListResult body = response.getBody();
             List<RoleAssignment> assignments = body != null && body.value() != null
@@ -701,6 +753,7 @@ public class DemoApplication {
 
             listGraphAppRoleAssignments();
         } catch (AzureServiceException e) {
+            recordExpectedError("authorization_listRoleAssignments_" + sanitizeName(scope), e);
             System.err.println("\n=== AZURE SERVICE ERROR (AUTHORIZATION) ===");
             System.err.println("HTTP Status Code: " + e.getStatusCode());
             System.err.println("Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -1075,6 +1128,7 @@ public class DemoApplication {
             try {
                 AzureResponse<NetworkInterfaceListResult> nicResponse = networkClient.listVirtualMachineScaleSetNetworkInterfacesNetworkInterfaces(
                     subscriptionId, resourceGroupName, vmssName);
+                recordExpectedResponse("network_vmss_" + sanitizeName(vmssName) + "_networkInterfaces", nicResponse);
                 NetworkInterfaceListResult nicList = nicResponse.getBody();
 
                 if (nicList.value() != null) {
@@ -1091,6 +1145,7 @@ public class DemoApplication {
                     }
                 }
             } catch (AzureServiceException e) {
+                recordExpectedError("network_vmss_" + sanitizeName(vmssName) + "_networkInterfaces", e);
                 System.err.println("  === AZURE SERVICE ERROR ===");
                 System.err.println("  HTTP Status Code: " + e.getStatusCode());
                 System.err.println("  Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -1104,6 +1159,7 @@ public class DemoApplication {
             AzureResponse<VirtualMachineScaleSetVMListResult> response = computeClient.listVirtualMachineScaleSetVMs(
             //    subscriptionId, resourceGroupName, vmssName, "properties/latestModelApplied+eq+true","instanceView", "instanceView");
             subscriptionId, resourceGroupName, vmssName, null, null, null);
+            recordExpectedResponse("compute_vmss_" + sanitizeName(vmssName) + "_virtualMachines", response);
             VirtualMachineScaleSetVMListResult vmList = response.getBody();
 
             if (vmList.value() != null && !vmList.value().isEmpty()) {
@@ -1140,6 +1196,7 @@ public class DemoApplication {
                 System.out.println("  No VMs found in this scale set");
             }
         } catch (AzureServiceException e) {
+            recordExpectedError("compute_vmss_" + sanitizeName(vmssName) + "_virtualMachines", e);
             System.err.println("  === AZURE SERVICE ERROR ===");
             System.err.println("  HTTP Status Code: " + e.getStatusCode());
             System.err.println("  Error Code: " + (e.getErrorCode() != null ? e.getErrorCode() : "N/A"));
@@ -1173,12 +1230,20 @@ public class DemoApplication {
                             var publicIPResponse = networkClient.getVirtualMachineScaleSetPublicIPAddressPublicIPAddresses(
                                 subscriptionId, resourceGroupName, vmssName, instanceId,
                                 nicName, ipConfigName, publicIPName, null);
+                            recordExpectedResponse(
+                                "network_vmss_" + sanitizeName(vmssName) + "_instance" + sanitizeName(instanceId) + "_publicIp",
+                                publicIPResponse);
                             if (publicIPResponse.getBody() != null &&
                                 publicIPResponse.getBody().properties() != null &&
                                 publicIPResponse.getBody().properties().ipAddress() != null) {
                                 System.out.println("      Public IP: " + publicIPResponse.getBody().properties().ipAddress());
                             }
                         } catch (Exception e) {
+                            if (e instanceof AzureServiceException ase) {
+                                recordExpectedError(
+                                    "network_vmss_" + sanitizeName(vmssName) + "_instance" + sanitizeName(instanceId) + "_publicIp",
+                                    ase);
+                            }
                             // Silently skip if we can't fetch public IP details
                         }
                     }
@@ -1247,6 +1312,75 @@ public class DemoApplication {
             return parts[parts.length - 1]; // Last part is the resource name
         }
         return "Unknown";
+    }
+
+    private static boolean isRecordingMode() {
+        return recorderMode == HttpInteractionRecorder.Mode.RECORD;
+    }
+
+    private static void recordExpectedResponse(String key, AzureResponse<?> response) {
+        if (!isRecordingMode() || response == null) {
+            return;
+        }
+        RecordedResponseEnvelope envelope = new RecordedResponseEnvelope(response.getStatusCode(), response.getBody());
+        writeExpectedJson(key, envelope);
+    }
+
+    private static void recordExpectedError(String key, AzureServiceException exception) {
+        if (!isRecordingMode() || exception == null) {
+            return;
+        }
+        RecordedErrorEnvelope envelope = new RecordedErrorEnvelope(
+            exception.getClass().getSimpleName(),
+            exception.getStatusCode(),
+            exception.getMessage(),
+            exception.getErrorCode(),
+            exception.getResponseBody()
+        );
+        writeExpectedJson(key, envelope);
+    }
+
+    private static void writeExpectedJson(String key, Object payload) {
+        try {
+            Path target = expectedOutputDirectory.resolve(key + ".json");
+            Files.createDirectories(target.getParent());
+            EXPECTATION_MAPPER.writeValue(target.toFile(), payload);
+        } catch (IOException e) {
+            System.err.println("Failed to write expected output '" + key + "': " + e.getMessage());
+        }
+    }
+
+    private static String sanitizeName(String value) {
+        if (value == null || value.isBlank()) {
+            return "unknown";
+        }
+        return value.replaceAll("[^a-zA-Z0-9-_]", "-");
+    }
+
+    private static class RecordedResponseEnvelope {
+        public final int statusCode;
+        public final Object body;
+
+        RecordedResponseEnvelope(int statusCode, Object body) {
+            this.statusCode = statusCode;
+            this.body = body;
+        }
+    }
+
+    private static class RecordedErrorEnvelope {
+        public final String errorType;
+        public final int statusCode;
+        public final String message;
+        public final String errorCode;
+        public final String responseBody;
+
+        RecordedErrorEnvelope(String errorType, int statusCode, String message, String errorCode, String responseBody) {
+            this.errorType = errorType;
+            this.statusCode = statusCode;
+            this.message = message;
+            this.errorCode = errorCode;
+            this.responseBody = responseBody;
+        }
     }
 
     private static class PlaybackCredentials implements AzureCredentials {

@@ -1,0 +1,41 @@
+{
+  "statusCode" : 200,
+  "body" : {
+    "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/1/networkInterfaces/vnet-1-us-east-nic01/ipConfigurations/vnet-1-us-east-nic01-defaultIpConfiguration/publicIPAddresses/publicIp-vnet-1-us-east-nic01",
+    "name" : "publicIp-vnet-1-us-east-nic01",
+    "type" : null,
+    "location" : null,
+    "tags" : null,
+    "extendedLocation" : null,
+    "sku" : {
+      "name" : "Standard",
+      "tier" : "Regional"
+    },
+    "properties" : {
+      "publicIPAllocationMethod" : "Static",
+      "publicIPAddressVersion" : "IPv4",
+      "ipConfiguration" : {
+        "id" : "/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/us-east-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-us-east/virtualMachines/1/networkInterfaces/vnet-1-us-east-nic01/ipConfigurations/vnet-1-us-east-nic01-defaultIpConfiguration",
+        "properties" : null,
+        "name" : null
+      },
+      "dnsSettings" : null,
+      "ddosSettings" : {
+        "protectionMode" : "VirtualNetworkInherited",
+        "ddosProtectionPlan" : null
+      },
+      "ipTags" : [ ],
+      "ipAddress" : "172.212.104.107",
+      "publicIPPrefix" : null,
+      "idleTimeoutInMinutes" : 15,
+      "resourceGuid" : "7e13f2ea-321f-4608-b478-b00d923d20af",
+      "provisioningState" : "Succeeded",
+      "servicePublicIPAddress" : null,
+      "natGateway" : null,
+      "migrationPhase" : null,
+      "linkedPublicIPAddress" : null,
+      "deleteOption" : null
+    },
+    "zones" : [ "2" ]
+  }
+}
