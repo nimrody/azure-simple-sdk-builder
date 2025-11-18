@@ -1,0 +1,38 @@
+{
+  "signature" : "mEIiVbz1NGtM7wbyQyaOa3hbFhwAdnW4DKbJ2s-UpV4",
+  "request" : {
+    "method" : "GET",
+    "url" : "https://management.azure.com/subscriptions?api-version=2022-12-01",
+    "headers" : {
+      "x-ms-version" : "2022-12-01",
+      "Accept" : "application/json",
+      "User-Agent" : "azure-simple-sdk/1.0.0",
+      "x-ms-client-request-id" : "69069f16-df2f-4544-bd90-b9d9e205f52f",
+      "Content-Type" : "application/json"
+    },
+    "body" : null,
+    "recordedAt" : "2025-11-18T13:26:08.549072Z"
+  },
+  "response" : {
+    "statusCode" : 200,
+    "headers" : {
+      "date" : "Tue, 18 Nov 2025 13:26:08 GMT",
+      "content-length" : "2641",
+      "expires" : "-1",
+      "pragma" : "no-cache",
+      "strict-transport-security" : "max-age=31536000; includeSubDomains",
+      "x-ms-correlation-request-id" : "7e085c4e-e945-458e-b96f-5eb1d956bd2d",
+      "x-ms-ratelimit-remaining-tenant-reads" : "249",
+      "x-content-type-options" : "nosniff",
+      "x-msedge-ref" : "Ref A: 2666CA42E128473DAC60BB5E7D1B55B9 Ref B: FRA231050413021 Ref C: 2025-11-18T13:26:08Z",
+      "x-ms-routing-request-id" : "GERMANYWESTCENTRAL:20251118T132608Z:7e085c4e-e945-458e-b96f-5eb1d956bd2d",
+      "content-type" : "application/json; charset=utf-8",
+      ":status" : "200",
+      "x-cache" : "CONFIG_NOCACHE",
+      "cache-control" : "no-cache",
+      "x-ms-request-id" : "7e085c4e-e945-458e-b96f-5eb1d956bd2d"
+    },
+    "body" : "{\"value\":[{\"id\":\"/subscriptions/c084d11d-0b54-4627-91cd-777c1d3a69f9\",\"authorizationSource\":\"RoleBased\",\"managedByTenants\":[],\"tags\":{\"account_type\":\"offer\",\"cloud_registration_id\":\"128135\",\"environment\":\"nonprod\",\"last_revalidated_at\":\"2025-08-13\",\"last_revalidated_by\":\"anelisee\",\"owner_group\":\"cii-aws-access\",\"cloudx-azure-usercompliance\":\"terminated\"},\"subscriptionId\":\"c084d11d-0b54-4627-91cd-777c1d3a69f9\",\"tenantId\":\"5ae1af62-9505-4097-a69a-c1553ef7840e\",\"displayName\":\"te-azr-cii-staging\",\"state\":\"Enabled\",\"subscriptionPolicies\":{\"locationPlacementId\":\"Public_2014-09-01\",\"quotaId\":\"EnterpriseAgreement_2014-09-01\",\"spendingLimit\":\"Off\"}},{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429\",\"authorizationSource\":\"RoleBased\",\"managedByTenants\":[],\"tags\":{\"account_type\":\"offer\",\"cloud_registration_id\":\"128135\",\"environment\":\"nonprod\",\"last_revalidated_at\":\"2025-07-08\",\"last_revalidated_by\":\"gcolman\",\"owner_group\":\"thousandeyes-azure-tenant\",\"cloudx-azure-usercompliance\":\"terminated\"},\"subscriptionId\":\"40516be1-2840-44df-9333-c39247d77429\",\"tenantId\":\"5ae1af62-9505-4097-a69a-c1553ef7840e\",\"displayName\":\"team-cloudmon-sandbox-azure\",\"state\":\"Enabled\",\"subscriptionPolicies\":{\"locationPlacementId\":\"Public_2014-09-01\",\"quotaId\":\"EnterpriseAgreement_2014-09-01\",\"spendingLimit\":\"Off\"}},{\"id\":\"/subscriptions/3145d332-e1c9-4670-a672-86e17d4f627e\",\"authorizationSource\":\"RoleBased\",\"managedByTenants\":[],\"tags\":{\"account_type\":\"offer\",\"cloud_registration_id\":\"128135\",\"environment\":\"nonprod\",\"last_revalidated_at\":\"2025-07-08\",\"last_revalidated_by\":\"gcolman\",\"owner_group\":\"thousandeyes-azure-tenant\",\"cloudx-azure-usercompliance\":\"terminated\"},\"subscriptionId\":\"3145d332-e1c9-4670-a672-86e17d4f627e\",\"tenantId\":\"5ae1af62-9505-4097-a69a-c1553ef7840e\",\"displayName\":\"team-cloudmon-sandbox3-azure\",\"state\":\"Enabled\",\"subscriptionPolicies\":{\"locationPlacementId\":\"Public_2014-09-01\",\"quotaId\":\"EnterpriseAgreement_2014-09-01\",\"spendingLimit\":\"Off\"}},{\"id\":\"/subscriptions/6d7ab240-fc1f-4caf-b121-8f39a62ca086\",\"authorizationSource\":\"RoleBased\",\"managedByTenants\":[],\"tags\":{\"account_type\":\"offer\",\"cloud_registration_id\":\"128135\",\"environment\":\"nonprod\",\"last_revalidated_at\":\"2025-08-13\",\"last_revalidated_by\":\"anelisee\",\"owner_group\":\"cii-aws-access\",\"cloudx-azure-usercompliance\":\"terminated\"},\"subscriptionId\":\"6d7ab240-fc1f-4caf-b121-8f39a62ca086\",\"tenantId\":\"5ae1af62-9505-4097-a69a-c1553ef7840e\",\"displayName\":\"te-azr-cii-sandbox\",\"state\":\"Enabled\",\"subscriptionPolicies\":{\"locationPlacementId\":\"Public_2014-09-01\",\"quotaId\":\"EnterpriseAgreement_2014-09-01\",\"spendingLimit\":\"Off\"}}],\"count\":{\"type\":\"Total\",\"value\":4}}",
+    "recordedAt" : "2025-11-18T13:26:08.551303Z"
+  }
+}

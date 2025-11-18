@@ -52,3 +52,20 @@ Examples:
 2. Redact or sanitize any secrets from the recorded JSON before committing.
 3. In CI or local regression suites run the same command in `--mode play` (optionally with `-Dstrict=true`) to guarantee deterministic, offline verification of the SDK surface.
 4. When the REST specs change, regenerate the SDK and re-run the recorder to refresh the fixtures; any diff in the recording files highlights behavior changes immediately.
+
+### Recorded Regression Test
+
+The repository contains a canned capture under `sdk/src/test/resources/recordings/record-78abb1c`.  
+`RecordedPlaybackIntegrationTest` replays those files to validate the SDK end-to-end:
+
+```bash
+./gradlew :sdk:test --tests com.azure.simpleSDK.integration.RecordedPlaybackIntegrationTest
+```
+
+To refresh the fixtures, rerun the demo in record mode targeting the same directory:
+
+```bash
+./gradlew :demo:run --args="--mode record --recordings-dir sdk/src/test/resources/recordings/record-78abb1c"
+```
+
+Review and commit the updated JSON files so CI always exercises the latest recordings.

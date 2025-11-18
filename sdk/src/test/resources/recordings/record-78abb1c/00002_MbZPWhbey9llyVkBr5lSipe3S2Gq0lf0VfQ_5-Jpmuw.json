@@ -1,0 +1,39 @@
+{
+  "signature" : "MbZPWhbey9llyVkBr5lSipe3S2Gq0lf0VfQ_5-Jpmuw",
+  "request" : {
+    "method" : "GET",
+    "url" : "https://management.azure.com/subscriptions/40516be1-2840-44df-9333-c39247d77429/providers/Microsoft.Network/azureFirewalls?api-version=2024-07-01",
+    "headers" : {
+      "x-ms-version" : "2024-07-01",
+      "Accept" : "application/json",
+      "User-Agent" : "azure-simple-sdk/1.0.0",
+      "x-ms-client-request-id" : "1b2c1887-51bd-4967-b969-d9cf22533e41",
+      "Content-Type" : "application/json"
+    },
+    "body" : null,
+    "recordedAt" : "2025-11-18T13:26:09.260795Z"
+  },
+  "response" : {
+    "statusCode" : 200,
+    "headers" : {
+      "date" : "Tue, 18 Nov 2025 13:26:09 GMT",
+      "content-length" : "12",
+      "expires" : "-1",
+      "x-ms-ratelimit-remaining-subscription-global-reads" : "3749",
+      "x-ms-ratelimit-remaining-subscription-reads" : "249",
+      "pragma" : "no-cache",
+      "strict-transport-security" : "max-age=31536000; includeSubDomains",
+      "x-ms-correlation-request-id" : "1c7ff799-4087-4b3a-83ac-b07540b2b223",
+      "x-content-type-options" : "nosniff",
+      "x-msedge-ref" : "Ref A: 5C098EB96A574A73836301D3C8CA37CE Ref B: FRA231050414027 Ref C: 2025-11-18T13:26:08Z",
+      "x-ms-routing-request-id" : "GERMANYWESTCENTRAL:20251118T132609Z:1c7ff799-4087-4b3a-83ac-b07540b2b223",
+      "content-type" : "application/json; charset=utf-8",
+      ":status" : "200",
+      "x-cache" : "CONFIG_NOCACHE",
+      "cache-control" : "no-cache",
+      "x-ms-request-id" : "1c7ff799-4087-4b3a-83ac-b07540b2b223"
+    },
+    "body" : "{\"value\":[]}",
+    "recordedAt" : "2025-11-18T13:26:09.260930Z"
+  }
+}

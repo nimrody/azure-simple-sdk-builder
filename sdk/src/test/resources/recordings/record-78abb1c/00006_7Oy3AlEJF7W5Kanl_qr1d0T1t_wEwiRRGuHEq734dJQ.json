@@ -1,0 +1,38 @@
+{
+  "signature" : "7Oy3AlEJF7W5Kanl_qr1d0T1t_wEwiRRGuHEq734dJQ",
+  "request" : {
+    "method" : "GET",
+    "url" : "https://management.azure.com/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/nsg-neu-rg/providers/Microsoft.Network/networkSecurityGroups/shared-services-neu-nsg?api-version=2024-07-01",
+    "headers" : {
+      "x-ms-version" : "2024-07-01",
+      "Accept" : "application/json",
+      "User-Agent" : "azure-simple-sdk/1.0.0",
+      "x-ms-client-request-id" : "5be5e226-1829-4bdf-81f1-00ce6e26acd5",
+      "Content-Type" : "application/json"
+    },
+    "body" : null,
+    "recordedAt" : "2025-11-18T13:26:12.325631Z"
+  },
+  "response" : {
+    "statusCode" : 404,
+    "headers" : {
+      "date" : "Tue, 18 Nov 2025 13:26:12 GMT",
+      "content-length" : "102",
+      "expires" : "-1",
+      "pragma" : "no-cache",
+      "strict-transport-security" : "max-age=31536000; includeSubDomains",
+      "x-ms-correlation-request-id" : "ae97c98c-3f10-4ad7-b458-44feb03a931e",
+      "x-content-type-options" : "nosniff",
+      "x-msedge-ref" : "Ref A: 4F4652924F89419EBB493CDB973F7834 Ref B: FRA231050414027 Ref C: 2025-11-18T13:26:12Z",
+      "x-ms-failure-cause" : "gateway",
+      "x-ms-routing-request-id" : "GERMANYWESTCENTRAL:20251118T132612Z:ae97c98c-3f10-4ad7-b458-44feb03a931e",
+      "content-type" : "application/json; charset=utf-8",
+      ":status" : "404",
+      "x-cache" : "CONFIG_NOCACHE",
+      "cache-control" : "no-cache",
+      "x-ms-request-id" : "ae97c98c-3f10-4ad7-b458-44feb03a931e"
+    },
+    "body" : "{\"error\":{\"code\":\"ResourceGroupNotFound\",\"message\":\"Resource group 'nsg-neu-rg' could not be found.\"}}",
+    "recordedAt" : "2025-11-18T13:26:12.325712Z"
+  }
+}

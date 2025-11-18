@@ -1,0 +1,38 @@
+{
+  "signature" : "kUwNgxF-2x1DQRNRggZFC1lVCtf4qLyorA91iGSgVUQ",
+  "request" : {
+    "method" : "GET",
+    "url" : "https://management.azure.com/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/nsg-zzz/providers/Microsoft.Network/networkSecurityGroups/xxxx?api-version=2024-07-01",
+    "headers" : {
+      "x-ms-version" : "2024-07-01",
+      "Accept" : "application/json",
+      "User-Agent" : "azure-simple-sdk/1.0.0",
+      "x-ms-client-request-id" : "b5b8b244-6ea9-4421-8123-e9ed36ca3b76",
+      "Content-Type" : "application/json"
+    },
+    "body" : null,
+    "recordedAt" : "2025-11-18T13:26:12.688401Z"
+  },
+  "response" : {
+    "statusCode" : 404,
+    "headers" : {
+      "date" : "Tue, 18 Nov 2025 13:26:12 GMT",
+      "content-length" : "99",
+      "expires" : "-1",
+      "pragma" : "no-cache",
+      "strict-transport-security" : "max-age=31536000; includeSubDomains",
+      "x-ms-correlation-request-id" : "98babb2e-4731-4238-9461-ed5d93be17d3",
+      "x-content-type-options" : "nosniff",
+      "x-msedge-ref" : "Ref A: 3BF472F1A9F547509F62B393C374B8CD Ref B: FRA231050414027 Ref C: 2025-11-18T13:26:12Z",
+      "x-ms-failure-cause" : "gateway",
+      "x-ms-routing-request-id" : "SWITZERLANDNORTH:20251118T132612Z:98babb2e-4731-4238-9461-ed5d93be17d3",
+      "content-type" : "application/json; charset=utf-8",
+      ":status" : "404",
+      "x-cache" : "CONFIG_NOCACHE",
+      "cache-control" : "no-cache",
+      "x-ms-request-id" : "98babb2e-4731-4238-9461-ed5d93be17d3"
+    },
+    "body" : "{\"error\":{\"code\":\"ResourceGroupNotFound\",\"message\":\"Resource group 'nsg-zzz' could not be found.\"}}",
+    "recordedAt" : "2025-11-18T13:26:12.688505Z"
+  }
+}

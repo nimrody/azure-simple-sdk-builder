@@ -1,0 +1,41 @@
+{
+  "signature" : "Y6_m6LyiGXjTOMFW7z5oAJlsT4xF-BEjKdCrVHnRLQM",
+  "request" : {
+    "method" : "GET",
+    "url" : "https://management.azure.com/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/EU-WEST-RESOURCE-GROUP-1/providers/microsoft.Compute/virtualMachineScaleSets/vm-ss-1-eu-west/networkInterfaces?api-version=2024-07-01",
+    "headers" : {
+      "x-ms-version" : "2024-07-01",
+      "Accept" : "application/json",
+      "User-Agent" : "azure-simple-sdk/1.0.0",
+      "x-ms-client-request-id" : "3a1060d0-d041-4339-a12d-617280483c26",
+      "Content-Type" : "application/json"
+    },
+    "body" : null,
+    "recordedAt" : "2025-11-18T13:26:16.051641Z"
+  },
+  "response" : {
+    "statusCode" : 200,
+    "headers" : {
+      "date" : "Tue, 18 Nov 2025 13:26:16 GMT",
+      "content-length" : "4681",
+      "expires" : "-1",
+      "x-ms-ratelimit-remaining-subscription-global-reads" : "3749",
+      "x-ms-ratelimit-remaining-subscription-reads" : "249",
+      "pragma" : "no-cache",
+      "strict-transport-security" : "max-age=31536000; includeSubDomains",
+      "x-ms-correlation-request-id" : "78438574-c9a1-4401-9284-48cf4c8cd984",
+      "x-ms-arm-service-request-id" : "569092c9-f864-4101-a80c-4499d4e4be6c",
+      "x-ms-operation-identifier" : "appId=4c0509ba-091d-41c9-975f-3eb3627efa2f,tenantId=5ae1af62-9505-4097-a69a-c1553ef7840e,objectId=319e61e7-176f-48b5-b91e-b3ee7f446c9e/eastus/5f40f5f5-49b0-4908-a4ca-3da735de0a99",
+      "x-content-type-options" : "nosniff",
+      "x-msedge-ref" : "Ref A: 050EA01A7213442EB63E3D64A28D9782 Ref B: FRA231050414027 Ref C: 2025-11-18T13:26:15Z",
+      "x-ms-routing-request-id" : "EASTUS:20251118T132616Z:78438574-c9a1-4401-9284-48cf4c8cd984",
+      "content-type" : "application/json; charset=utf-8",
+      ":status" : "200",
+      "x-cache" : "CONFIG_NOCACHE",
+      "cache-control" : "no-cache",
+      "x-ms-request-id" : "be962cf2-9fad-440d-bc96-b4544bff059f"
+    },
+    "body" : "{\"value\":[{\"name\":\"vnet-1-eu-west-nic01\",\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-eu-west/virtualMachines/0/networkInterfaces/vnet-1-eu-west-nic01\",\"etag\":\"W/\\\"aacecc9b-1df6-4f86-ad42-fda6603e7d9b\\\"\",\"properties\":{\"provisioningState\":\"Succeeded\",\"resourceGuid\":\"d46a5af6-36eb-4ecb-92d6-1b3e16f42f1b\",\"ipConfigurations\":[{\"name\":\"vnet-1-eu-west-nic01-defaultIpConfiguration\",\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-eu-west/virtualMachines/0/networkInterfaces/vnet-1-eu-west-nic01/ipConfigurations/vnet-1-eu-west-nic01-defaultIpConfiguration\",\"etag\":\"W/\\\"aacecc9b-1df6-4f86-ad42-fda6603e7d9b\\\"\",\"properties\":{\"provisioningState\":\"Succeeded\",\"privateIPAddress\":\"10.10.8.4\",\"privateIPAllocationMethod\":\"Dynamic\",\"subnet\":{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/private-subnet-1\"},\"primary\":true,\"privateIPAddressVersion\":\"IPv4\",\"loadBalancerBackendAddressPools\":[{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/loadBalancers/LB-01/backendAddressPools/LB-01-backendpool01\"}]}}],\"dnsSettings\":{\"dnsServers\":[],\"appliedDnsServers\":[],\"internalDomainNameSuffix\":\"gunrkw31nooutaprxbqzawqs3f.ax.internal.cloudapp.net\"},\"macAddress\":\"60-45-BD-9F-80-EB\",\"enableAcceleratedNetworking\":true,\"vnetEncryptionSupported\":false,\"enableIPForwarding\":false,\"disableTcpStateTracking\":false,\"networkSecurityGroup\":{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01\"},\"primary\":true,\"virtualMachine\":{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-eu-west/virtualMachines/0\"},\"hostedWorkloads\":[],\"tapConfigurations\":[],\"nicType\":\"Standard\",\"enableFpga\":false,\"allowPort25Out\":true,\"defaultOutboundConnectivityEnabled\":false,\"auxiliaryMode\":\"None\",\"auxiliarySku\":\"None\"},\"location\":\"westeurope\",\"kind\":\"Regular\"},{\"name\":\"vnet-1-eu-west-nic01\",\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-eu-west/virtualMachines/1/networkInterfaces/vnet-1-eu-west-nic01\",\"etag\":\"W/\\\"4a83044a-a369-42f0-b876-07e3494055a2\\\"\",\"properties\":{\"provisioningState\":\"Succeeded\",\"resourceGuid\":\"f41f6d06-92fe-4afb-b92a-8394b7de8b33\",\"ipConfigurations\":[{\"name\":\"vnet-1-eu-west-nic01-defaultIpConfiguration\",\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-eu-west/virtualMachines/1/networkInterfaces/vnet-1-eu-west-nic01/ipConfigurations/vnet-1-eu-west-nic01-defaultIpConfiguration\",\"etag\":\"W/\\\"4a83044a-a369-42f0-b876-07e3494055a2\\\"\",\"properties\":{\"provisioningState\":\"Succeeded\",\"privateIPAddress\":\"10.10.8.5\",\"privateIPAllocationMethod\":\"Dynamic\",\"subnet\":{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/virtualNetworks/vnet-1-eu-west/subnets/private-subnet-1\"},\"primary\":true,\"privateIPAddressVersion\":\"IPv4\",\"loadBalancerBackendAddressPools\":[{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/loadBalancers/LB-01/backendAddressPools/LB-01-backendpool01\"}]}}],\"dnsSettings\":{\"dnsServers\":[],\"appliedDnsServers\":[],\"internalDomainNameSuffix\":\"gunrkw31nooutaprxbqzawqs3f.ax.internal.cloudapp.net\"},\"macAddress\":\"60-45-BD-92-8D-88\",\"enableAcceleratedNetworking\":true,\"vnetEncryptionSupported\":false,\"enableIPForwarding\":false,\"disableTcpStateTracking\":false,\"networkSecurityGroup\":{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Network/networkSecurityGroups/nsg-01\"},\"primary\":true,\"virtualMachine\":{\"id\":\"/subscriptions/40516be1-2840-44df-9333-c39247d77429/resourceGroups/eu-west-resource-group-1/providers/Microsoft.Compute/virtualMachineScaleSets/vm-ss-1-eu-west/virtualMachines/1\"},\"hostedWorkloads\":[],\"tapConfigurations\":[],\"nicType\":\"Standard\",\"enableFpga\":false,\"allowPort25Out\":true,\"defaultOutboundConnectivityEnabled\":false,\"auxiliaryMode\":\"None\",\"auxiliarySku\":\"None\"},\"location\":\"westeurope\",\"kind\":\"Regular\"}]}",
+    "recordedAt" : "2025-11-18T13:26:16.051739Z"
+  }
+}
