@@ -145,7 +145,7 @@ public class JavaDefinitionGenerator {
                 
                 JsonNode property = properties.get(propertyName);
                 String javaType = getJavaType(property, definitionKey.filename());
-                String fieldDeclaration = generateFieldDeclaration(javaType, fieldName, propertyName);
+                String fieldDeclaration = generateFieldDeclaration(javaType, fieldName, propertyName, property);
                 fields.add(fieldDeclaration);
                 addedFieldNames.add(fieldName);
             });
@@ -593,12 +593,53 @@ public class JavaDefinitionGenerator {
         return !fieldName.equals(mapReservedWord(fieldName));
     }
     
-    private String generateFieldDeclaration(String javaType, String fieldName, String originalPropertyName) {
-        if (isReservedWord(originalPropertyName) || !fieldName.equals(originalPropertyName)) {
-            return String.format("    @JsonProperty(\"%s\") %s %s", originalPropertyName, javaType, fieldName);
-        } else {
-            return String.format("    %s %s", javaType, fieldName);
+    private String generateFieldDeclaration(String javaType, String fieldName, String originalPropertyName, JsonNode property) {
+        StringBuilder builder = new StringBuilder();
+        String description = extractPropertyDescription(property);
+        if (description != null) {
+            builder.append(buildFieldJavadoc(description));
         }
+        
+        if (isReservedWord(originalPropertyName) || !fieldName.equals(originalPropertyName)) {
+            builder.append(String.format("    @JsonProperty(\"%s\") %s %s", originalPropertyName, javaType, fieldName));
+        } else {
+            builder.append(String.format("    %s %s", javaType, fieldName));
+        }
+        return builder.toString();
+    }
+    
+    private String extractPropertyDescription(JsonNode property) {
+        if (property == null) {
+            return null;
+        }
+        JsonNode descriptionNode = property.get("description");
+        if (descriptionNode != null && descriptionNode.isTextual()) {
+            String description = descriptionNode.asText().trim();
+            if (!description.isEmpty()) {
+                return description;
+            }
+        }
+        return null;
+    }
+    
+    private String buildFieldJavadoc(String description) {
+        String sanitizedDescription = description
+            .replace("*/", "* /")
+            .replace("\r\n", "\n")
+            .replace('\r', '\n');
+        
+        String[] lines = sanitizedDescription.split("\n", -1);
+        StringBuilder javadocBuilder = new StringBuilder();
+        javadocBuilder.append("    /**\n");
+        for (String line : lines) {
+            if (line.isBlank()) {
+                javadocBuilder.append("     *\n");
+            } else {
+                javadocBuilder.append("     * ").append(line.trim()).append("\n");
+            }
+        }
+        javadocBuilder.append("     */\n");
+        return javadocBuilder.toString();
     }
     
     private String capitalizeFirstLetter(String str) {
@@ -796,7 +837,7 @@ public class JavaDefinitionGenerator {
                 
                 JsonNode property = properties.get(propertyName);
                 String javaType = getJavaType(property, currentFilename);
-                String fieldDeclaration = generateFieldDeclaration(javaType, fieldName, propertyName);
+                String fieldDeclaration = generateFieldDeclaration(javaType, fieldName, propertyName, property);
                 fields.add(fieldDeclaration);
                 addedFieldNames.add(fieldName);
             });
