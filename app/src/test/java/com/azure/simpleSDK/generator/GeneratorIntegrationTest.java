@@ -59,7 +59,7 @@ class GeneratorIntegrationTest {
         SpecResult result = testLoader.loadSpecs();
         
         // Verify loaded data
-        assertThat(result.operations()).hasSize(3);
+        assertThat(result.operations()).hasSize(4);
         assertThat(result.definitions()).isNotEmpty();
         
         // Test definition generation

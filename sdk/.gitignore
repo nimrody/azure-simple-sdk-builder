@@ -9,4 +9,6 @@ src/main/java/com/azure/simpleSDK/compute/models/
 src/main/java/com/azure/simpleSDK/compute/client/
 src/main/java/com/azure/simpleSDK/network/models/
 src/main/java/com/azure/simpleSDK/network/client/
+src/test/java/com/azure/simpleSDK/integration/
+src/test/resources
 .gitignore
