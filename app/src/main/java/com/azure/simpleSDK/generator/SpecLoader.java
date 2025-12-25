@@ -318,6 +318,16 @@ public class SpecLoader {
             "com.azure.simpleSDK.authorization.client",
             "AzureAuthorizationClient"
         ));
+
+        serviceSpecs.put("frontdoor", new ServiceSpec(
+            "FrontDoor",
+            "azure-rest-api-specs/specification/cdn/resource-manager/Microsoft.Cdn/Cdn/stable/2025-06-01/",
+            "sdk/src/main/java/com/azure/simpleSDK/frontdoor/models",
+            "sdk/src/main/java/com/azure/simpleSDK/frontdoor/client",
+            "com.azure.simpleSDK.frontdoor.models",
+            "com.azure.simpleSDK.frontdoor.client",
+            "AzureFrontDoorClient"
+        ));
         
         // Generate SDK for each service
         for (Map.Entry<String, ServiceSpec> entry : serviceSpecs.entrySet()) {
