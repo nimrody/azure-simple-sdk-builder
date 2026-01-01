@@ -89,6 +89,11 @@ public class ServicePrincipalCredentials implements AzureCredentials {
         }
     }
 
+    @Override
+    public Instant getTokenExpiry() {
+        return tokenExpiry;
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static class TokenResponse {
         @JsonProperty("access_token")

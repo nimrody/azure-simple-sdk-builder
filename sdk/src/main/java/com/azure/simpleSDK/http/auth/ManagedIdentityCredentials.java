@@ -96,6 +96,11 @@ public class ManagedIdentityCredentials implements AzureCredentials {
         }
     }
 
+    @Override
+    public Instant getTokenExpiry() {
+        return tokenExpiry;
+    }
+
     private static class TokenResponse {
         @JsonProperty("access_token")
         public String accessToken;
