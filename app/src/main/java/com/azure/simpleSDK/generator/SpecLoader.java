@@ -301,7 +301,7 @@ public class SpecLoader {
         
         serviceSpecs.put("resources", new ServiceSpec(
             "Resources",
-            "azure-rest-api-specs/specification/resources/resource-manager/Microsoft.Resources/stable/2022-12-01/",
+            "azure-rest-api-specs/specification/resources/resource-manager/Microsoft.Resources/stable/2024-07-01/",
             "sdk/src/main/java/com/azure/simpleSDK/resources/models",
             "sdk/src/main/java/com/azure/simpleSDK/resources/client",
             "com.azure.simpleSDK.resources.models",
