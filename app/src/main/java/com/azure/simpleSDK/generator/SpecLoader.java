@@ -183,6 +183,7 @@ public class SpecLoader {
                         if (operationIdNode != null && operationIdNode.isTextual()) {
                             String operationId = operationIdNode.asText();
                             Map<String, String> responseSchemas = extractResponseSchemas(operationNode);
+                            String apiVersion = extractApiVersionFromPath(sourceFile);
                             Operation operation = new Operation(
                                 operationId,
                                 apiPath,
@@ -190,7 +191,8 @@ public class SpecLoader {
                                 operationNode,
                                 responseSchemas,
                                 rootNode,
-                                sourceFile
+                                sourceFile,
+                                apiVersion
                             );
                             operations.put(operationId, operation);
                         }
@@ -281,7 +283,7 @@ public class SpecLoader {
         
         serviceSpecs.put("network", new ServiceSpec(
             "Network",
-            "azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/",
+            List.of("azure-rest-api-specs/specification/network/resource-manager/Microsoft.Network/stable/2024-07-01/"),
             "sdk/src/main/java/com/azure/simpleSDK/network/models",
             "sdk/src/main/java/com/azure/simpleSDK/network/client",
             "com.azure.simpleSDK.network.models",
@@ -291,7 +293,7 @@ public class SpecLoader {
         
         serviceSpecs.put("compute", new ServiceSpec(
             "Compute", 
-            "azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/",
+            List.of("azure-rest-api-specs/specification/compute/resource-manager/Microsoft.Compute/ComputeRP/stable/2024-11-01/"),
             "sdk/src/main/java/com/azure/simpleSDK/compute/models",
             "sdk/src/main/java/com/azure/simpleSDK/compute/client", 
             "com.azure.simpleSDK.compute.models",
@@ -301,7 +303,10 @@ public class SpecLoader {
         
         serviceSpecs.put("resources", new ServiceSpec(
             "Resources",
-            "azure-rest-api-specs/specification/resources/resource-manager/Microsoft.Resources/stable/2024-07-01/",
+            List.of(
+                "azure-rest-api-specs/specification/resources/resource-manager/Microsoft.Resources/stable/2022-12-01/",
+                "azure-rest-api-specs/specification/resources/resource-manager/Microsoft.Resources/stable/2024-07-01/"
+            ),
             "sdk/src/main/java/com/azure/simpleSDK/resources/models",
             "sdk/src/main/java/com/azure/simpleSDK/resources/client",
             "com.azure.simpleSDK.resources.models",
@@ -311,7 +316,7 @@ public class SpecLoader {
         
         serviceSpecs.put("authorization", new ServiceSpec(
             "Authorization",
-            "azure-rest-api-specs/specification/authorization/resource-manager/Microsoft.Authorization/stable/2022-04-01/",
+            List.of("azure-rest-api-specs/specification/authorization/resource-manager/Microsoft.Authorization/stable/2022-04-01/"),
             "sdk/src/main/java/com/azure/simpleSDK/authorization/models",
             "sdk/src/main/java/com/azure/simpleSDK/authorization/client",
             "com.azure.simpleSDK.authorization.models",
@@ -321,7 +326,7 @@ public class SpecLoader {
 
         serviceSpecs.put("frontdoor", new ServiceSpec(
             "FrontDoor",
-            "azure-rest-api-specs/specification/cdn/resource-manager/Microsoft.Cdn/Cdn/stable/2025-06-01/",
+            List.of("azure-rest-api-specs/specification/cdn/resource-manager/Microsoft.Cdn/Cdn/stable/2025-06-01/"),
             "sdk/src/main/java/com/azure/simpleSDK/frontdoor/models",
             "sdk/src/main/java/com/azure/simpleSDK/frontdoor/client",
             "com.azure.simpleSDK.frontdoor.models",
@@ -389,21 +394,21 @@ public class SpecLoader {
      * Example:
      * ```java
      * new ServiceSpec(
-     *     "Network",                                           // Display name
-     *     "azure-rest-api-specs/.../network/.../2024-07-01/", // OpenAPI specs path
-     *     "sdk/.../network/models",                            // Models output directory  
-     *     "sdk/.../network/client",                            // Client output directory
-     *     "com.azure.simpleSDK.network.models",               // Models package
-     *     "com.azure.simpleSDK.network.client",               // Client package
-     *     "AzureNetworkClient"                                 // Client class name
+     *     "Network",                                            // Display name
+     *     List.of("azure-rest-api-specs/.../network/.../2024-07-01/"), // OpenAPI specs paths
+     *     "sdk/.../network/models",                             // Models output directory  
+     *     "sdk/.../network/client",                             // Client output directory
+     *     "com.azure.simpleSDK.network.models",                 // Models package
+     *     "com.azure.simpleSDK.network.client",                 // Client package
+     *     "AzureNetworkClient"                                  // Client class name
      * )
      * ```
      */
     private static class ServiceSpec {
         /** Human-readable service name for logging (e.g., "Network", "Compute") */
         final String displayName;
-        /** Path to OpenAPI specification files for this service */
-        final String specsPath;
+        /** Paths to OpenAPI specification files for this service */
+        final List<SpecSource> specSources;
         /** Output directory for generated model classes */
         final String modelsOutputDir;
         /** Output directory for generated client class */
@@ -417,24 +422,58 @@ public class SpecLoader {
         /** API version extracted from specs path */
         final String apiVersion;
         
-        ServiceSpec(String displayName, String specsPath, String modelsOutputDir, String clientOutputDir, 
+        ServiceSpec(String displayName, List<String> specsPaths, String modelsOutputDir, String clientOutputDir, 
                    String modelsPackage, String clientPackage, String clientClassName) {
             this.displayName = displayName;
-            this.specsPath = specsPath;
+            this.specSources = specsPaths.stream()
+                .map(SpecSource::new)
+                .toList();
             this.modelsOutputDir = modelsOutputDir;
             this.clientOutputDir = clientOutputDir;
             this.modelsPackage = modelsPackage;
             this.clientPackage = clientPackage;
             this.clientClassName = clientClassName;
+            this.apiVersion = this.specSources.stream()
+                .map(source -> source.apiVersion)
+                .max(SpecLoader::compareApiVersions)
+                .orElse("2024-07-01");
+        }
+    }
+
+    private static class SpecSource {
+        final String specsPath;
+        final String specsRootRelative;
+        final String apiVersion;
+
+        SpecSource(String specsPath) {
+            this.specsPath = specsPath;
+            this.specsRootRelative = normalizeSpecRoot(specsPath);
             this.apiVersion = extractApiVersionFromPath(specsPath);
         }
-        
-        private String extractApiVersionFromPath(String specsPath) {
-            // Extract API version from path like "azure-rest-api-specs/specification/.../stable/2024-11-01/"
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("/(\\d{4}-\\d{2}-\\d{2})/");
-            java.util.regex.Matcher matcher = pattern.matcher(specsPath);
-            return matcher.find() ? matcher.group(1) : "2024-07-01"; // Default fallback
+    }
+
+    private static String normalizeSpecRoot(String specsPath) {
+        String normalized = specsPath.replace('\\', '/');
+        int index = normalized.indexOf("azure-rest-api-specs/");
+        if (index >= 0) {
+            normalized = normalized.substring(index + "azure-rest-api-specs/".length());
         }
+        if (!normalized.endsWith("/")) {
+            normalized = normalized + "/";
+        }
+        return normalized;
+    }
+
+    private static String extractApiVersionFromPath(String specsPath) {
+        Pattern pattern = Pattern.compile("/(\\d{4}-\\d{2}-\\d{2})/");
+        Matcher matcher = pattern.matcher(specsPath);
+        return matcher.find() ? matcher.group(1) : "2024-07-01";
+    }
+
+    private static int compareApiVersions(String left, String right) {
+        String leftValue = left != null ? left : "";
+        String rightValue = right != null ? right : "";
+        return leftValue.compareTo(rightValue);
     }
     
     /**
@@ -538,10 +577,8 @@ public class SpecLoader {
     }
 
     private static void generateServiceSDK(ServiceSpec serviceSpec) {
-        SpecLoader loader = new SpecLoader(serviceSpec.specsPath);
-        
         try {
-            SpecResult result = loader.loadSpecs();
+            SpecResult result = loadMergedServiceSpecs(serviceSpec);
             
             CodeGenerationContext context = new CodeGenerationContext(
                 result.operations(),
@@ -559,6 +596,115 @@ public class SpecLoader {
         } catch (IOException e) {
             System.err.println("Error loading " + serviceSpec.displayName + " specifications: " + e.getMessage());
         }
+    }
+
+    private static SpecResult loadMergedServiceSpecs(ServiceSpec serviceSpec) throws IOException {
+        Map<String, Operation> mergedOperations = new HashMap<>();
+        Map<String, String> operationDates = new HashMap<>();
+        Map<DefinitionKey, JsonNode> mergedDefinitions = new HashMap<>();
+        Map<String, String> definitionDates = new HashMap<>();
+        Map<String, Set<DefinitionKey>> definitionKeysByName = new HashMap<>();
+
+        for (SpecSource source : serviceSpec.specSources) {
+            System.out.println("\n=== Loading specifications from: " + source.specsPath + " ===");
+            SpecLoader loader = new SpecLoader(source.specsPath);
+            SpecResult result = loader.loadSpecs();
+            System.out.println("Found " + result.operations().size() + " operations");
+            System.out.println("Found " + result.definitions().size() + " definitions");
+
+            mergeOperations(mergedOperations, operationDates, result.operations(), serviceSpec, source);
+            mergeDefinitions(mergedDefinitions, definitionDates, definitionKeysByName, result.definitions(), serviceSpec, source);
+        }
+
+        return new SpecResult(mergedOperations, mergedDefinitions);
+    }
+
+    private static void mergeOperations(Map<String, Operation> mergedOperations,
+                                        Map<String, String> operationDates,
+                                        Map<String, Operation> newOperations,
+                                        ServiceSpec serviceSpec,
+                                        SpecSource fallbackSource) {
+        for (Map.Entry<String, Operation> entry : newOperations.entrySet()) {
+            String operationId = entry.getKey();
+            Operation operation = entry.getValue();
+            String newDate = resolveSpecDate(serviceSpec, operation.sourceFile(), fallbackSource.apiVersion);
+            Operation existing = mergedOperations.get(operationId);
+            if (existing == null) {
+                mergedOperations.put(operationId, operation);
+                operationDates.put(operationId, newDate);
+                continue;
+            }
+
+            String existingDate = operationDates.get(operationId);
+            int comparison = compareApiVersions(existingDate, newDate);
+            if (comparison < 0) {
+                System.err.println("Warning: Operation '" + operationId + "' defined in multiple specs. " +
+                    "Preferring " + newDate + " over " + existingDate + ".");
+                mergedOperations.put(operationId, operation);
+                operationDates.put(operationId, newDate);
+            } else if (comparison > 0) {
+                System.err.println("Warning: Operation '" + operationId + "' defined in multiple specs. " +
+                    "Keeping " + existingDate + " over " + newDate + ".");
+            } else {
+                System.err.println("Warning: Operation '" + operationId + "' defined in multiple specs with the same version. " +
+                    "Keeping existing definition.");
+            }
+        }
+    }
+
+    private static void mergeDefinitions(Map<DefinitionKey, JsonNode> mergedDefinitions,
+                                         Map<String, String> definitionDates,
+                                         Map<String, Set<DefinitionKey>> definitionKeysByName,
+                                         Map<DefinitionKey, JsonNode> newDefinitions,
+                                         ServiceSpec serviceSpec,
+                                         SpecSource fallbackSource) {
+        for (Map.Entry<DefinitionKey, JsonNode> entry : newDefinitions.entrySet()) {
+            DefinitionKey key = entry.getKey();
+            String definitionName = key.definitionKey();
+            String newDate = resolveSpecDate(serviceSpec, key.filename(), fallbackSource.apiVersion);
+
+            String existingDate = definitionDates.get(definitionName);
+            if (existingDate == null) {
+                definitionDates.put(definitionName, newDate);
+                mergedDefinitions.put(key, entry.getValue());
+                definitionKeysByName.computeIfAbsent(definitionName, ignored -> new HashSet<>()).add(key);
+                continue;
+            }
+
+            int comparison = compareApiVersions(existingDate, newDate);
+            if (comparison < 0) {
+                System.err.println("Warning: Definition '" + definitionName + "' defined in multiple specs. " +
+                    "Preferring " + newDate + " over " + existingDate + ".");
+                Set<DefinitionKey> oldKeys = definitionKeysByName.get(definitionName);
+                if (oldKeys != null) {
+                    for (DefinitionKey oldKey : oldKeys) {
+                        mergedDefinitions.remove(oldKey);
+                    }
+                    oldKeys.clear();
+                }
+                definitionDates.put(definitionName, newDate);
+                mergedDefinitions.put(key, entry.getValue());
+                definitionKeysByName.computeIfAbsent(definitionName, ignored -> new HashSet<>()).add(key);
+            } else if (comparison == 0) {
+                mergedDefinitions.put(key, entry.getValue());
+                definitionKeysByName.computeIfAbsent(definitionName, ignored -> new HashSet<>()).add(key);
+            } else {
+                System.err.println("Warning: Definition '" + definitionName + "' defined in multiple specs. " +
+                    "Keeping " + existingDate + " over " + newDate + ".");
+            }
+        }
+    }
+
+    private static String resolveSpecDate(ServiceSpec serviceSpec, String sourceFile, String fallbackDate) {
+        if (sourceFile == null) {
+            return fallbackDate;
+        }
+        for (SpecSource source : serviceSpec.specSources) {
+            if (sourceFile.startsWith(source.specsRootRelative)) {
+                return source.apiVersion;
+            }
+        }
+        return fallbackDate;
     }
     
     public static void generateSDK(String specsPath, String modelsOutputDir, String clientOutputDir) {

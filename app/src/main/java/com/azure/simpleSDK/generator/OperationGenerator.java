@@ -232,7 +232,8 @@ public class OperationGenerator {
         
         classContent.append("        String url = ").append(urlPath).append(";\n");
         classContent.append("        AzureRequest request = httpClient.get(url)\n");
-        classContent.append("                .version(\"").append(apiVersion).append("\")");
+        String requestApiVersion = operation.apiVersion() != null ? operation.apiVersion() : apiVersion;
+        classContent.append("                .version(\"").append(requestApiVersion).append("\")");
         
         // Add query parameters
         for (Parameter param : queryParams) {

@@ -5,11 +5,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -465,10 +468,24 @@ public class JavaDefinitionGenerator {
     }
     
     private DefinitionKey findDefinitionKey(String filename, String definitionName) {
-        return definitions.keySet().stream()
+        DefinitionKey exactMatch = definitions.keySet().stream()
             .filter(key -> key.filename().equals(filename) && key.definitionKey().equals(definitionName))
             .findFirst()
             .orElse(null);
+        if (exactMatch != null) {
+            return exactMatch;
+        }
+
+        return definitions.keySet().stream()
+            .filter(key -> key.definitionKey().equals(definitionName))
+            .max(Comparator.comparing(key -> extractDateFromFilename(key.filename())))
+            .orElse(null);
+    }
+
+    private String extractDateFromFilename(String filename) {
+        Pattern datePattern = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
+        Matcher matcher = datePattern.matcher(filename);
+        return matcher.find() ? matcher.group(1) : "0000-00-00";
     }
     
     private String getAvailableDefinitionsForFile(String filename) {

@@ -1400,5 +1400,10 @@ public class DemoApplication {
         public void refresh() {
             // No-op for playback mode
         }
+
+        @Override
+        public java.time.Instant getTokenExpiry() {
+            return java.time.Instant.EPOCH;
+        }
     }
 }

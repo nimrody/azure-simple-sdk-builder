@@ -32,6 +32,7 @@ import java.util.Map;
  * @param responseSchemas Map of HTTP status codes to response schema names for type resolution
  * @param documentRoot Root JsonNode of the OpenAPI document containing this operation
  * @param sourceFile Relative path of the source specification file (from azure-rest-api-specs/)
+ * @param apiVersion API version resolved from the source specification path
  */
 public record Operation(
     String operationId,
@@ -40,6 +41,7 @@ public record Operation(
     JsonNode operationSpec,
     Map<String, String> responseSchemas,
     JsonNode documentRoot,
-    String sourceFile
+    String sourceFile,
+    String apiVersion
 ) {
 }

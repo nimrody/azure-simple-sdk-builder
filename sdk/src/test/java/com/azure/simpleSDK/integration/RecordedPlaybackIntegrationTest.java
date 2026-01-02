@@ -8,7 +8,6 @@ import com.azure.simpleSDK.compute.models.VirtualMachineScaleSet;
 import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetListWithLinkResult;
 import com.azure.simpleSDK.compute.models.VirtualMachineScaleSetVMListResult;
 import com.azure.simpleSDK.http.AzureHttpClient;
-import com.azure.simpleSDK.http.AzureRequest;
 import com.azure.simpleSDK.http.AzureResponse;
 import com.azure.simpleSDK.http.auth.AzureCredentials;
 import com.azure.simpleSDK.http.exceptions.AzureAuthenticationException;
@@ -22,6 +21,7 @@ import com.azure.simpleSDK.network.models.NetworkInterfaceListResult;
 import com.azure.simpleSDK.network.models.NetworkSecurityGroupListResult;
 import com.azure.simpleSDK.network.models.PublicIPAddress;
 import com.azure.simpleSDK.network.models.VirtualNetworkListResult;
+import com.azure.simpleSDK.resources.client.AzureResourcesClient;
 import com.azure.simpleSDK.resources.models.SubscriptionListResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,13 +61,14 @@ class RecordedPlaybackIntegrationTest {
         AzureHttpClient.setGlobalRecorder(recorder);
 
         AzureCredentials credentials = new PlaybackCredentials();
+        AzureResourcesClient resourcesClient = new AzureResourcesClient(credentials, false);
         AzureNetworkClient networkClient = new AzureNetworkClient(credentials, false);
         AzureComputeClient computeClient = new AzureComputeClient(credentials, false);
         AzureAuthorizationClient authorizationClient = new AzureAuthorizationClient(credentials, false);
 
         try {
             assertResponseMatches(expectations, "resources_listSubscriptions",
-                listSubscriptions(credentials));
+                resourcesClient.listSubscriptions());
 
             assertResponseMatches(expectations, "network_listAllAzureFirewalls",
                 networkClient.listAllAzureFirewalls(SUBSCRIPTION_ID));
@@ -257,13 +258,6 @@ class RecordedPlaybackIntegrationTest {
             return "unknown";
         }
         return input.replaceAll("[^a-zA-Z0-9-_]", "-");
-    }
-
-    private static AzureResponse<SubscriptionListResult> listSubscriptions(AzureCredentials credentials) throws AzureException {
-        AzureHttpClient client = new AzureHttpClient(credentials, false);
-        AzureRequest request = client.get("/subscriptions")
-            .version("2022-12-01");
-        return client.execute(request, SubscriptionListResult.class);
     }
 
     private static final class PlaybackCredentials implements AzureCredentials {
